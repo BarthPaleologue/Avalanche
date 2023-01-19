@@ -44,7 +44,7 @@ cuboid.position = new Vector3(0, 1, 3);
 let I = 0;
 
 function updateScene() {
-    if (I == 1) cuboid.applyImpulse(new Impulse(new Vector3(0, 100, 10), new Vector3(1, 0, 0)));
+    if (I == 1) cuboid.applyImpulse(new Impulse(new Vector3(0, 100, 10), new Vector3(0.5, 0.5, 0.5)));
     const deltaTime = engine.getDeltaTime() / 1000;
     physicsEngine.update(deltaTime);
     I++;

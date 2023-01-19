@@ -71,7 +71,9 @@ export class RigidBody {
         }
         this.velocity = this.momentum.scale(this.inverseMass);
 
-        this.rotationQuaternion.addInPlace(Quaternion.RotationAxis(this.omega, deltaTime / 2).multiply(this.rotationQuaternion));
+        const omegaQuaternion = new Quaternion(this.omega.x, this.omega.y, this.omega.z, 0);
+
+        this.rotationQuaternion.addInPlace(omegaQuaternion.multiply(this.rotationQuaternion).scale(deltaTime / 2));
         this.rotationQuaternion.normalize();
 
         this.position.addInPlace(this.velocity.scale(deltaTime));
