@@ -15,6 +15,7 @@ import {Murph} from "./murph";
 import {UniformDirectionalField} from "./forceFields/uniformDirectionalField";
 import {Impulse} from "./impulse";
 import {RigidBodyFactory} from "./rigidBodyFactory";
+import {UniformPonctualField} from "./forceFields/uniformPonctualField";
 
 const canvas = document.getElementById("renderer") as HTMLCanvasElement;
 canvas.width = window.innerWidth;
@@ -30,7 +31,8 @@ camera.attachControl();
 const light = new PointLight("light", new Vector3(-5, 5, -20), scene);
 
 const physicsEngine = new Murph();
-const gravity = new UniformDirectionalField(new Vector3(0, -9.81, 0), physicsEngine);
+//const gravity = new UniformDirectionalField(new Vector3(0, -9.81, 0), physicsEngine);
+const gravity = new UniformPonctualField(new Vector3(0, 3, 0), 5, physicsEngine);
 
 const ground = RigidBodyFactory.CreatePlane("ground", 20, 20, 0, physicsEngine, scene);
 ground.mesh.rotate(new Vector3(1, 0, 0), Math.PI / 2);
