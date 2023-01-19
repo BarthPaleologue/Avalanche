@@ -53,4 +53,16 @@ export class RigidBodyFactory {
             mass * (height * height + width * width) / 12
         ), engine);
     }
+
+    static CreateOctahedron(name: string, radius:number, mass: number, engine: Murph, scene: Scene): RigidBody {
+        const mesh = MeshBuilder.CreatePolyhedron(name, {
+            type: 1,
+            size: radius
+        }, scene);
+        return new RigidBody(mesh, mass, Matrix3.diag(
+            mass * (radius * radius + radius * radius) / 12,
+            mass * (radius * radius + radius * radius) / 12,
+            mass * (radius * radius + radius * radius) / 12
+        ), engine);
+    }
 }

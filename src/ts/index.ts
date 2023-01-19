@@ -44,6 +44,9 @@ cuboid.position = new Vector3(0, 0, 3);
 const cylinder = RigidBodyFactory.CreateCylinder("cylinder", 0.5, 1.5, 1, physicsEngine, scene);
 cylinder.position = new Vector3(0, 0, -3);
 
+const octahedron = RigidBodyFactory.CreateOctahedron("octahedron", 1, 1, physicsEngine, scene);
+octahedron.position = new Vector3(0, 0, -6);
+
 let I = 0;
 
 function updateScene() {
