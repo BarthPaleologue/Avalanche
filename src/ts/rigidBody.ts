@@ -1,4 +1,4 @@
-import {AbstractMesh, Mesh, MeshBuilder, Quaternion, Scene, Vector3} from "@babylonjs/core";
+import {AbstractMesh, Quaternion, Vector3} from "@babylonjs/core";
 import {Matrix3} from "./matrix3";
 import {Murph} from "./murph";
 import {Impulse} from "./impulse";
@@ -24,7 +24,7 @@ export class RigidBody {
 
     private cumulatedImpulses: Impulse[] = [];
 
-    constructor(mesh: AbstractMesh, mass: number, engine: Murph) {
+    constructor(mesh: AbstractMesh, mass: number, inertiaTensor0: Matrix3, engine: Murph) {
         engine.addBody(this);
 
         this.mesh = mesh;
@@ -33,8 +33,8 @@ export class RigidBody {
         this.mass = mass;
         this.inverseMass = 1 / mass;
 
-        this.inertiaTensor0 = Matrix3.identity();
-        this.inverseInertiaTensor0 = Matrix3.identity();
+        this.inertiaTensor0 = inertiaTensor0;
+        this.inverseInertiaTensor0 = this.mass > 0 ? inertiaTensor0.inverse() : Matrix3.identity();
 
         this.inverseInertiaTensor = Matrix3.identity();
 
@@ -65,6 +65,8 @@ export class RigidBody {
     }
 
     public update(deltaTime: number) {
+        if (this.mass === 0) return;
+
         for (const impulse of this.cumulatedImpulses) {
             this.momentum.addInPlace(impulse.force.scale(deltaTime));
             this.angularMomentum.addInPlace(impulse.point.cross(impulse.force).scale(deltaTime));
@@ -73,7 +75,7 @@ export class RigidBody {
 
         const omegaQuaternion = new Quaternion(this.omega.x, this.omega.y, this.omega.z, 0);
 
-        this.rotationQuaternion.addInPlace(omegaQuaternion.multiply(this.rotationQuaternion).scale(deltaTime / 2));
+        this.rotationQuaternion.addInPlace(omegaQuaternion.multiplyInPlace(this.rotationQuaternion).scaleInPlace(deltaTime / 2));
         this.rotationQuaternion.normalize();
 
         this.position.addInPlace(this.velocity.scale(deltaTime));
@@ -85,22 +87,5 @@ export class RigidBody {
 
         // TODO
         this.cumulatedImpulses = [];
-    }
-
-    static CreateBox(name: string, scaling: Vector3, mass: number, engine: Murph, scene: Scene): RigidBody {
-        const mesh = MeshBuilder.CreateBox(name, {
-            width: scaling.x,
-            height: scaling.y,
-            depth: scaling.z
-        }, scene);
-        mesh.scaling = scaling;
-        const rigidBody = new RigidBody(mesh, mass, engine);
-        rigidBody.inertiaTensor0 = Matrix3.diag(
-            1 / 12 * mass * (scaling.y * scaling.y + scaling.z * scaling.z),
-            1 / 12 * mass * (scaling.x * scaling.x + scaling.z * scaling.z),
-            1 / 12 * mass * (scaling.x * scaling.x + scaling.y * scaling.y)
-        )
-        rigidBody.inverseInertiaTensor0 = rigidBody.inertiaTensor0.inverse();
-        return rigidBody;
     }
 }
