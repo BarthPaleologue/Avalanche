@@ -45,7 +45,7 @@ export class RigidBodyFactory {
     static CreatePlane(name: string, width: number, height: number, mass: number, engine: Murph, scene: Scene): RigidBody {
         const mesh = MeshBuilder.CreatePlane(name, {
             width: width,
-            height: height
+            height: height,
         }, scene);
         return new RigidBody(mesh, mass, Matrix3.diag(
             mass * (height * height + width * width) / 12,

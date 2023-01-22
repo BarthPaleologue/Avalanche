@@ -1,18 +1,12 @@
 import {
-    ArcRotateCamera,
+    ArcRotateCamera, DirectionalLight,
     Engine,
-    MeshBuilder,
-    PointLight,
     Scene,
     Vector3
 } from "@babylonjs/core";
 
 import "../styles/index.scss";
-
-import invert from "../shaders/invert.glsl";
-import {RigidBody} from "./rigidBody";
 import {Murph} from "./murph";
-import {UniformDirectionalField} from "./forceFields/uniformDirectionalField";
 import {Impulse} from "./impulse";
 import {RigidBodyFactory} from "./rigidBodyFactory";
 import {UniformPonctualField} from "./forceFields/uniformPonctualField";
@@ -28,7 +22,7 @@ const scene = new Scene(engine);
 const camera = new ArcRotateCamera("camera", 0, 3.14 / 4.0, 15, Vector3.Zero(), scene);
 camera.attachControl();
 
-const light = new PointLight("light", new Vector3(-5, 5, -20), scene);
+const light = new DirectionalLight("light", new Vector3(1, -1, 1), scene);
 
 const physicsEngine = new Murph();
 //const gravity = new UniformDirectionalField(new Vector3(0, -9.81, 0), physicsEngine);

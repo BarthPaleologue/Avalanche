@@ -1,9 +1,9 @@
 import {
-    AbstractMesh,
+    AbstractMesh, Color3,
     Color4,
     LinesMesh,
     Mesh,
-    MeshBuilder,
+    MeshBuilder, StandardMaterial,
     Vector3,
     VertexBuffer
 } from "@babylonjs/core";
@@ -13,21 +13,21 @@ export class AABB {
     max: Vector3;
     isVisible = false;
 
-    lineMesh: LinesMesh | null;
-    color: Color4 = new Color4(1, 1, 1, 1);
+    helperMesh: Mesh | null;
+    color: Color3 = new Color3(1, 1, 1);
 
     constructor(min: Vector3, max: Vector3) {
         [this.min, this.max] = [min, max];
 
-        this.lineMesh = null;
+        this.helperMesh = null;
     }
 
     setVisible(isVisible: boolean) {
         this.isVisible = isVisible;
-        if(this.isVisible) this.lineMesh = AABB.computeLinesMesh(this.min, this.max, this.color);
+        if (this.isVisible) this.helperMesh = AABB.computeLinesMesh(this.min, this.max, this.color);
         else {
-            this.lineMesh?.dispose();
-            this.lineMesh = null;
+            this.helperMesh?.dispose();
+            this.helperMesh = null;
         }
     }
 
@@ -59,33 +59,19 @@ export class AABB {
         return [min, max];
     }
 
-    static computeLinesMesh(min: Vector3, max: Vector3, color = new Color4(1, 1, 1, 1)): LinesMesh {
-        return MeshBuilder.CreateLines("aabb", {
-            points: [
-                new Vector3(min.x, min.y, min.z),
-                new Vector3(max.x, min.y, min.z),
-                new Vector3(max.x, max.y, min.z),
-                new Vector3(min.x, max.y, min.z),
-                new Vector3(min.x, min.y, min.z),
-                new Vector3(min.x, min.y, max.z),
-                new Vector3(max.x, min.y, max.z),
-                new Vector3(max.x, max.y, max.z),
-                new Vector3(min.x, max.y, max.z),
-                new Vector3(min.x, min.y, max.z),
-                new Vector3(min.x, max.y, max.z),
-                new Vector3(min.x, max.y, min.z),
-                new Vector3(max.x, max.y, min.z),
-                new Vector3(max.x, max.y, max.z),
-                new Vector3(max.x, min.y, max.z),
-                new Vector3(max.x, min.y, min.z)
-            ],
-            colors: [
-                color, color, color, color,
-                color, color, color, color,
-                color, color, color, color,
-                color, color, color, color
-            ],
-        });
+    static computeLinesMesh(min: Vector3, max: Vector3, color = new Color3(1, 1, 1)): Mesh {
+        const box = MeshBuilder.CreateBox("aabb", {size: 1});
+        box.scaling = max.subtract(min);
+        box.position = max.add(min).scale(0.5);
+
+        const boxMaterial = new StandardMaterial("aabb");
+        boxMaterial.wireframe = true;
+        boxMaterial.emissiveColor = color;
+        boxMaterial.disableLighting = true;
+
+        box.material = boxMaterial;
+
+        return box;
     }
 
     /**
@@ -122,9 +108,10 @@ export class AABB {
     updateFromMesh(mesh: AbstractMesh) {
         [this.min, this.max] = AABB.getMinMax(mesh);
 
-        if(this.isVisible) {
-            this.lineMesh?.dispose();
-            this.lineMesh = AABB.computeLinesMesh(this.min, this.max, this.color);
+        if (this.helperMesh) {
+            this.helperMesh.position = this.max.add(this.min).scaleInPlace(0.5);
+            this.helperMesh.scaling = this.max.subtract(this.min);
+            (this.helperMesh.material as StandardMaterial).emissiveColor = this.color;
         }
     }
 }

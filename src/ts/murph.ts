@@ -71,11 +71,11 @@ export class Murph {
             for (const contact of this.contacts) {
                 if (contact.has(body)) {
                     isInContact = true;
-                    body.aabb.color = new Color3(1, 0, 0).toColor4(1);
+                    body.aabb.color = new Color3(1, 0, 0);
                     break;
                 }
             }
-            if(!isInContact) body.aabb.color = new Color3(1, 1, 1).toColor4(1);
+            if(!isInContact) body.aabb.color = new Color3(1, 1, 1);
         }
 
         for (const body of this.bodies) {
