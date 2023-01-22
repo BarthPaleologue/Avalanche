@@ -34,6 +34,7 @@ export class RigidBody {
         this.mesh = mesh;
 
         this.aabb = AABB.FromMesh(this.mesh);
+        this.aabb.setVisible(true);
 
         this.rotationQuaternion = Quaternion.Identity();
 

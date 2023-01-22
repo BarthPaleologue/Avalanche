@@ -11,13 +11,24 @@ import {
 export class AABB {
     min: Vector3;
     max: Vector3;
-    lineMesh: LinesMesh;
+    isVisible = false;
+
+    lineMesh: LinesMesh | null;
     color: Color4 = new Color4(1, 1, 1, 1);
 
     constructor(min: Vector3, max: Vector3) {
         [this.min, this.max] = [min, max];
 
-        this.lineMesh = AABB.computeLinesMesh(this.min, this.max, this.color);
+        this.lineMesh = null;
+    }
+
+    setVisible(isVisible: boolean) {
+        this.isVisible = isVisible;
+        if(this.isVisible) this.lineMesh = AABB.computeLinesMesh(this.min, this.max, this.color);
+        else {
+            this.lineMesh?.dispose();
+            this.lineMesh = null;
+        }
     }
 
     static FromMesh(mesh: AbstractMesh) {
@@ -111,7 +122,9 @@ export class AABB {
     updateFromMesh(mesh: AbstractMesh) {
         [this.min, this.max] = AABB.getMinMax(mesh);
 
-        this.lineMesh.dispose();
-        this.lineMesh = AABB.computeLinesMesh(this.min, this.max, this.color);
+        if(this.isVisible) {
+            this.lineMesh?.dispose();
+            this.lineMesh = AABB.computeLinesMesh(this.min, this.max, this.color);
+        }
     }
 }

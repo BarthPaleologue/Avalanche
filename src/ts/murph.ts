@@ -50,7 +50,9 @@ export class Murph {
             for (const otherBody of this.bodies) {
                 if (body === otherBody) continue;
 
-                if (AABB.Intersects(body.aabb, otherBody.aabb)) {
+                const [intersects, overlap] = AABB.IntersectsAndOverlap(body.aabb, otherBody.aabb)
+                if (intersects) {
+                    // check the intersection of triangles inside the overlap
                     const contactSet = new Set<RigidBody>([body, otherBody]);
                     let isAlreadyInTheList = false;
                     for (const contact of this.contacts) {
