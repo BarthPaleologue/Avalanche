@@ -1,6 +1,15 @@
 import {Vector3} from "@babylonjs/core";
+import {RigidBody} from "./rigidBody";
+import {AABB} from "./aabb";
+
+export type Tree<T> = Tree<T>[] | T;
 
 export type Triangle = [Vector3, Vector3, Vector3];
+
+export type Contact = {
+    a: RigidBody, b: RigidBody,
+    aabbOverlap: AABB
+}
 
 export function triangleIntersection(triangle1: Triangle, triangle2: Triangle): [boolean, Vector3] {
     const [a1, b1, c1] = triangle1;

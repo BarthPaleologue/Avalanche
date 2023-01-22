@@ -14,10 +14,15 @@ export class AABB {
     lineMesh: LinesMesh;
     color: Color4 = new Color4(1, 1, 1, 1);
 
-    constructor(mesh: AbstractMesh) {
-        [this.min, this.max] = AABB.getMinMax(mesh);
+    constructor(min: Vector3, max: Vector3) {
+        [this.min, this.max] = [min, max];
 
         this.lineMesh = AABB.computeLinesMesh(this.min, this.max, this.color);
+    }
+
+    static FromMesh(mesh: AbstractMesh) {
+        const [min, max] = AABB.getMinMax(mesh);
+        return new AABB(min, max);
     }
 
     static getMinMax(mesh: AbstractMesh): [Vector3, Vector3] {
@@ -89,6 +94,18 @@ export class AABB {
         const z = (aMin.z <= bMax.z && aMax.z >= bMin.z);
 
         return x && y && z;
+    }
+
+    /**
+     * Returns whereas a and b are intersecting and the overlap between the 2
+     * @param a
+     * @param b
+     * @constructor
+     */
+    static IntersectsAndOverlap(a: AABB, b: AABB): [boolean, AABB] {
+        const min = Vector3.Maximize(a.min, b.min);
+        const max = Vector3.Minimize(a.max, b.max);
+        return [this.Intersects(a, b), new AABB(min, max)];
     }
 
     updateFromMesh(mesh: AbstractMesh) {

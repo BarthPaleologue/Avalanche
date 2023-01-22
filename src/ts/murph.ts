@@ -1,15 +1,16 @@
 import {RigidBody} from "./rigidBody";
 import {ForceField} from "./forceFields/forceField";
-import {BoundingBox, Color3} from "@babylonjs/core";
+import {Color3, Mesh} from "@babylonjs/core";
 import {AABB} from "./aabb";
-
-type Tree<T> = Tree<T>[] | T;
+import {Tree} from "./utils";
 
 export class Murph {
     private readonly bodies: RigidBody[] = [];
     private readonly fields: ForceField[] = [];
 
     private bodyHierarchy: Tree<RigidBody> = [];
+
+    private contacts: Set<RigidBody>[] = [];
 
     private clock = 0;
 
@@ -33,6 +34,8 @@ export class Murph {
     public update(deltaTime: number) {
         this.clock += deltaTime;
 
+        this.contacts = [];
+
         //this.buildBoundingVolumeHierarchy();
 
         for (const field of this.fields) {
@@ -42,32 +45,35 @@ export class Murph {
             }
         }
 
-        // compute collisions
+        // compute collisions O(n²)
         for (const body of this.bodies) {
             for (const otherBody of this.bodies) {
-                if (body === otherBody) {
-                    continue;
-                }
+                if (body === otherBody) continue;
 
                 if (AABB.Intersects(body.aabb, otherBody.aabb)) {
-                    body.aabb.color = new Color3(1, 0, 0).toColor4(1);
-                    otherBody.aabb.color = new Color3(1, 0, 0).toColor4(1);
-
-                    // there is maybe a collision
-                    // check the triangles of the two bodies
-                    // if there is a collision, apply the impulse
-                    /*const [point, normal] = body.computeCollisionPointAndNormal(otherBody);
-                    if(point.lengthSquared() > 0) {
-                        // there is a collision
-                        //const impulse = body.computeCollisionImpulse(otherBody, point, normal);
-                        //body.applyImpulse(impulse);
-                    }*/
-
-                } else {
-                    body.aabb.color = new Color3(1, 1, 1).toColor4(1);
-                    otherBody.aabb.color = new Color3(1, 1, 1).toColor4(1);
+                    const contactSet = new Set<RigidBody>([body, otherBody]);
+                    let isAlreadyInTheList = false;
+                    for (const contact of this.contacts) {
+                        if (contact.has(body) && contact.has(otherBody)) {
+                            isAlreadyInTheList = true;
+                            break
+                        }
+                    }
+                    if (!isAlreadyInTheList) this.contacts.push(contactSet);
                 }
             }
+        }
+
+        for (const body of this.bodies) {
+            let isInContact = false;
+            for (const contact of this.contacts) {
+                if (contact.has(body)) {
+                    isInContact = true;
+                    body.aabb.color = new Color3(1, 0, 0).toColor4(1);
+                    break;
+                }
+            }
+            if(!isInContact) body.aabb.color = new Color3(1, 1, 1).toColor4(1);
         }
 
         for (const body of this.bodies) {
