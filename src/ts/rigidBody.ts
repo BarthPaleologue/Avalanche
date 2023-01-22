@@ -1,8 +1,9 @@
-import {AbstractMesh, Quaternion, Vector3} from "@babylonjs/core";
+import {AbstractMesh, Quaternion, Vector3, VertexBuffer} from "@babylonjs/core";
 import {Matrix3} from "./matrix3";
 import {Murph} from "./murph";
 import {Impulse} from "./impulse";
 import {AABB} from "./aabb";
+import {Triangle, triangleIntersection} from "./utils";
 
 export class RigidBody {
     readonly mesh: AbstractMesh;
@@ -95,5 +96,55 @@ export class RigidBody {
 
         // TODO
         this.cumulatedImpulses = [];
+    }
+
+    public getVelocityAtPoint(point: Vector3): Vector3 {
+        return this.velocity.add(this.omega.cross(point));
+    }
+
+    public computeCollisionImpulse(other: RigidBody, normal: Vector3, point: Vector3): Impulse {
+        const relativeVelocity = this.getVelocityAtPoint(point).subtract(other.getVelocityAtPoint(point));
+        const normalVelocity = Vector3.Dot(relativeVelocity, normal);
+        const impulse = normal.scale(-normalVelocity * (1 + 0.5));
+        return new Impulse(impulse, point);
+    }
+
+    public computeCollisionPointAndNormal(other: RigidBody): [Vector3, Vector3] {
+        const positions1 = this.mesh.getVerticesData(VertexBuffer.PositionKind) as number[];
+        const positions2 = other.mesh.getVerticesData(VertexBuffer.PositionKind) as number[];
+
+        const indices1 = this.mesh.getIndices() as number[];
+        const indices2 = other.mesh.getIndices() as number[];
+
+        const triangles1: Triangle[] = [];
+        const triangles2: Triangle[] = [];
+
+        for (let i = 0; i < indices1.length; i += 3) {
+            triangles1.push([
+                Vector3.FromArray(positions1, indices1[i] * 3),
+                Vector3.FromArray(positions1, indices1[i + 1] * 3),
+                Vector3.FromArray(positions1, indices1[i + 2] * 3)
+            ]);
+        }
+
+        for (let i = 0; i < indices2.length; i += 3) {
+            triangles2.push([
+                Vector3.FromArray(positions2, indices2[i] * 3),
+                Vector3.FromArray(positions2, indices2[i + 1] * 3),
+                Vector3.FromArray(positions2, indices2[i + 2] * 3)
+            ]);
+        }
+
+        for (const triangle1 of triangles1) {
+            for (const triangle2 of triangles2) {
+                const [intersection, point] = triangleIntersection(triangle1, triangle2);
+                if (intersection) {
+                    console.log(point);
+                    const normal = Vector3.Cross(triangle1[1].subtract(triangle1[0]), triangle1[2].subtract(triangle1[0])).normalize();
+                    return [point, normal];
+                }
+            }
+        }
+        return [Vector3.Zero(), Vector3.Zero()];
     }
 }

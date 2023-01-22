@@ -11,7 +11,7 @@ import {
 export class AABB {
     min: Vector3;
     max: Vector3;
-    lineMesh: Mesh;
+    lineMesh: LinesMesh;
     color: Color4 = new Color4(1, 1, 1, 1);
 
     constructor(mesh: AbstractMesh) {

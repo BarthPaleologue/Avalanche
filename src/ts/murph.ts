@@ -51,13 +51,21 @@ export class Murph {
 
                 if (AABB.Intersects(body.aabb, otherBody.aabb)) {
                     body.aabb.color = new Color3(1, 0, 0).toColor4(1);
+                    otherBody.aabb.color = new Color3(1, 0, 0).toColor4(1);
 
                     // there is maybe a collision
                     // check the triangles of the two bodies
                     // if there is a collision, apply the impulse
+                    /*const [point, normal] = body.computeCollisionPointAndNormal(otherBody);
+                    if(point.lengthSquared() > 0) {
+                        // there is a collision
+                        //const impulse = body.computeCollisionImpulse(otherBody, point, normal);
+                        //body.applyImpulse(impulse);
+                    }*/
 
                 } else {
                     body.aabb.color = new Color3(1, 1, 1).toColor4(1);
+                    otherBody.aabb.color = new Color3(1, 1, 1).toColor4(1);
                 }
             }
         }
