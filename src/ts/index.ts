@@ -52,9 +52,12 @@ octahedron.position = new Vector3(0, 0, -6);
 let I = 0;
 
 function updateScene() {
+    ground.aabb.updateFromMesh(ground.mesh);
+
     if (I == 1) {
         cuboid.applyImpulse(new Impulse(new Vector3(0, 100, 10), new Vector3(0.5, 0.1, -0.5)));
-        cylinder.applyImpulse(new Impulse(new Vector3(20, 100, 10), new Vector3(0.3, 0.5, -0.1)));
+        cylinder.applyImpulse(new Impulse(new Vector3(20, 50, 100), new Vector3(0.3, 0.5, -0.1)));
+        octahedron.applyImpulse(new Impulse(new Vector3(70, 10, 30), new Vector3(0.5, 0.1, -0.5)));
     }
     const deltaTime = Math.min(engine.getDeltaTime() / 1000, 0.017);
     physicsEngine.update(deltaTime);

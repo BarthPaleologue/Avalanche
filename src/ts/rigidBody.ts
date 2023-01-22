@@ -2,15 +2,18 @@ import {AbstractMesh, Quaternion, Vector3} from "@babylonjs/core";
 import {Matrix3} from "./matrix3";
 import {Murph} from "./murph";
 import {Impulse} from "./impulse";
+import {AABB} from "./aabb";
 
 export class RigidBody {
     readonly mesh: AbstractMesh;
 
+    readonly aabb: AABB;
+
     readonly mass: number;
     private readonly inverseMass: number;
 
-    private inertiaTensor0: Matrix3;
-    private inverseInertiaTensor0: Matrix3;
+    private readonly inertiaTensor0: Matrix3;
+    private readonly inverseInertiaTensor0: Matrix3;
 
     private inverseInertiaTensor: Matrix3;
 
@@ -28,6 +31,9 @@ export class RigidBody {
         engine.addBody(this);
 
         this.mesh = mesh;
+
+        this.aabb = new AABB(this.mesh);
+
         this.rotationQuaternion = Quaternion.Identity();
 
         this.mass = mass;
@@ -84,6 +90,8 @@ export class RigidBody {
 
         this.inverseInertiaTensor = this.rotationMatrix.multiply(this.inverseInertiaTensor0).multiply(this.rotationMatrix.transpose());
         this.omega = this.inverseInertiaTensor.applyTo(this.angularMomentum);
+
+        this.aabb.updateFromMesh(this.mesh);
 
         // TODO
         this.cumulatedImpulses = [];
