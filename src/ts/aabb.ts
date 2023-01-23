@@ -14,12 +14,12 @@ export class AABB {
     isVisible = false;
 
     helperMesh: Mesh | null;
-    color: Color3 = new Color3(1, 1, 1);
+    color: Color3 = new Color3(1, 0, 1);
 
     constructor(min: Vector3, max: Vector3) {
         [this.min, this.max] = [min, max];
 
-        this.helperMesh = null;
+        this.helperMesh = this.isVisible ? AABB.computeLinesMesh(this.min, this.max): null;
     }
 
     setVisible(isVisible: boolean) {
@@ -102,6 +102,10 @@ export class AABB {
     static IntersectsAndOverlap(a: AABB, b: AABB): [boolean, AABB] {
         const min = Vector3.Maximize(a.min, b.min);
         const max = Vector3.Minimize(a.max, b.max);
+        if (min.x > max.x || min.y > max.y || min.z > max.z) {
+            min.scaleInPlace(0);
+            max.scaleInPlace(0);
+        }
         return [this.Intersects(a, b), new AABB(min, max)];
     }
 

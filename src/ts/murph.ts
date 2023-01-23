@@ -2,7 +2,7 @@ import {RigidBody} from "./rigidBody";
 import {ForceField} from "./forceFields/forceField";
 import {Color3, Mesh} from "@babylonjs/core";
 import {AABB} from "./aabb";
-import {Tree} from "./utils";
+import {Contact, solveContact, testInterpenetration, Tree} from "./utils";
 
 export class Murph {
     private readonly bodies: RigidBody[] = [];
@@ -10,7 +10,7 @@ export class Murph {
 
     private bodyHierarchy: Tree<RigidBody> = [];
 
-    private contacts: Set<RigidBody>[] = [];
+    private contacts: Contact[] = [];
 
     private clock = 0;
     private isPaused = false;
@@ -40,6 +40,7 @@ export class Murph {
         if (this.isPaused) return;
         this.clock += deltaTime;
 
+        for(const contact of this.contacts) contact.aabbOverlap.helperMesh?.dispose();
         this.contacts = [];
 
         //this.buildBoundingVolumeHierarchy();
@@ -59,10 +60,13 @@ export class Murph {
                 const [intersects, overlap] = AABB.IntersectsAndOverlap(body.aabb, otherBody.aabb)
                 if (intersects) {
                     // check the intersection of triangles inside the overlap
-                    const contactSet = new Set<RigidBody>([body, otherBody]);
+                    const contactSet: Contact = {
+                        a: body, b: otherBody,
+                        aabbOverlap: overlap
+                    }//new Set<RigidBody>([body, otherBody]);
                     let isAlreadyInTheList = false;
                     for (const contact of this.contacts) {
-                        if (contact.has(body) && contact.has(otherBody)) {
+                        if ((contact.a == body || contact.b == body) && (contact.a == otherBody && contact.b == otherBody)) {
                             isAlreadyInTheList = true;
                             break
                         }
@@ -72,12 +76,17 @@ export class Murph {
             }
         }
 
+        /*for (const contact of this.contacts) {
+            solveContact(contact);
+        }*/
+
         for (const body of this.bodies) {
             let isInContact = false;
             for (const contact of this.contacts) {
-                if (contact.has(body)) {
+                if (contact.a == body || contact.b == body) {
                     isInContact = true;
-                    body.aabb.color = new Color3(1, 0, 0);
+                    if(testInterpenetration(contact)) body.aabb.color = new Color3(0, 1, 0);
+                    else body.aabb.color = new Color3(1, 0, 0);
                     break;
                 }
             }
