@@ -21,7 +21,8 @@ export class RigidBodyFactory {
 
     static CreateSphere(name: string, diameter: number, mass: number, engine: Murph, scene: Scene): RigidBody {
         const mesh = MeshBuilder.CreateSphere(name, {
-            diameter: diameter
+            diameter: diameter,
+            segments: 16
         }, scene);
         return new RigidBody(mesh, mass, Matrix3.diag(
             mass * diameter * diameter / 12,

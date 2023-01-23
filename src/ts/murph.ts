@@ -82,15 +82,18 @@ export class Murph {
 
         for (const body of this.bodies) {
             let isInContact = false;
+            let isInterpenetrating = false;
             for (const contact of this.contacts) {
                 if (contact.a == body || contact.b == body) {
                     isInContact = true;
-                    if(testInterpenetration(contact)) body.aabb.color = new Color3(0, 1, 0);
-                    else body.aabb.color = new Color3(1, 0, 0);
-                    break;
+                    if(testInterpenetration(contact)) {
+                        isInterpenetrating = true;
+                        body.aabb.color = new Color3(0, 1, 0);
+                        break;
+                    } else body.aabb.color = new Color3(1, 0, 0);
                 }
             }
-            if (!isInContact) body.aabb.color = new Color3(1, 1, 1);
+            if (!isInContact && !isInterpenetrating) body.aabb.color = new Color3(1, 1, 1);
         }
 
         for (const body of this.bodies) {
