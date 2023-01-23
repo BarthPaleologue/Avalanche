@@ -13,6 +13,7 @@ export class Murph {
     private contacts: Set<RigidBody>[] = [];
 
     private clock = 0;
+    private isPaused = false;
 
     constructor() {
         //
@@ -31,7 +32,12 @@ export class Murph {
         // bottom up
     }*/
 
+    public togglePause() {
+        this.isPaused = !this.isPaused;
+    }
+
     public update(deltaTime: number) {
+        if (this.isPaused) return;
         this.clock += deltaTime;
 
         this.contacts = [];
@@ -75,7 +81,7 @@ export class Murph {
                     break;
                 }
             }
-            if(!isInContact) body.aabb.color = new Color3(1, 1, 1);
+            if (!isInContact) body.aabb.color = new Color3(1, 1, 1);
         }
 
         for (const body of this.bodies) {
