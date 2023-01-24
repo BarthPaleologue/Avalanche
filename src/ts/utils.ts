@@ -10,6 +10,7 @@ import {
 } from "@babylonjs/core";
 import {RigidBody} from "./rigidBody";
 import {AABB} from "./aabb";
+import {Impulse} from "./impulse";
 
 export type Tree<T> = Tree<T>[] | T;
 
@@ -63,51 +64,7 @@ export function displayPoint(point: Vector3) {
     setTimeout(() => mesh.dispose(), 16);
 }
 
-/*export function triangleIntersection(triangle1: Triangle, triangle2: Triangle): boolean {
-    const [a1, b1, c1] = triangle1;
-    const [a2, b2, c2] = triangle2;
-    const ab1 = b1.subtract(a1);
-    const ac1 = c1.subtract(a1);
-    const ab2 = b2.subtract(a2);
-    const ac2 = c2.subtract(a2);
-    const n1 = Vector3.Cross(ab1, ac1);
-    const n2 = Vector3.Cross(ab2, ac2);
-    const p = Vector3.Cross(n1, n2);
-    const d = Vector3.Dot(p, a1);
-    const d1 = Vector3.Dot(p, a2);
-    const d2 = Vector3.Dot(p, b2);
-    const d3 = Vector3.Dot(p, c2);
-    return d1 === d && d2 === d && d3 === d;
-}*/
-
-/**
- * Computes the intersection and penetration distance of a ray inside a triangle
- * @param point
- * @param direction
- * @param triangle
- * @see https://courses.cs.washington.edu/courses/cse457/07sp/lectures/triangle_intersection.pdf
- */
-export function segmentTriangleIntersection(pointA: Vector3, pointB: Vector3, triangle: Triangle): [boolean, number, Vector3] {
-    const triangleNormal = Vector3.Normalize(
-        triangle[2].subtract(triangle[0]).cross(triangle[1].subtract(triangle[0])));
-    const rayDir = Vector3.Normalize(pointB.subtract(pointA));
-    const rayLength = pointB.subtract(pointA).length();
-    // n dot X = d
-    const d = Vector3.Dot(triangleNormal, triangle[0]);
-    const nd = Vector3.Dot(triangleNormal, rayDir);
-    if (Math.abs(nd) < 1e-4) return [false, 0, Vector3.Zero()];
-    // intersection along ray
-    const t = (d - Vector3.Dot(triangleNormal, pointA)) / nd;
-
-    if (t <= rayLength) {
-        // there is interpenetration
-        return [true, rayLength - t, triangleNormal];
-    }
-    // there is no interpenetration
-    return [false, 0, Vector3.Zero()];
-}
-
-function intersectRayTriangle(rayOrigin: Vector3, rayEnd: Vector3, triangle: [Vector3, Vector3, Vector3]): [boolean, number, Vector3] {
+function intersectRayTriangle(rayOrigin: Vector3, rayEnd: Vector3, triangle: Triangle): [boolean, number, Vector3, Vector3] {
     const edge1 = triangle[1].subtract(triangle[0]);
     const edge2 = triangle[2].subtract(triangle[0]);
     const rayDir = rayEnd.subtract(rayOrigin).normalize();
@@ -115,7 +72,7 @@ function intersectRayTriangle(rayOrigin: Vector3, rayEnd: Vector3, triangle: [Ve
     const a = Vector3.Dot(edge1, h);
 
     if (a > -0.00001 && a < 0.00001) {
-        return [false, 0, h];
+        return [false, 0, h, Vector3.Zero()];
     }
 
     const f = 1 / a;
@@ -123,22 +80,22 @@ function intersectRayTriangle(rayOrigin: Vector3, rayEnd: Vector3, triangle: [Ve
     const u = f * Vector3.Dot(s, h);
 
     if (u < 0.0 || u > 1.0) {
-        return [false, 0, h];
+        return [false, 0, h, Vector3.Zero()];
     }
 
     const q = s.cross(edge1);
     const v = f * Vector3.Dot(rayDir, q);
 
     if (v < 0.0 || u + v > 1.0) {
-        return [false, 0, h];
+        return [false, 0, h, Vector3.Zero()];
     }
 
     const t = f * Vector3.Dot(edge2, q);
 
     if (t > 0.00001 && t < rayEnd.subtract(rayOrigin).length()) {
-        return [true, t, h];
+        return [true, t, h, rayOrigin.add(rayDir.scale(t))];
     } else {
-        return [false, 0, h];
+        return [false, 0, h, Vector3.Zero()];
     }
 }
 
@@ -186,25 +143,7 @@ export function triangleIntersectsWithAABB(triangle: Triangle, aabb: AABB): bool
     return AABB.Intersects(aabb, new AABB(min, max));
 }
 
-/*export function testInterpenetration2(contact: Contact): boolean {
-    // check triangle intersection inside the overlap of the two bounding boxes
-    const trianglesA = getMeshTriangles(contact.a.mesh);
-    const trianglesB = getMeshTriangles(contact.b.mesh);
-
-    const trianglesAToCheck = trianglesA.filter((triangle: Triangle) => triangleIntersectsWithAABB(triangle, contact.aabbOverlap));
-    if (trianglesAToCheck.length == 0) return false;
-    const trianglesBToCheck = trianglesB.filter((triangle: Triangle) => triangleIntersectsWithAABB(triangle, contact.aabbOverlap));
-    if (trianglesBToCheck.length == 0) return false;
-
-    for (const triangleA of trianglesAToCheck) {
-        for (const triangleB of trianglesBToCheck) {
-            if (triangleIntersection(triangleA, triangleB)) return true;
-        }
-    }
-    return false;
-}*/
-
-export function testInterpenetration(contact: Contact): [boolean, number] {
+export function testInterpenetration(contact: Contact): [boolean, number, Vector3, Vector3] {
     //let maxInterpenetration = 0;
     const pointsA = getMeshVerticesWorldSpace(contact.a.mesh);
     const trianglesB = getMeshTriangles(contact.b.mesh);
@@ -214,15 +153,17 @@ export function testInterpenetration(contact: Contact): [boolean, number] {
 
     let minPenetration = Number.POSITIVE_INFINITY;
     let collisionNormal = Vector3.Zero();
-    let collisionPoint = Vector3.Zero();
+    let collisionPointA = Vector3.Zero();
+    let collisionPointB = Vector3.Zero();
     let collisionTriangle: Triangle = [Vector3.Zero(), Vector3.Zero(), Vector3.Zero()];
     for (const point of pointsAToCheck) {
         for (const triangle of trianglesBToCheck) {
-            const [intersect, penetrationDistance, triangleNormal] = intersectRayTriangle(contact.a.mesh.position, point, triangle);
+            const [intersect, penetrationDistance, triangleNormal, intersectionPoint] = intersectRayTriangle(contact.a.mesh.position, point, triangle);
             if (intersect && penetrationDistance < minPenetration) {
                 minPenetration = penetrationDistance;
                 collisionTriangle = triangle;
-                collisionPoint = point;
+                collisionPointA = point;
+                collisionPointB = intersectionPoint;
                 collisionNormal = triangleNormal;
             }
         }
@@ -230,22 +171,11 @@ export function testInterpenetration(contact: Contact): [boolean, number] {
     if (collisionNormal.lengthSquared() > 0) {
         //console.log(minPenetration, collisionNormal, collisionTriangle);
         displayTriangle(collisionTriangle);
-        displayPoint(collisionPoint);
-        //arrowhead(contact.a.mesh.position, collisionPoint.subtract(contact.a.mesh.position), Color3.Red());
-        return [true, minPenetration];
+        displayPoint(collisionPointA);
+        //arrowhead(contact.a.mesh.position, collisionPointA.subtract(contact.a.mesh.position), Color3.Red());
+        return [true, minPenetration, collisionPointA, collisionPointB];
     }
-    return [false, 0];
-}
-
-export function solveContact(contact: Contact) {
-    // check triangle intersection inside the overlap of the two bounding boxes
-    const trianglesA = getMeshTriangles(contact.a.mesh);
-    const trianglesB = getMeshTriangles(contact.b.mesh);
-
-    const trianglesAToCheck = trianglesA.filter((triangle: Triangle) => triangleIntersectsWithAABB(triangle, contact.aabbOverlap));
-    if (trianglesAToCheck.length == 0) return;
-    const trianglesBToCheck = trianglesB.filter((triangle: Triangle) => triangleIntersectsWithAABB(triangle, contact.aabbOverlap));
-    if (trianglesBToCheck.length == 0) return;
+    return [false, 0, Vector3.Zero(), Vector3.Zero()];
 }
 
 export function arrowhead(start: Vector3, vec: Vector3, color: Color3) {
@@ -275,4 +205,18 @@ export function arrowhead(start: Vector3, vec: Vector3, color: Color3) {
     const mat = new StandardMaterial("");
     mat.diffuseColor = color;
     vecRep.material = mat
+}
+
+export function computeImpulse(a: RigidBody, b: RigidBody, pointA: Vector3, pointB: Vector3, normal: Vector3): [Impulse, Impulse] {
+    // relative velocity
+    const rv = Vector3.Dot(b.velocity.subtract(a.velocity), normal);
+    // relative mass
+    const rm = 1 / (a.mass + b.mass);
+
+    // calculate impulse scalar
+    const restitution = 0.7;
+    const j = -(1 + restitution) * rv * rm * 2;
+
+    // calculate impulse vector
+    return [new Impulse(normal.scale(j), pointA), new Impulse(normal.scale(-j), pointB)];
 }

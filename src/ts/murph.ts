@@ -1,8 +1,8 @@
 import {RigidBody} from "./rigidBody";
 import {ForceField} from "./forceFields/forceField";
-import {Color3, Mesh} from "@babylonjs/core";
+import {Color3} from "@babylonjs/core";
 import {AABB} from "./aabb";
-import {Contact, solveContact, testInterpenetration, Tree} from "./utils";
+import {computeImpulse, Contact, testInterpenetration, Tree} from "./utils";
 
 export class Murph {
     private readonly bodies: RigidBody[] = [];
@@ -86,13 +86,22 @@ export class Murph {
             for (const contact of this.contacts) {
                 if (contact.a == body || contact.b == body) {
                     isInContact = true;
-                    const [intersect, penetrationDistance] = testInterpenetration(contact);
+                    const [intersect, penetrationDistance, pointA, pointB] = testInterpenetration(contact);
                     if(intersect) {
                         isInterpenetrating = true;
                         body.aabb.color = new Color3(0, 1, 0);
 
-                        //this.togglePause();
-                        //return;
+                        const [impulseA, impulseB] = computeImpulse(contact.a, contact.b, pointA.subtract(contact.a.position), pointB.subtract(contact.b.position), pointB.subtract(pointA).normalize());
+
+                        contact.a.applyImpulse(impulseA);
+                        contact.b.applyImpulse(impulseB);
+
+                        /*
+                        const epsilon = 1e-1;
+                        if(penetrationDistance < epsilon) {
+                            return this.togglePause()
+                        }
+                        */
 
                         break;
                     } else body.aabb.color = new Color3(1, 0, 0);

@@ -57,6 +57,9 @@ export class RigidBodyFactory {
             width: width,
             height: height,
         }, scene);
+        const wireframe = new StandardMaterial("wireframe");
+        wireframe.wireframe = true;
+        mesh.material = wireframe;
         return new RigidBody(mesh, mass, Matrix3.diag(
             mass * (height * height + width * width) / 12,
             mass * (height * height + width * width) / 12,

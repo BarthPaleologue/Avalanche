@@ -1,4 +1,4 @@
-import {AbstractMesh, Quaternion, Vector3, VertexBuffer} from "@babylonjs/core";
+import {AbstractMesh, Quaternion, Vector3} from "@babylonjs/core";
 import {Matrix3} from "./matrix3";
 import {Murph} from "./murph";
 import {Impulse} from "./impulse";
@@ -20,7 +20,7 @@ export class RigidBody {
     private momentum: Vector3;
     private angularMomentum: Vector3;
 
-    private velocity: Vector3 = Vector3.Zero();
+    velocity: Vector3 = Vector3.Zero();
     private omega: Vector3 = Vector3.Zero();
 
     private rotationMatrix: Matrix3;

@@ -30,8 +30,8 @@ const physicsEngine = new Murph();
 //const gravity = new UniformDirectionalField(new Vector3(0, -9.81, 0), physicsEngine);
 const gravity = new UniformPonctualField(new Vector3(0, 3, 0), 5, physicsEngine);
 
-const ground = RigidBodyFactory.CreatePlane("ground", 40, 40, 0, physicsEngine, scene);
-ground.mesh.rotate(new Vector3(1, 0, 0), Math.PI / 2);
+const ground = RigidBodyFactory.CreateCuboid("ground", new Vector3(10, 1, 10), 0, physicsEngine, scene);
+//ground.mesh.rotate(new Vector3(1, 0, 0), Math.PI / 2);
 ground.position = new Vector3(0, -5, 0);
 ground.mesh.receiveShadows = true;
 
@@ -61,7 +61,7 @@ function updateScene() {
         octahedron.applyImpulse(new Impulse(new Vector3(70, 10, 30), new Vector3(Math.random(), Math.random(), Math.random())));
     }
     const deltaTime = Math.min(engine.getDeltaTime() / 1000, 0.017);
-    physicsEngine.update(deltaTime / 10);
+    physicsEngine.update(deltaTime / 2);
     I++;
 }
 
