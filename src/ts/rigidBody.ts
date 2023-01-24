@@ -3,7 +3,6 @@ import {Matrix3} from "./matrix3";
 import {Murph} from "./murph";
 import {Impulse} from "./impulse";
 import {AABB} from "./aabb";
-import {Triangle, triangleIntersection} from "./utils";
 
 export class RigidBody {
     readonly mesh: AbstractMesh;

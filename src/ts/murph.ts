@@ -86,9 +86,14 @@ export class Murph {
             for (const contact of this.contacts) {
                 if (contact.a == body || contact.b == body) {
                     isInContact = true;
-                    if(testInterpenetration(contact)) {
+                    const [intersect, penetrationDistance] = testInterpenetration(contact);
+                    if(intersect) {
                         isInterpenetrating = true;
                         body.aabb.color = new Color3(0, 1, 0);
+
+                        //this.togglePause();
+                        //return;
+
                         break;
                     } else body.aabb.color = new Color3(1, 0, 0);
                 }

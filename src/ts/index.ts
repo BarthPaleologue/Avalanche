@@ -56,12 +56,12 @@ function updateScene() {
     ground.aabb.updateFromMesh(ground.mesh);
 
     if (I == 1) {
-        cuboid.applyImpulse(new Impulse(new Vector3(0, 100, 10), new Vector3(0.5, 0.1, -0.5)));
-        cylinder.applyImpulse(new Impulse(new Vector3(20, 50, 100), new Vector3(0.3, 0.5, -0.1)));
-        octahedron.applyImpulse(new Impulse(new Vector3(70, 10, 30), new Vector3(0.5, 0.1, -0.5)));
+        cuboid.applyImpulse(new Impulse(new Vector3(0, 100, 10), new Vector3(Math.random(), Math.random(), Math.random())));
+        cylinder.applyImpulse(new Impulse(new Vector3(20, 50, 100), new Vector3(Math.random(), Math.random(), Math.random())));
+        octahedron.applyImpulse(new Impulse(new Vector3(70, 10, 30), new Vector3(Math.random(), Math.random(), Math.random())));
     }
     const deltaTime = Math.min(engine.getDeltaTime() / 1000, 0.017);
-    physicsEngine.update(deltaTime);
+    physicsEngine.update(deltaTime / 10);
     I++;
 }
 

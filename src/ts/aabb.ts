@@ -68,6 +68,7 @@ export class AABB {
         boxMaterial.wireframe = true;
         boxMaterial.emissiveColor = color;
         boxMaterial.disableLighting = true;
+        boxMaterial.alpha = 0.2;
 
         box.material = boxMaterial;
 
