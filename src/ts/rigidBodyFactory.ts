@@ -4,6 +4,7 @@ import {Matrix3} from "./matrix3";
 import {RigidBody} from "./rigidBody";
 
 export class RigidBodyFactory {
+    static WIREFRAME = false;
 
     static CreateCuboid(name: string, scaling: Vector3, mass: number, engine: Murph, scene: Scene): RigidBody {
         const mesh = MeshBuilder.CreateBox(name, {
@@ -12,7 +13,7 @@ export class RigidBodyFactory {
             depth: scaling.z
         }, scene);
         const wireframe = new StandardMaterial("wireframe");
-        wireframe.wireframe = true;
+        wireframe.wireframe = this.WIREFRAME;
         mesh.material = wireframe;
         mesh.scaling = scaling;
         return new RigidBody(mesh, mass, Matrix3.diag(
@@ -28,7 +29,7 @@ export class RigidBodyFactory {
             segments: 2
         }, scene);
         const wireframe = new StandardMaterial("wireframe");
-        wireframe.wireframe = true;
+        wireframe.wireframe = this.WIREFRAME;
         mesh.material = wireframe;
         return new RigidBody(mesh, mass, Matrix3.diag(
             mass * diameter * diameter / 12,
@@ -43,7 +44,7 @@ export class RigidBodyFactory {
             height: height
         }, scene);
         const wireframe = new StandardMaterial("wireframe");
-        wireframe.wireframe = true;
+        wireframe.wireframe = this.WIREFRAME;
         mesh.material = wireframe;
         return new RigidBody(mesh, mass, Matrix3.diag(
             mass * (radius * radius + height * height) / 12,
@@ -58,7 +59,7 @@ export class RigidBodyFactory {
             height: height,
         }, scene);
         const wireframe = new StandardMaterial("wireframe");
-        wireframe.wireframe = true;
+        wireframe.wireframe = this.WIREFRAME;
         mesh.material = wireframe;
         return new RigidBody(mesh, mass, Matrix3.diag(
             mass * (height * height + width * width) / 12,
@@ -73,7 +74,7 @@ export class RigidBodyFactory {
             size: radius
         }, scene);
         const wireframe = new StandardMaterial("wireframe");
-        wireframe.wireframe = true;
+        wireframe.wireframe = this.WIREFRAME;
         mesh.material = wireframe;
         return new RigidBody(mesh, mass, Matrix3.diag(
             mass * (radius * radius + radius * radius) / 12,

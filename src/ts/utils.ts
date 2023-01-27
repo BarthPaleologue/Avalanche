@@ -144,86 +144,48 @@ export function triangleIntersectsWithAABB(triangle: Triangle, aabb: AABB): bool
     return AABB.Intersects(aabb, new AABB(min, max));
 }
 
-export function testInterpenetration(contact: Contact): [boolean, number, Vector3, Vector3] {
-    //Check if a point of A is inside B
-    const pointsA = getMeshVerticesWorldSpace(contact.a.mesh);
-    const trianglesB = getMeshTriangles(contact.b.mesh);
+export function vertexToFacePenetration(contact: Contact, reverse = false): [boolean, number, Vector3, Vector3] {
+    // if reverse is false, we check if a point of A is inside B
+    // if reverse is true, we check if a point of B is inside A
+    const points = reverse ? getMeshVerticesWorldSpace(contact.b.mesh) : getMeshVerticesWorldSpace(contact.a.mesh);
+    const triangles = reverse ? getMeshTriangles(contact.a.mesh) : getMeshTriangles(contact.b.mesh);
 
-    const pointsAToCheck = pointsA.filter((point: Vector3) => pointIntersectsWithAABB(point, contact.aabbOverlap));
-    const trianglesBToCheck = trianglesB.filter((triangle: Triangle) => triangleIntersectsWithAABB(triangle, contact.aabbOverlap));
+    const pointsToCheck = points.filter((point: Vector3) => pointIntersectsWithAABB(point, contact.aabbOverlap));
+    const trianglesToCheck = triangles.filter((triangle: Triangle) => triangleIntersectsWithAABB(triangle, contact.aabbOverlap));
 
     let minPenetration = Number.POSITIVE_INFINITY;
     let collisionNormal = Vector3.Zero();
     let collisionPointA = Vector3.Zero();
     let collisionPointB = Vector3.Zero();
     let collisionTriangle: Triangle = [Vector3.Zero(), Vector3.Zero(), Vector3.Zero()];
-    for (const point of pointsAToCheck) {
-        for (const triangle of trianglesBToCheck) {
-            const [intersect, penetrationDistance, triangleNormal, intersectionPoint] = intersectRayTriangle(contact.a.mesh.position, point, triangle);
-            if (intersect && penetrationDistance < minPenetration) {
-                minPenetration = penetrationDistance;
-                collisionTriangle = triangle;
+    for (const point of pointsToCheck) {
+        for (const triangle of trianglesToCheck) {
+            const [intersect, penetration, normal, pointOnTriangle] = intersectRayTriangle(reverse ? contact.b.position : contact.a.position, point, triangle);
+            if (intersect && penetration < minPenetration) {
+                minPenetration = penetration;
+                collisionNormal = normal;
                 collisionPointA = point;
-                collisionPointB = intersectionPoint;
-                collisionNormal = triangleNormal;
+                collisionPointB = pointOnTriangle;
+                collisionTriangle = triangle;
             }
         }
     }
-    if (collisionNormal.lengthSquared() > 0) {
-        const totalMass = contact.a.mass + contact.b.mass;
-        const aMass = contact.a.mass / totalMass;
-        const bMass = contact.b.mass / totalMass;
-        contact.a.mesh.position = contact.a.mesh.position.subtract(collisionNormal.scale(aMass * minPenetration));
-        contact.b.mesh.position = contact.b.mesh.position.add(collisionNormal.scale(bMass * minPenetration));
-
-        // update the collisionPoints accordingly
-        collisionPointA = collisionPointA.subtract(collisionNormal.scale(aMass * minPenetration));
-        collisionPointB = collisionPointB.add(collisionNormal.scale(bMass * minPenetration));
-
-        //console.log(minPenetration, collisionNormal, collisionTriangle);
-        displayTriangle(collisionTriangle);
-        displayPoint(collisionPointA);
-        //arrowhead(contact.a.mesh.position, collisionPointA.subtract(contact.a.mesh.position), Color3.Red());
-        return [true, minPenetration, collisionPointA, collisionPointB];
+    if (collisionNormal.lengthSquared() == 0) {
+        return [false, 0, Vector3.Zero(), Vector3.Zero()];
     }
+    displayTriangle(collisionTriangle);
+    displayPoint(collisionPointA);
 
-    //Check if a point of B is inside A
-    const pointsB = getMeshVerticesWorldSpace(contact.b.mesh);
-    const trianglesA = getMeshTriangles(contact.a.mesh);
+    if (reverse) return [true, minPenetration, collisionPointB, collisionPointA];
+    return [true, minPenetration, collisionPointA, collisionPointB];
+}
 
-    const pointsBToCheck = pointsB.filter((point: Vector3) => pointIntersectsWithAABB(point, contact.aabbOverlap));
-    const trianglesAToCheck = trianglesA.filter((triangle: Triangle) => triangleIntersectsWithAABB(triangle, contact.aabbOverlap));
+export function testInterpenetration(contact: Contact): [boolean, number, Vector3, Vector3] {
+    const [interpenetrates, penetrationDistance, pointA, pointB] = vertexToFacePenetration(contact, false);
+    if (interpenetrates) return [true, penetrationDistance, pointA, pointB];
 
-    for (const point of pointsBToCheck) {
-        for (const triangle of trianglesAToCheck) {
-            const [intersect, penetrationDistance, triangleNormal, intersectionPoint] = intersectRayTriangle(contact.b.mesh.position, point, triangle);
-            if (intersect && penetrationDistance < minPenetration) {
-                minPenetration = penetrationDistance;
-                collisionTriangle = triangle;
-                collisionPointA = point;
-                collisionPointB = intersectionPoint;
-                collisionNormal = triangleNormal;
-            }
-        }
-    }
-    if (collisionNormal.lengthSquared() > 0) {
-        // translate the 2 bodies so that they are not intersecting anymore (weighted by their mass)
-        const totalMass = contact.a.mass + contact.b.mass;
-        const aMass = contact.a.mass / totalMass;
-        const bMass = contact.b.mass / totalMass;
-        contact.a.mesh.position = contact.a.mesh.position.add(collisionNormal.scale(aMass * minPenetration));
-        contact.b.mesh.position = contact.b.mesh.position.subtract(collisionNormal.scale(bMass * minPenetration));
-
-        // update the collisionPoints accordingly
-        collisionPointA = collisionPointA.add(collisionNormal.scale(aMass * minPenetration));
-        collisionPointB = collisionPointB.subtract(collisionNormal.scale(bMass * minPenetration));
-
-        //console.log(minPenetration, collisionNormal, collisionTriangle);
-        displayTriangle(collisionTriangle);
-        displayPoint(collisionPointA);
-        //arrowhead(contact.b.mesh.position, collisionPointA.subtract(contact.b.mesh.position), Color3.Red());
-        return [true, minPenetration, collisionPointA, collisionPointB];
-    }
+    const [interpenetrates2, penetrationDistance2, pointB2, pointA2] = vertexToFacePenetration(contact, true);
+    if (interpenetrates2) return [true, penetrationDistance2, pointA2, pointB2];
 
     return [false, 0, Vector3.Zero(), Vector3.Zero()];
 }
@@ -273,7 +235,7 @@ export function computeImpulse(a: RigidBody, b: RigidBody, pointA: Vector3, poin
     denominator += Vector3.Dot(normal, b.inverseInertiaTensor.applyTo(rb.cross(normal)).cross(rb));
     // calculate impulse scalar
     const restitution = 0.7;
-    const j = 10 * -(1 + restitution) * rv / denominator;
+    const j = 40 * -(1 + restitution) * rv / denominator;
 
     // calculate impulse vector
     return [new Impulse(normal.scale(j), pointA), new Impulse(normal.scale(-j), pointB)];

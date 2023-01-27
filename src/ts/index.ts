@@ -62,7 +62,7 @@ function updateScene() {
         octahedron.applyImpulse(new Impulse(new Vector3(70, 10, 30), new Vector3(Math.random(), Math.random(), Math.random())));
     }
     const deltaTime = Math.min(engine.getDeltaTime() / 1000, 0.017);
-    physicsEngine.update(deltaTime / 3);
+    physicsEngine.update(deltaTime / 1);
     I++;
 }
 

@@ -2,7 +2,7 @@ import {RigidBody} from "./rigidBody";
 import {ForceField} from "./forceFields/forceField";
 import {Color3} from "@babylonjs/core";
 import {AABB} from "./aabb";
-import {computeImpulse, Contact, testInterpenetration, Tree} from "./utils";
+import {arrowhead, computeImpulse, Contact, testInterpenetration, Tree} from "./utils";
 
 export class Murph {
     private readonly bodies: RigidBody[] = [];
@@ -50,7 +50,7 @@ export class Murph {
             }
         }
 
-        // compute collisions O(n²)
+        // compute collisions O(n²) broad phase
         for (const body of this.bodies) {
             for (const otherBody of this.bodies) {
                 if (body === otherBody) continue;
@@ -74,6 +74,7 @@ export class Murph {
             }
         }
 
+        // compute collisions O(n²) narrow phase
         for (const body of this.bodies) {
             let isInContact = false;
             let isInterpenetrating = false;
@@ -88,6 +89,8 @@ export class Murph {
                         const [impulseA, impulseB] = computeImpulse(contact.a, contact.b, pointA.subtract(contact.a.position), pointB.subtract(contact.b.position), pointA.subtract(pointB).normalize());
 
                         contact.a.applyImpulse(impulseA);
+                        //console.log(contact.a.mesh.name);
+                        //arrowhead(pointA, impulseA.force.normalizeToNew(), Color3.Blue());
                         contact.b.applyImpulse(impulseB);
 
                         break;
