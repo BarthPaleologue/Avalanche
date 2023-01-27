@@ -15,13 +15,13 @@ export class RigidBody {
     private readonly inertiaTensor0: Matrix3;
     private readonly inverseInertiaTensor0: Matrix3;
 
-    private inverseInertiaTensor: Matrix3;
+    inverseInertiaTensor: Matrix3;
 
     private momentum: Vector3;
     private angularMomentum: Vector3;
 
     velocity: Vector3 = Vector3.Zero();
-    private omega: Vector3 = Vector3.Zero();
+    omega: Vector3 = Vector3.Zero();
 
     private rotationMatrix: Matrix3;
 

@@ -208,14 +208,22 @@ export function arrowhead(start: Vector3, vec: Vector3, color: Color3) {
 }
 
 export function computeImpulse(a: RigidBody, b: RigidBody, pointA: Vector3, pointB: Vector3, normal: Vector3): [Impulse, Impulse] {
-    // relative velocity
-    const rv = Vector3.Dot(b.velocity.subtract(a.velocity), normal);
-    // relative mass
-    const rm = 1 / (a.mass + b.mass);
+    const ra = pointA.subtract(a.position);
+    const rb = pointB.subtract(b.position);
 
+    const va = a.velocity.add(a.omega.cross(ra));
+    const vb = b.velocity.add(b.omega.cross(rb));
+    // relative velocity
+    const rv = Vector3.Dot(normal, vb.subtract(va));
+
+    let denominator = 0;
+    denominator += a.mass > 0 ? 1 / a.mass : 0;
+    denominator += b.mass > 0 ? 1 / b.mass : 0;
+    denominator += Vector3.Dot(normal, a.inverseInertiaTensor.applyTo(ra.cross(normal)).cross(ra));
+    denominator += Vector3.Dot(normal, b.inverseInertiaTensor.applyTo(rb.cross(normal)).cross(rb));
     // calculate impulse scalar
     const restitution = 0.7;
-    const j = -(1 + restitution) * rv * rm * 2;
+    const j = 40 * -(1 + restitution) * rv / denominator;
 
     // calculate impulse vector
     return [new Impulse(normal.scale(j), pointA), new Impulse(normal.scale(-j), pointB)];

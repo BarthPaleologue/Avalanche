@@ -10,6 +10,7 @@ import {Murph} from "./murph";
 import {Impulse} from "./impulse";
 import {RigidBodyFactory} from "./rigidBodyFactory";
 import {UniformPonctualField} from "./forceFields/uniformPonctualField";
+import {UniformDirectionalField} from "./forceFields/uniformDirectionalField";
 
 const canvas = document.getElementById("renderer") as HTMLCanvasElement;
 canvas.width = window.innerWidth;
@@ -61,7 +62,7 @@ function updateScene() {
         octahedron.applyImpulse(new Impulse(new Vector3(70, 10, 30), new Vector3(Math.random(), Math.random(), Math.random())));
     }
     const deltaTime = Math.min(engine.getDeltaTime() / 1000, 0.017);
-    physicsEngine.update(deltaTime / 2);
+    physicsEngine.update(deltaTime / 3);
     I++;
 }
 

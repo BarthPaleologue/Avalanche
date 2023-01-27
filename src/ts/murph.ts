@@ -91,7 +91,7 @@ export class Murph {
                         isInterpenetrating = true;
                         body.aabb.color = new Color3(0, 1, 0);
 
-                        const [impulseA, impulseB] = computeImpulse(contact.a, contact.b, pointA.subtract(contact.a.position), pointB.subtract(contact.b.position), pointB.subtract(pointA).normalize());
+                        const [impulseA, impulseB] = computeImpulse(contact.a, contact.b, pointA.subtract(contact.a.position), pointB.subtract(contact.b.position), pointA.subtract(pointB).normalize());
 
                         contact.a.applyImpulse(impulseA);
                         contact.b.applyImpulse(impulseB);
