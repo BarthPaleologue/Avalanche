@@ -144,7 +144,7 @@ export function triangleIntersectsWithAABB(triangle: Triangle, aabb: AABB): bool
 }
 
 export function testInterpenetration(contact: Contact): [boolean, number, Vector3, Vector3] {
-    //let maxInterpenetration = 0;
+    //Check if a point of A is inside B
     const pointsA = getMeshVerticesWorldSpace(contact.a.mesh);
     const trianglesB = getMeshTriangles(contact.b.mesh);
 
@@ -175,6 +175,34 @@ export function testInterpenetration(contact: Contact): [boolean, number, Vector
         //arrowhead(contact.a.mesh.position, collisionPointA.subtract(contact.a.mesh.position), Color3.Red());
         return [true, minPenetration, collisionPointA, collisionPointB];
     }
+
+    //Check if a point of B is inside A
+    const pointsB = getMeshVerticesWorldSpace(contact.b.mesh);
+    const trianglesA = getMeshTriangles(contact.a.mesh);
+
+    const pointsBToCheck = pointsB.filter((point: Vector3) => pointIntersectsWithAABB(point, contact.aabbOverlap));
+    const trianglesAToCheck = trianglesA.filter((triangle: Triangle) => triangleIntersectsWithAABB(triangle, contact.aabbOverlap));
+
+    for (const point of pointsBToCheck) {
+        for (const triangle of trianglesAToCheck) {
+            const [intersect, penetrationDistance, triangleNormal, intersectionPoint] = intersectRayTriangle(contact.b.mesh.position, point, triangle);
+            if (intersect && penetrationDistance < minPenetration) {
+                minPenetration = penetrationDistance;
+                collisionTriangle = triangle;
+                collisionPointA = point;
+                collisionPointB = intersectionPoint;
+                collisionNormal = triangleNormal;
+            }
+        }
+    }
+    if (collisionNormal.lengthSquared() > 0) {
+        //console.log(minPenetration, collisionNormal, collisionTriangle);
+        displayTriangle(collisionTriangle);
+        displayPoint(collisionPointA);
+        //arrowhead(contact.b.mesh.position, collisionPointA.subtract(contact.b.mesh.position), Color3.Red());
+        return [true, minPenetration, collisionPointA, collisionPointB];
+    }
+
     return [false, 0, Vector3.Zero(), Vector3.Zero()];
 }
 

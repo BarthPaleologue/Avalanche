@@ -43,8 +43,6 @@ export class Murph {
         for(const contact of this.contacts) contact.aabbOverlap.helperMesh?.dispose();
         this.contacts = [];
 
-        //this.buildBoundingVolumeHierarchy();
-
         for (const field of this.fields) {
             for (const body of this.bodies) {
                 const impulse = field.computeImpulse(body);
@@ -76,10 +74,6 @@ export class Murph {
             }
         }
 
-        /*for (const contact of this.contacts) {
-            solveContact(contact);
-        }*/
-
         for (const body of this.bodies) {
             let isInContact = false;
             let isInterpenetrating = false;
@@ -95,13 +89,6 @@ export class Murph {
 
                         contact.a.applyImpulse(impulseA);
                         contact.b.applyImpulse(impulseB);
-
-                        /*
-                        const epsilon = 1e-1;
-                        if(penetrationDistance < epsilon) {
-                            return this.togglePause()
-                        }
-                        */
 
                         break;
                     } else body.aabb.color = new Color3(1, 0, 0);
