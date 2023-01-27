@@ -31,9 +31,9 @@ const physicsEngine = new Murph();
 //const gravity = new UniformDirectionalField(new Vector3(0, -9.81, 0), physicsEngine);
 const gravity = new UniformPonctualField(new Vector3(0, 3, 0), 5, physicsEngine);
 
-const ground = RigidBodyFactory.CreateCuboid("ground", new Vector3(10, 1, 10), 0, physicsEngine, scene);
+const ground = RigidBodyFactory.CreateCuboid("ground", new Vector3(10, 5, 10), 0, physicsEngine, scene);
 //ground.mesh.rotate(new Vector3(1, 0, 0), Math.PI / 2);
-ground.position = new Vector3(0, -5, 0);
+ground.position = new Vector3(0, -20, 0);
 ground.mesh.receiveShadows = true;
 
 const sphere = RigidBodyFactory.CreateSphere("sphere", 1, 1, physicsEngine, scene);

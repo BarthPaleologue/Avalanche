@@ -15,7 +15,7 @@ export class RigidBody {
     private readonly inertiaTensor0: Matrix3;
     private readonly inverseInertiaTensor0: Matrix3;
 
-    inverseInertiaTensor: Matrix3;
+    private _inverseInertiaTensor: Matrix3;
 
     private momentum: Vector3;
     private angularMomentum: Vector3;
@@ -43,7 +43,7 @@ export class RigidBody {
         this.inertiaTensor0 = inertiaTensor0;
         this.inverseInertiaTensor0 = this.mass > 0 ? inertiaTensor0.inverse() : Matrix3.identity();
 
-        this.inverseInertiaTensor = Matrix3.identity();
+        this._inverseInertiaTensor = Matrix3.identity();
 
         this.momentum = Vector3.Zero();
         this.angularMomentum = Vector3.Zero();
@@ -65,6 +65,10 @@ export class RigidBody {
 
     get rotationQuaternion(): Quaternion {
         return this.mesh.rotationQuaternion ?? Quaternion.Identity();
+    }
+
+    get inverseInertiaTensor(): Matrix3 {
+        return this._inverseInertiaTensor;
     }
 
     public applyImpulse(impulse: Impulse) {
@@ -89,8 +93,8 @@ export class RigidBody {
 
         this.rotationMatrix = Matrix3.fromQuaternion(this.rotationQuaternion);
 
-        this.inverseInertiaTensor = this.rotationMatrix.multiply(this.inverseInertiaTensor0).multiply(this.rotationMatrix.transpose());
-        this.omega = this.inverseInertiaTensor.applyTo(this.angularMomentum);
+        this._inverseInertiaTensor = this.rotationMatrix.multiply(this.inverseInertiaTensor0).multiply(this.rotationMatrix.transpose());
+        this.omega = this._inverseInertiaTensor.applyTo(this.angularMomentum);
 
         this.aabb.updateFromMesh(this.mesh);
 

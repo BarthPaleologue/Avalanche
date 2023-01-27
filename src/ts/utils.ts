@@ -67,12 +67,13 @@ export function displayPoint(point: Vector3) {
 function intersectRayTriangle(rayOrigin: Vector3, rayEnd: Vector3, triangle: Triangle): [boolean, number, Vector3, Vector3] {
     const edge1 = triangle[1].subtract(triangle[0]);
     const edge2 = triangle[2].subtract(triangle[0]);
+    const triangleNormal = Vector3.Cross(edge1, edge2).normalize();
     const rayDir = rayEnd.subtract(rayOrigin).normalize();
     const h = rayDir.cross(edge2);
     const a = Vector3.Dot(edge1, h);
 
     if (a > -0.00001 && a < 0.00001) {
-        return [false, 0, h, Vector3.Zero()];
+        return [false, 0, triangleNormal, Vector3.Zero()];
     }
 
     const f = 1 / a;
@@ -80,22 +81,22 @@ function intersectRayTriangle(rayOrigin: Vector3, rayEnd: Vector3, triangle: Tri
     const u = f * Vector3.Dot(s, h);
 
     if (u < 0.0 || u > 1.0) {
-        return [false, 0, h, Vector3.Zero()];
+        return [false, 0, triangleNormal, Vector3.Zero()];
     }
 
     const q = s.cross(edge1);
     const v = f * Vector3.Dot(rayDir, q);
 
     if (v < 0.0 || u + v > 1.0) {
-        return [false, 0, h, Vector3.Zero()];
+        return [false, 0, triangleNormal, Vector3.Zero()];
     }
 
     const t = f * Vector3.Dot(edge2, q);
 
     if (t > 0.00001 && t < rayEnd.subtract(rayOrigin).length()) {
-        return [true, t, h, rayOrigin.add(rayDir.scale(t))];
+        return [true, t, h.normalize(), rayOrigin.add(rayDir.scale(t))];
     } else {
-        return [false, 0, h, Vector3.Zero()];
+        return [false, 0, triangleNormal, Vector3.Zero()];
     }
 }
 
@@ -169,6 +170,16 @@ export function testInterpenetration(contact: Contact): [boolean, number, Vector
         }
     }
     if (collisionNormal.lengthSquared() > 0) {
+        const totalMass = contact.a.mass + contact.b.mass;
+        const aMass = contact.a.mass / totalMass;
+        const bMass = contact.b.mass / totalMass;
+        contact.a.mesh.position = contact.a.mesh.position.subtract(collisionNormal.scale(aMass * minPenetration));
+        contact.b.mesh.position = contact.b.mesh.position.add(collisionNormal.scale(bMass * minPenetration));
+
+        // update the collisionPoints accordingly
+        collisionPointA = collisionPointA.subtract(collisionNormal.scale(aMass * minPenetration));
+        collisionPointB = collisionPointB.add(collisionNormal.scale(bMass * minPenetration));
+
         //console.log(minPenetration, collisionNormal, collisionTriangle);
         displayTriangle(collisionTriangle);
         displayPoint(collisionPointA);
@@ -196,6 +207,17 @@ export function testInterpenetration(contact: Contact): [boolean, number, Vector
         }
     }
     if (collisionNormal.lengthSquared() > 0) {
+        // translate the 2 bodies so that they are not intersecting anymore (weighted by their mass)
+        const totalMass = contact.a.mass + contact.b.mass;
+        const aMass = contact.a.mass / totalMass;
+        const bMass = contact.b.mass / totalMass;
+        contact.a.mesh.position = contact.a.mesh.position.add(collisionNormal.scale(aMass * minPenetration));
+        contact.b.mesh.position = contact.b.mesh.position.subtract(collisionNormal.scale(bMass * minPenetration));
+
+        // update the collisionPoints accordingly
+        collisionPointA = collisionPointA.add(collisionNormal.scale(aMass * minPenetration));
+        collisionPointB = collisionPointB.subtract(collisionNormal.scale(bMass * minPenetration));
+
         //console.log(minPenetration, collisionNormal, collisionTriangle);
         displayTriangle(collisionTriangle);
         displayPoint(collisionPointA);
@@ -251,7 +273,7 @@ export function computeImpulse(a: RigidBody, b: RigidBody, pointA: Vector3, poin
     denominator += Vector3.Dot(normal, b.inverseInertiaTensor.applyTo(rb.cross(normal)).cross(rb));
     // calculate impulse scalar
     const restitution = 0.7;
-    const j = 40 * -(1 + restitution) * rv / denominator;
+    const j = 10 * -(1 + restitution) * rv / denominator;
 
     // calculate impulse vector
     return [new Impulse(normal.scale(j), pointA), new Impulse(normal.scale(-j), pointB)];
