@@ -7,9 +7,6 @@ import {copyAintoB, RigidBodyState} from "./rigidBodyState";
 
 export class RigidBody {
     readonly mesh: AbstractMesh;
-
-    readonly aabb: AABB;
-
     readonly mass: number;
     private readonly inverseMass: number;
 
@@ -24,7 +21,8 @@ export class RigidBody {
         momentum: Vector3.Zero(),
         angularMomentum: Vector3.Zero(),
         rotationMatrix: Matrix3.identity(),
-        inverseInertiaTensor: Matrix3.identity()
+        inverseInertiaTensor: Matrix3.identity(),
+        aabb: new AABB(Vector3.Zero(), Vector3.Zero())
     }
 
     readonly nextState: RigidBodyState = {
@@ -35,7 +33,8 @@ export class RigidBody {
         momentum: Vector3.Zero(),
         angularMomentum: Vector3.Zero(),
         rotationMatrix: Matrix3.identity(),
-        inverseInertiaTensor: Matrix3.identity()
+        inverseInertiaTensor: Matrix3.identity(),
+        aabb: new AABB(Vector3.Zero(), Vector3.Zero())
     }
 
     private cumulatedImpulses: Impulse[] = [];
@@ -45,8 +44,8 @@ export class RigidBody {
 
         this.mesh = mesh;
 
-        this.aabb = AABB.FromMesh(this.mesh);
-        this.aabb.setVisible(true);
+        this.currentState.aabb.updateFromMesh(this.mesh);
+        this.currentState.aabb.setVisible(true);
 
         this.mesh.rotationQuaternion = Quaternion.Identity();
 
@@ -67,7 +66,7 @@ export class RigidBody {
     setInitialPosition(position: Vector3) {
         this.mesh.position = position;
         this.currentState.position = position;
-        this.aabb.updateFromMesh(this.mesh);
+        this.currentState.aabb.updateFromMesh(this.mesh);
     }
 
     get positionRef(): Vector3 {
@@ -86,6 +85,10 @@ export class RigidBody {
         this.cumulatedImpulses.push(impulse);
     }
 
+    /**
+     * Resets the next state and recomputes it for t = t + deltaTime
+     * @param deltaTime the time step in seconds
+     */
     public computeNextStep(deltaTime: number) {
         if (this.mass === 0) return;
 
@@ -118,7 +121,7 @@ export class RigidBody {
         this.mesh.position = this.currentState.position;
         this.mesh.rotationQuaternion = this.currentState.rotationQuaternion;
 
-        this.aabb.updateFromMesh(this.mesh);
+        this.currentState.aabb.updateFromMesh(this.mesh);
 
         // TODO
         this.cumulatedImpulses = [];

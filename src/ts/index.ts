@@ -53,7 +53,7 @@ shadowGenerator.addShadowCaster(octahedron.mesh)
 let I = 0;
 
 function updateScene() {
-    ground.aabb.updateFromMesh(ground.mesh);
+    ground.currentState.aabb.updateFromMesh(ground.mesh);
 
     if (I == 1) {
         cuboid.applyImpulse(new Impulse(new Vector3(0, 100, 10), new Vector3(Math.random(), Math.random(), Math.random())));
@@ -61,7 +61,7 @@ function updateScene() {
         octahedron.applyImpulse(new Impulse(new Vector3(70, 10, 30), new Vector3(Math.random(), Math.random(), Math.random())));
     }
     const deltaTime = Math.min(engine.getDeltaTime() / 1000, 0.017);
-    physicsEngine.update(deltaTime / 1);
+    physicsEngine.update(deltaTime / 2);
     I++;
 }
 

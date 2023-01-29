@@ -119,4 +119,10 @@ export class AABB {
             (this.helperMesh.material as StandardMaterial).emissiveColor = this.color;
         }
     }
+
+    copyFrom(aabb: AABB) {
+        this.min.copyFrom(aabb.min);
+        this.max.copyFrom(aabb.max);
+        this.color.copyFrom(aabb.color);
+    }
 }

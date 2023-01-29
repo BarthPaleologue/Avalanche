@@ -1,5 +1,6 @@
 import {Quaternion, Vector3} from "@babylonjs/core";
 import {Matrix3} from "./matrix3";
+import {AABB} from "./aabb";
 
 export interface RigidBodyState {
     position: Vector3;
@@ -10,6 +11,7 @@ export interface RigidBodyState {
     angularMomentum: Vector3;
     rotationMatrix: Matrix3;
     inverseInertiaTensor: Matrix3;
+    aabb: AABB;
 }
 
 export function copyAintoB(a: RigidBodyState, b: RigidBodyState) {
@@ -21,4 +23,5 @@ export function copyAintoB(a: RigidBodyState, b: RigidBodyState) {
     b.angularMomentum.copyFrom(a.angularMomentum);
     b.rotationMatrix.copyFrom(a.rotationMatrix);
     b.inverseInertiaTensor.copyFrom(a.inverseInertiaTensor);
+    b.aabb.copyFrom(a.aabb);
 }

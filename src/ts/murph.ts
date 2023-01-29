@@ -40,9 +40,6 @@ export class Murph {
         if (this.isPaused) return;
         this.clock += deltaTime;
 
-        for(const contact of this.contacts) contact.aabbOverlap.helperMesh?.dispose();
-        this.contacts = [];
-
         for (const field of this.fields) {
             for (const body of this.bodies) {
                 const impulse = field.computeImpulse(body);
@@ -50,12 +47,23 @@ export class Murph {
             }
         }
 
+        // Computing the next step, not updating the bodies yet,
+        // We will use the computed position to compute the collisions
+        for (const body of this.bodies) {
+            body.computeNextStep(deltaTime);
+        }
+
+        //// BROAD PHASE
+
+        for(const contact of this.contacts) contact.aabbOverlap.helperMesh?.dispose();
+        this.contacts = [];
+
         // compute collisions O(n²) broad phase
         for (const body of this.bodies) {
             for (const otherBody of this.bodies) {
                 if (body === otherBody) continue;
 
-                const [intersects, overlap] = AABB.IntersectsAndOverlap(body.aabb, otherBody.aabb)
+                const [intersects, overlap] = AABB.IntersectsAndOverlap(body.nextState.aabb, otherBody.nextState.aabb)
                 if (intersects) {
                     // check the intersection of triangles inside the overlap
                     const contactSet: Contact = {
@@ -74,6 +82,8 @@ export class Murph {
             }
         }
 
+        /// NARROW PHASE
+
         // compute collisions O(n²) narrow phase
         for (const body of this.bodies) {
             let isInContact = false;
@@ -84,7 +94,7 @@ export class Murph {
                     const [intersect, penetrationDistance, pointA, pointB] = testInterpenetration(contact);
                     if(intersect) {
                         isInterpenetrating = true;
-                        body.aabb.color = new Color3(0, 1, 0);
+                        body.nextState.aabb.color = new Color3(0, 1, 0);
 
                         const [impulseA, impulseB] = computeImpulse(contact.a, contact.b, pointA.subtract(contact.a.positionRef), pointB.subtract(contact.b.positionRef), pointA.subtract(pointB).normalize());
 
@@ -93,20 +103,17 @@ export class Murph {
                         //arrowhead(pointA, impulseA.force.normalizeToNew(), Color3.Blue());
                         contact.b.applyImpulse(impulseB);
                         //arrowhead(pointB, impulseB.force.normalizeToNew(), Color3.Red());
+                        contact.a.computeNextStep(deltaTime);
+                        contact.b.computeNextStep(deltaTime);
 
                         break;
-                    } else body.aabb.color = new Color3(1, 0, 0);
+                    } else body.nextState.aabb.color = new Color3(1, 0, 0);
                 }
             }
-            if (!isInContact && !isInterpenetrating) body.aabb.color = new Color3(1, 1, 1);
+            if (!isInContact && !isInterpenetrating) body.nextState.aabb.color = new Color3(1, 1, 1);
         }
 
-        for (const body of this.bodies) {
-            body.computeNextStep(deltaTime);
-        }
-
-        // check for interpenetration HERE
-
+        // All collisions have been resolved, we can now update the bodies
         for (const body of this.bodies) {
             body.applyNextStep();
         }
