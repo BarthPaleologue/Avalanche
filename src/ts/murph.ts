@@ -2,13 +2,11 @@ import {RigidBody} from "./rigidBody";
 import {ForceField} from "./forceFields/forceField";
 import {Color3} from "@babylonjs/core";
 import {AABB} from "./aabb";
-import {arrowhead, computeImpulse, Contact, testInterpenetration, Tree} from "./utils";
+import {computeImpulse, Contact, testInterpenetration} from "./utils/intersection";
 
 export class Murph {
     private readonly bodies: RigidBody[] = [];
     private readonly fields: ForceField[] = [];
-
-    private bodyHierarchy: Tree<RigidBody> = [];
 
     private contacts: Contact[] = [];
 
@@ -103,6 +101,8 @@ export class Murph {
                         //arrowhead(pointA, impulseA.force.normalizeToNew(), Color3.Blue());
                         contact.b.applyImpulse(impulseB);
                         //arrowhead(pointB, impulseB.force.normalizeToNew(), Color3.Red());
+
+                        // Recompute the next step taking into account the new velocity
                         contact.a.computeNextStep(deltaTime);
                         contact.b.computeNextStep(deltaTime);
 
