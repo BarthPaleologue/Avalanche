@@ -66,6 +66,7 @@ export class RigidBody {
     setInitialPosition(position: Vector3) {
         this.mesh.position = position;
         this.currentState.position = position;
+        this.mesh.computeWorldMatrix(true);
         this.currentState.aabb.updateFromMesh(this.mesh);
     }
 
@@ -90,9 +91,9 @@ export class RigidBody {
      * @param deltaTime the time step in seconds
      */
     public computeNextStep(deltaTime: number) {
-        if (this.mass === 0) return;
-
         copyAintoB(this.currentState, this.nextState);
+
+        if (this.mass === 0) return;
 
         for (const impulse of this.cumulatedImpulses) {
             this.nextState.momentum.addInPlace(impulse.force.scale(deltaTime));
@@ -114,9 +115,9 @@ export class RigidBody {
     }
 
     public applyNextStep() {
-        if(this.mass === 0) return;
-
         copyAintoB(this.nextState, this.currentState);
+
+        if(this.mass === 0) return;
 
         this.mesh.position = this.currentState.position;
         this.mesh.rotationQuaternion = this.currentState.rotationQuaternion;

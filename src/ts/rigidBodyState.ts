@@ -14,6 +14,11 @@ export interface RigidBodyState {
     aabb: AABB;
 }
 
+/**
+ * Copy the values of a into b
+ * @param a
+ * @param b
+ */
 export function copyAintoB(a: RigidBodyState, b: RigidBodyState) {
     b.position.copyFrom(a.position);
     b.rotationQuaternion.copyFrom(a.rotationQuaternion);

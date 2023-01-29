@@ -1,7 +1,7 @@
 import {Color3, Mesh, MeshBuilder, StandardMaterial, Vector3, VertexData} from "@babylonjs/core";
 import {Triangle} from "./vertex";
 
-export function displayTriangle(triangle: Triangle) {
+export function displayTriangle(triangle: Triangle, duration=16) {
     const mesh = new Mesh("triangle");
 
     //Set arrays for positions and indices
@@ -25,10 +25,11 @@ export function displayTriangle(triangle: Triangle) {
     material.backFaceCulling = false;
     mesh.material = material;
 
-    setTimeout(() => mesh.dispose(), 16);
+    if(duration === 0) return;
+    setTimeout(() => mesh.dispose(), duration);
 }
 
-export function displayPoint(point: Vector3) {
+export function displayPoint(point: Vector3, duration=16) {
     const mesh = MeshBuilder.CreateBox("point", {size: 0.1});
     mesh.position = point;
 
@@ -37,10 +38,11 @@ export function displayPoint(point: Vector3) {
     material.backFaceCulling = false;
     mesh.material = material;
 
-    setTimeout(() => mesh.dispose(), 16);
+    if(duration === 0) return;
+    setTimeout(() => mesh.dispose(), duration);
 }
 
-export function arrowhead(start: Vector3, vec: Vector3, color: Color3) {
+export function arrowhead(start: Vector3, vec: Vector3, color: Color3, duration=16) {
     const shape = [
         new Vector3(-0.25, 0, 0),
         new Vector3(0, -0.25, 0),
@@ -67,4 +69,7 @@ export function arrowhead(start: Vector3, vec: Vector3, color: Color3) {
     const mat = new StandardMaterial("");
     mat.diffuseColor = color;
     vecRep.material = mat
+
+    if(duration === 0) return;
+    setTimeout(() => vecRep.dispose(), duration);
 }
