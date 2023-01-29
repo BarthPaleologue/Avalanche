@@ -102,5 +102,24 @@ export class Matrix3 {
         );
     }
 
+    public clone(): Matrix3 {
+        return new Matrix3(
+            this.m00, this.m01, this.m02,
+            this.m10, this.m11, this.m12,
+            this.m20, this.m21, this.m22
+        );
+    }
 
+    public copyFrom(rhs: Matrix3): Matrix3 {
+        this.m00 = rhs.m00;
+        this.m01 = rhs.m01;
+        this.m02 = rhs.m02;
+        this.m10 = rhs.m10;
+        this.m11 = rhs.m11;
+        this.m12 = rhs.m12;
+        this.m20 = rhs.m20;
+        this.m21 = rhs.m21;
+        this.m22 = rhs.m22;
+        return this;
+    }
 }

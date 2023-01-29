@@ -86,12 +86,13 @@ export class Murph {
                         isInterpenetrating = true;
                         body.aabb.color = new Color3(0, 1, 0);
 
-                        const [impulseA, impulseB] = computeImpulse(contact.a, contact.b, pointA.subtract(contact.a.position), pointB.subtract(contact.b.position), pointA.subtract(pointB).normalize());
+                        const [impulseA, impulseB] = computeImpulse(contact.a, contact.b, pointA.subtract(contact.a.positionRef), pointB.subtract(contact.b.positionRef), pointA.subtract(pointB).normalize());
 
                         contact.a.applyImpulse(impulseA);
                         //console.log(contact.a.mesh.name);
                         //arrowhead(pointA, impulseA.force.normalizeToNew(), Color3.Blue());
                         contact.b.applyImpulse(impulseB);
+                        //arrowhead(pointB, impulseB.force.normalizeToNew(), Color3.Red());
 
                         break;
                     } else body.aabb.color = new Color3(1, 0, 0);
@@ -101,7 +102,13 @@ export class Murph {
         }
 
         for (const body of this.bodies) {
-            body.update(deltaTime);
+            body.computeNextStep(deltaTime);
+        }
+
+        // check for interpenetration HERE
+
+        for (const body of this.bodies) {
+            body.applyNextStep();
         }
     }
 }

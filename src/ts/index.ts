@@ -32,23 +32,22 @@ const physicsEngine = new Murph();
 const gravity = new UniformPonctualField(new Vector3(0, 3, 0), 5, physicsEngine);
 
 const ground = RigidBodyFactory.CreateCuboid("ground", new Vector3(10, 5, 10), 0, physicsEngine, scene);
-//ground.mesh.rotate(new Vector3(1, 0, 0), Math.PI / 2);
-ground.position = new Vector3(0, -20, 0);
+ground.setInitialPosition(new Vector3(0, -40, 0));
 ground.mesh.receiveShadows = true;
 
 const sphere = RigidBodyFactory.CreateSphere("sphere", 1, 1, physicsEngine, scene);
 shadowGenerator.addShadowCaster(sphere.mesh);
 
 const cuboid = RigidBodyFactory.CreateCuboid("cuboid", new Vector3(1, 1, 1), 1, physicsEngine, scene);
-cuboid.position = new Vector3(0, 0, 3);
+cuboid.setInitialPosition(new Vector3(0, 0, 3));
 shadowGenerator.addShadowCaster(cuboid.mesh);
 
 const cylinder = RigidBodyFactory.CreateCylinder("cylinder", 0.5, 1.5, 1, physicsEngine, scene);
-cylinder.position = new Vector3(0, 0, -3);
+cylinder.setInitialPosition(new Vector3(0, 0, -3));
 shadowGenerator.addShadowCaster(cylinder.mesh);
 
 const octahedron = RigidBodyFactory.CreateOctahedron("octahedron", 1, 1, physicsEngine, scene);
-octahedron.position = new Vector3(0, 0, -6);
+octahedron.setInitialPosition(new Vector3(0, 0, -6));
 shadowGenerator.addShadowCaster(octahedron.mesh)
 
 let I = 0;

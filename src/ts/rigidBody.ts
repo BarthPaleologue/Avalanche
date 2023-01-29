@@ -1,8 +1,9 @@
-import {AbstractMesh, Quaternion, Vector3} from "@babylonjs/core";
+import {AbstractMesh, Matrix, Quaternion, Vector3} from "@babylonjs/core";
 import {Matrix3} from "./matrix3";
 import {Murph} from "./murph";
 import {Impulse} from "./impulse";
 import {AABB} from "./aabb";
+import {copyAintoB, RigidBodyState} from "./rigidBodyState";
 
 export class RigidBody {
     readonly mesh: AbstractMesh;
@@ -15,15 +16,27 @@ export class RigidBody {
     private readonly inertiaTensor0: Matrix3;
     private readonly inverseInertiaTensor0: Matrix3;
 
-    private _inverseInertiaTensor: Matrix3;
+    readonly currentState: RigidBodyState = {
+        position: Vector3.Zero(),
+        rotationQuaternion: Quaternion.Identity(),
+        velocity: Vector3.Zero(),
+        omega: Vector3.Zero(),
+        momentum: Vector3.Zero(),
+        angularMomentum: Vector3.Zero(),
+        rotationMatrix: Matrix3.identity(),
+        inverseInertiaTensor: Matrix3.identity()
+    }
 
-    private momentum: Vector3;
-    private angularMomentum: Vector3;
-
-    velocity: Vector3 = Vector3.Zero();
-    omega: Vector3 = Vector3.Zero();
-
-    private rotationMatrix: Matrix3;
+    readonly nextState: RigidBodyState = {
+        position: Vector3.Zero(),
+        rotationQuaternion: Quaternion.Identity(),
+        velocity: Vector3.Zero(),
+        omega: Vector3.Zero(),
+        momentum: Vector3.Zero(),
+        angularMomentum: Vector3.Zero(),
+        rotationMatrix: Matrix3.identity(),
+        inverseInertiaTensor: Matrix3.identity()
+    }
 
     private cumulatedImpulses: Impulse[] = [];
 
@@ -33,9 +46,9 @@ export class RigidBody {
         this.mesh = mesh;
 
         this.aabb = AABB.FromMesh(this.mesh);
-        this.aabb.setVisible(false);
+        this.aabb.setVisible(true);
 
-        this.rotationQuaternion = Quaternion.Identity();
+        this.mesh.rotationQuaternion = Quaternion.Identity();
 
         this.mass = mass;
         this.inverseMass = 1 / mass;
@@ -43,58 +56,67 @@ export class RigidBody {
         this.inertiaTensor0 = inertiaTensor0;
         this.inverseInertiaTensor0 = this.mass > 0 ? inertiaTensor0.inverse() : Matrix3.identity();
 
-        this._inverseInertiaTensor = Matrix3.identity();
+        this.currentState.inverseInertiaTensor = Matrix3.identity();
 
-        this.momentum = Vector3.Zero();
-        this.angularMomentum = Vector3.Zero();
+        this.currentState.momentum = Vector3.Zero();
+        this.currentState.angularMomentum = Vector3.Zero();
 
-        this.rotationMatrix = Matrix3.identity();
+        this.currentState.rotationMatrix = Matrix3.identity();
     }
 
-    set position(position: Vector3) {
+    setInitialPosition(position: Vector3) {
         this.mesh.position = position;
+        this.currentState.position = position;
+        this.aabb.updateFromMesh(this.mesh);
     }
 
-    get position(): Vector3 {
-        return this.mesh.position;
+    get positionRef(): Vector3 {
+        return this.currentState.position;
     }
 
-    set rotationQuaternion(quaternion: Quaternion) {
-        this.mesh.rotationQuaternion = quaternion;
-    }
-
-    get rotationQuaternion(): Quaternion {
-        return this.mesh.rotationQuaternion ?? Quaternion.Identity();
+    get positionCopy(): Vector3 {
+        return this.currentState.position.clone();
     }
 
     get inverseInertiaTensor(): Matrix3 {
-        return this._inverseInertiaTensor;
+        return this.currentState.inverseInertiaTensor;
     }
 
     public applyImpulse(impulse: Impulse) {
         this.cumulatedImpulses.push(impulse);
     }
 
-    public update(deltaTime: number) {
+    public computeNextStep(deltaTime: number) {
         if (this.mass === 0) return;
 
+        copyAintoB(this.currentState, this.nextState);
+
         for (const impulse of this.cumulatedImpulses) {
-            this.momentum.addInPlace(impulse.force.scale(deltaTime));
-            this.angularMomentum.addInPlace(impulse.point.cross(impulse.force).scale(deltaTime));
+            this.nextState.momentum.addInPlace(impulse.force.scale(deltaTime));
+            this.nextState.angularMomentum.addInPlace(impulse.point.cross(impulse.force).scale(deltaTime));
         }
-        this.velocity = this.momentum.scale(this.inverseMass);
+        this.nextState.velocity = this.nextState.momentum.scale(this.inverseMass);
 
-        const omegaQuaternion = new Quaternion(this.omega.x, this.omega.y, this.omega.z, 0);
+        const omegaQuaternion = new Quaternion(this.currentState.omega.x, this.currentState.omega.y, this.currentState.omega.z, 0);
 
-        this.rotationQuaternion.addInPlace(omegaQuaternion.multiplyInPlace(this.rotationQuaternion).scaleInPlace(deltaTime / 2));
-        this.rotationQuaternion.normalize();
+        this.nextState.rotationQuaternion.addInPlace(omegaQuaternion.multiplyInPlace(this.currentState.rotationQuaternion).scaleInPlace(deltaTime / 2));
+        this.nextState.rotationQuaternion.normalize();
 
-        this.position.addInPlace(this.velocity.scale(deltaTime));
+        this.nextState.position.addInPlace(this.currentState.velocity.scale(deltaTime));
 
-        this.rotationMatrix = Matrix3.fromQuaternion(this.rotationQuaternion);
+        this.nextState.rotationMatrix = Matrix3.fromQuaternion(this.currentState.rotationQuaternion);
 
-        this._inverseInertiaTensor = this.rotationMatrix.multiply(this.inverseInertiaTensor0).multiply(this.rotationMatrix.transpose());
-        this.omega = this._inverseInertiaTensor.applyTo(this.angularMomentum);
+        this.nextState.inverseInertiaTensor = this.nextState.rotationMatrix.multiply(this.inverseInertiaTensor0).multiply(this.nextState.rotationMatrix.transpose());
+        this.nextState.omega = this.nextState.inverseInertiaTensor.applyTo(this.nextState.angularMomentum);
+    }
+
+    public applyNextStep() {
+        if(this.mass === 0) return;
+
+        copyAintoB(this.nextState, this.currentState);
+
+        this.mesh.position = this.currentState.position;
+        this.mesh.rotationQuaternion = this.currentState.rotationQuaternion;
 
         this.aabb.updateFromMesh(this.mesh);
 
@@ -103,7 +125,17 @@ export class RigidBody {
     }
 
     public getVelocityAtPoint(point: Vector3): Vector3 {
-        return this.velocity.add(this.omega.cross(point));
+        return this.currentState.velocity.add(this.currentState.omega.cross(point));
+    }
+
+    /**
+     * Returns the world matrix of the rigid body.
+     */
+    public static getWorldMatrix(position: Vector3, rotation: Quaternion): Matrix {
+        const translationMatrix = Matrix.Translation(position.x, position.y, position.z);
+        const rotationMatrix = Matrix.Identity();
+        Matrix.FromQuaternionToRef(rotation, rotationMatrix);
+        return translationMatrix.multiply(rotationMatrix);
     }
 
     public computeCollisionImpulse(other: RigidBody, normal: Vector3, point: Vector3): Impulse {

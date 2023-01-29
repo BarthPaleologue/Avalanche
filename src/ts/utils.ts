@@ -160,7 +160,7 @@ export function vertexToFacePenetration(contact: Contact, reverse = false): [boo
     let collisionTriangle: Triangle = [Vector3.Zero(), Vector3.Zero(), Vector3.Zero()];
     for (const point of pointsToCheck) {
         for (const triangle of trianglesToCheck) {
-            const [intersect, penetration, normal, pointOnTriangle] = intersectRayTriangle(reverse ? contact.b.position : contact.a.position, point, triangle);
+            const [intersect, penetration, normal, pointOnTriangle] = intersectRayTriangle(reverse ? contact.b.positionRef : contact.a.positionRef, point, triangle);
             if (intersect && penetration < minPenetration) {
                 minPenetration = penetration;
                 collisionNormal = normal;
@@ -220,11 +220,11 @@ export function arrowhead(start: Vector3, vec: Vector3, color: Color3) {
 }
 
 export function computeImpulse(a: RigidBody, b: RigidBody, pointA: Vector3, pointB: Vector3, normal: Vector3): [Impulse, Impulse] {
-    const ra = pointA.subtract(a.position);
-    const rb = pointB.subtract(b.position);
+    const ra = pointA.subtract(a.positionRef);
+    const rb = pointB.subtract(b.positionRef);
 
-    const va = a.velocity.add(a.omega.cross(ra));
-    const vb = b.velocity.add(b.omega.cross(rb));
+    const va = a.currentState.velocity.add(a.currentState.omega.cross(ra));
+    const vb = b.currentState.velocity.add(b.currentState.omega.cross(rb));
     // relative velocity
     const rv = Vector3.Dot(normal, vb.subtract(va));
 

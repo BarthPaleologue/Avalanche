@@ -4,7 +4,7 @@ import {Matrix3} from "./matrix3";
 import {RigidBody} from "./rigidBody";
 
 export class RigidBodyFactory {
-    static WIREFRAME = false;
+    static WIREFRAME = true;
 
     static CreateCuboid(name: string, scaling: Vector3, mass: number, engine: Murph, scene: Scene): RigidBody {
         const mesh = MeshBuilder.CreateBox(name, {
