@@ -15,7 +15,6 @@ export class RigidBodyFactory {
         const wireframe = new StandardMaterial("wireframe");
         wireframe.wireframe = this.WIREFRAME;
         mesh.material = wireframe;
-        mesh.scaling = scaling;
         return new RigidBody(mesh, mass, Matrix3.diag(
             mass * (scaling.y * scaling.y + scaling.z * scaling.z) / 12,
             mass * (scaling.x * scaling.x + scaling.z * scaling.z) / 12,

@@ -135,11 +135,17 @@ export class RigidBody {
     /**
      * Returns the world matrix of the rigid body.
      */
-    public static getWorldMatrix(position: Vector3, rotation: Quaternion): Matrix {
-        const translationMatrix = Matrix.Translation(position.x, position.y, position.z);
+    public getNextWorldMatrix(): Matrix {
+        const worldMatrix = Matrix.Identity();
+
         const rotationMatrix = Matrix.Identity();
-        Matrix.FromQuaternionToRef(rotation, rotationMatrix);
-        return translationMatrix.multiply(rotationMatrix);
+        this.nextState.rotationQuaternion.toRotationMatrix(rotationMatrix);
+        worldMatrix.multiplyToRef(rotationMatrix, worldMatrix);
+
+        const translationMatrix = Matrix.Translation(this.nextState.position.x, this.nextState.position.y, this.nextState.position.z);
+        worldMatrix.multiplyToRef(translationMatrix, worldMatrix);
+
+        return worldMatrix;
     }
 
     public computeCollisionImpulse(other: RigidBody, normal: Vector3, point: Vector3): Impulse {

@@ -1,15 +1,19 @@
 import {RigidBody} from "./rigidBody";
 import {ForceField} from "./forceFields/forceField";
-import {Color3} from "@babylonjs/core";
+import {Color3, Mesh} from "@babylonjs/core";
 import {AABB} from "./aabb";
 import {computeImpulse, Contact, testInterpenetration} from "./utils/intersection";
-import {displayPoint} from "./utils/display";
+import {displayPoint, displayTriangle} from "./utils/display";
+import {getMeshTrianglesWorldSpace} from "./utils/vertex";
+import {triangleIntersectsWithAABB} from "./pointIntersectsWithAABB";
 
 export class Murph {
     private readonly bodies: RigidBody[] = [];
     private readonly fields: ForceField[] = [];
 
     private contacts: Contact[] = [];
+
+    private helperMeshes: Mesh[] = [];
 
     private clock = 0;
     private isPaused = false;
@@ -39,6 +43,8 @@ export class Murph {
         if (this.isPaused) return;
         this.clock += deltaTime;
 
+        for (const mesh of this.helperMeshes) mesh.dispose();
+
         for (const field of this.fields) {
             for (const body of this.bodies) {
                 const impulse = field.computeImpulse(body);
@@ -48,13 +54,11 @@ export class Murph {
 
         // Computing the next step, not updating the bodies yet,
         // We will use the computed position to compute the collisions
-        for (const body of this.bodies) {
-            body.computeNextStep(deltaTime);
-        }
+        for (const body of this.bodies) body.computeNextStep(deltaTime);
 
         //// BROAD PHASE
 
-        for(const contact of this.contacts) contact.aabbOverlap.helperMesh?.dispose();
+        for (const contact of this.contacts) contact.aabbOverlap.helperMesh?.dispose();
         this.contacts = [];
 
         // compute collisions O(n²) broad phase
@@ -68,7 +72,7 @@ export class Murph {
                     const contactSet: Contact = {
                         a: body, b: otherBody,
                         aabbOverlap: overlap
-                    }//new Set<RigidBody>([body, otherBody]);
+                    };
                     let isAlreadyInTheList = false;
                     for (const contact of this.contacts) {
                         if ((contact.a == body || contact.b == body) && (contact.a == otherBody && contact.b == otherBody)) {
@@ -84,52 +88,96 @@ export class Murph {
         /// NARROW PHASE
 
         // compute collisions O(n²) narrow phase
-        for (const body of this.bodies) {
-            let isInContact = false;
-            let isInterpenetrating = false;
-            for (const contact of this.contacts) {
-                if (contact.a == body || contact.b == body) {
-                    isInContact = true;
-                    const [intersect, penetrationDistance, pointA, pointB] = testInterpenetration(contact);
-                    if(Math.abs(penetrationDistance) < 0.1) {
-                        this.togglePause();
-                        console.log("penetrationDistance", penetrationDistance);
-
-                        console.log("A", contact.a.mesh.name);
-                        console.table(contact.a.nextState);
-
-                        console.log("B", contact.b.mesh.name);
-                        console.table(contact.b.nextState);
-
-                        return;
-                    }
-
-                    if(intersect) {
-                        isInterpenetrating = true;
-                        body.nextState.aabb.color = new Color3(0, 1, 0);
-
-                        const [impulseA, impulseB] = computeImpulse(contact.a, contact.b, pointA.subtract(contact.a.positionRef), pointB.subtract(contact.b.positionRef), pointA.subtract(pointB).normalize());
-
-                        contact.a.applyImpulse(impulseA);
-                        //console.log(contact.a.mesh.name);
-                        //arrowhead(pointA, impulseA.force.normalizeToNew(), Color3.Blue());
-                        contact.b.applyImpulse(impulseB);
-                        //arrowhead(pointB, impulseB.force.normalizeToNew(), Color3.Red());
-
-                        // Recompute the next step taking into account the new velocity
-                        contact.a.computeNextStep(deltaTime);
-                        contact.b.computeNextStep(deltaTime);
-
-                        break;
-                    } else body.nextState.aabb.color = new Color3(1, 0, 0);
-                }
-            }
-            if (!isInContact && !isInterpenetrating) body.nextState.aabb.color = new Color3(1, 1, 1);
-        }
+        for (const contact of this.contacts) this.resolveContact(contact, 0, deltaTime, deltaTime, 0);
 
         // All collisions have been resolved, we can now update the bodies
-        for (const body of this.bodies) {
-            body.applyNextStep();
+        for (const body of this.bodies) body.applyNextStep();
+    }
+
+    private resolveContact(contact: Contact, tmin: number, tmax: number, initialIntervalLength: number, depth: number) {
+        const [bodyA, bodyB] = [contact.a, contact.b];
+        const [penetrationDistance, pointA, pointB, triangle] = testInterpenetration(contact);
+
+        this.helperMeshes.push(displayPoint(pointA, Color3.Blue(), 0));
+        this.helperMeshes.push(displayPoint(pointB, Color3.Red(), 0));
+        this.helperMeshes.push(displayTriangle(triangle, Color3.Green(), 0));
+
+        const trianglesA = getMeshTrianglesWorldSpace(bodyA.mesh, bodyA.getNextWorldMatrix());
+        const trianglesB = getMeshTrianglesWorldSpace(bodyB.mesh, bodyB.getNextWorldMatrix());
+
+        const relevantTrianglesA = trianglesA.filter(triangle => triangleIntersectsWithAABB(triangle, contact.aabbOverlap));
+        const relevantTrianglesB = trianglesB.filter(triangle => triangleIntersectsWithAABB(triangle, contact.aabbOverlap));
+
+        for (const triangle of relevantTrianglesA) this.helperMeshes.push(displayTriangle(triangle, Color3.Teal(), 0));
+        for (const triangle of relevantTrianglesB) this.helperMeshes.push(displayTriangle(triangle, Color3.Yellow(), 0));
+
+        if (!this.isPaused && depth > 3) this.togglePause();
+
+        console.log(tmin * 1000, tmax * 1000, penetrationDistance, depth);
+        //console.log(bodyA.mesh.name, bodyB.mesh.name, penetrationDistance);
+        //console.log(bodyA.mesh.getWorldMatrix().m, bodyA.getNextWorldMatrix().m);
+        if (Math.abs(penetrationDistance) < 0.1 || depth > 10) {
+            // The interpenetration is below our threshold, so we can compute the impulses
+            // and update the bodies
+            console.log("resolution of contact");
+
+            // first apply the first part of the trajectory
+            bodyA.computeNextStep(tmin);
+            bodyB.computeNextStep(tmin);
+
+            bodyA.applyNextStep();
+            bodyB.applyNextStep();
+
+            bodyA.nextState.aabb.color = new Color3(0, 1, 0);
+            bodyB.nextState.aabb.color = new Color3(0, 1, 0);
+
+            const [impulseA, impulseB] = computeImpulse(bodyA, bodyB, pointA.subtract(contact.a.positionRef), pointB.subtract(contact.b.positionRef), pointA.subtract(pointB).normalize());
+
+            bodyA.applyImpulse(impulseA);
+            //console.log(contact.a.mesh.name);
+            //arrowhead(pointA, impulseA.force.normalizeToNew(), Color3.Blue());
+            bodyB.applyImpulse(impulseB);
+            //arrowhead(pointB, impulseB.force.normalizeToNew(), Color3.Red());
+
+            // Recompute the next step taking into account the new velocity
+            bodyA.computeNextStep(tmax);
+            bodyB.computeNextStep(tmax);
+
+            bodyA.nextState.aabb.color = new Color3(1, 1, 1);
+            bodyB.nextState.aabb.color = new Color3(1, 1, 1);
+
+        } else if (penetrationDistance > 0) {
+            // the bodies are interpenetrating, we use bisection
+            // to find the time of impact
+            console.log("interpenetration: bisecting backward")
+
+            bodyA.nextState.aabb.color = new Color3(1, 0, 1);
+            bodyB.nextState.aabb.color = new Color3(1, 0, 1);
+
+            const tmid = (tmin + tmax) / 2;
+            bodyA.computeNextStep(tmid);
+            bodyB.computeNextStep(tmid);
+
+            this.resolveContact(contact, tmin, tmid, initialIntervalLength, depth + 1);
+        } else if (penetrationDistance < 0 && tmax - tmin < initialIntervalLength) {
+            // the bodies are not interpenetrating, but we are using bisection
+            // to find the time of impact, so we need to continue the bisection
+            console.log("Interpenetration earlier. No interpenetration now: bisecting forward")
+
+            bodyA.nextState.aabb.color = new Color3(1, 0, 1);
+            bodyB.nextState.aabb.color = new Color3(1, 0, 1);
+
+            const tmid = (tmin + tmax) / 2;
+            bodyA.computeNextStep(tmax + tmid);
+            bodyB.computeNextStep(tmax + tmid);
+
+            this.resolveContact(contact, tmax, tmax + tmid, initialIntervalLength, depth + 1);
+        } else {
+            // the bodies are not interpenetrating, we don't need to do anything
+
+            console.log("No interpenetration, ending recursion");
+            bodyA.nextState.aabb.color = new Color3(1, 0, 0);
+            bodyB.nextState.aabb.color = new Color3(1, 0, 0);
         }
     }
 }

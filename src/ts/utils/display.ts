@@ -1,7 +1,7 @@
 import {Color3, Mesh, MeshBuilder, StandardMaterial, Vector3, VertexData} from "@babylonjs/core";
 import {Triangle} from "./vertex";
 
-export function displayTriangle(triangle: Triangle, duration=16) {
+export function displayTriangle(triangle: Triangle, color=Color3.Green(), duration = 16): Mesh {
     const mesh = new Mesh("triangle");
 
     //Set arrays for positions and indices
@@ -21,28 +21,32 @@ export function displayTriangle(triangle: Triangle, duration=16) {
     vertexData.applyToMesh(mesh);
 
     const material = new StandardMaterial("triangle");
-    material.emissiveColor = Color3.Green();
+    material.emissiveColor = color;
+    material.disableLighting = true;
     material.backFaceCulling = false;
     mesh.material = material;
 
-    if(duration === 0) return;
+    if (duration === 0) return mesh;
     setTimeout(() => mesh.dispose(), duration);
+    return mesh;
 }
 
-export function displayPoint(point: Vector3, duration=16) {
+export function displayPoint(point: Vector3, color = Color3.Purple(), duration = 16): Mesh {
     const mesh = MeshBuilder.CreateBox("point", {size: 0.1});
     mesh.position = point;
 
     const material = new StandardMaterial("triangle");
-    material.emissiveColor = Color3.Purple();
+    material.emissiveColor = color;
     material.backFaceCulling = false;
+    material.disableLighting = true;
     mesh.material = material;
 
-    if(duration === 0) return;
+    if (duration === 0) return mesh;
     setTimeout(() => mesh.dispose(), duration);
+    return mesh;
 }
 
-export function arrowhead(start: Vector3, vec: Vector3, color: Color3, duration=16) {
+export function arrowhead(start: Vector3, vec: Vector3, color: Color3, duration = 16) {
     const shape = [
         new Vector3(-0.25, 0, 0),
         new Vector3(0, -0.25, 0),
@@ -70,6 +74,6 @@ export function arrowhead(start: Vector3, vec: Vector3, color: Color3, duration=
     mat.diffuseColor = color;
     vecRep.material = mat
 
-    if(duration === 0) return;
+    if (duration === 0) return;
     setTimeout(() => vecRep.dispose(), duration);
 }
