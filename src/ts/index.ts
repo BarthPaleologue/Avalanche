@@ -29,28 +29,28 @@ const shadowGenerator = new ShadowGenerator(1024, light);
 shadowGenerator.usePercentageCloserFiltering = true;
 
 const physicsEngine = new Murph();
-//const gravity = new UniformDirectionalField(new Vector3(0, -9.81, 0), physicsEngine);
-const gravity = new UniformPonctualField(new Vector3(0, 3, 0), 5, physicsEngine);
+const gravity = new UniformDirectionalField(new Vector3(0, -9.81, 0), physicsEngine);
+//const gravity = new UniformPonctualField(new Vector3(0, 3, 0), 5, physicsEngine);
 
 const ground = RigidBodyFactory.CreateCuboid("ground", new Vector3(10, 5, 10), 0, physicsEngine, scene);
-ground.setInitialPosition(new Vector3(0, -10, 0));
+ground.setInitialPosition(new Vector3(0, -5, 0));
 ground.mesh.receiveShadows = true;
 
 const sphere = RigidBodyFactory.CreateSphere("sphere", 1, 1, physicsEngine, scene);
 shadowGenerator.addShadowCaster(sphere.mesh);
-sphere.setInitialPosition(randomVector3(-5, 5));
+sphere.setInitialPosition(randomVector3(-3, 3));
 
 const cuboid = RigidBodyFactory.CreateCuboid("cuboid", new Vector3(1, 1, 1), 1, physicsEngine, scene);
-cuboid.setInitialPosition(randomVector3(-5, 5));
+cuboid.setInitialPosition(randomVector3(-3, 3));
 shadowGenerator.addShadowCaster(cuboid.mesh);
 
-const cylinder = RigidBodyFactory.CreateCylinder("cylinder", 0.5, 1.5, 1, physicsEngine, scene);
+/*const cylinder = RigidBodyFactory.CreateCylinder("cylinder", 0.5, 1.5, 1, physicsEngine, scene);
 cylinder.setInitialPosition(randomVector3(-5, 5));
 shadowGenerator.addShadowCaster(cylinder.mesh);
 
 const octahedron = RigidBodyFactory.CreateOctahedron("octahedron", 1, 1, physicsEngine, scene);
 octahedron.setInitialPosition(randomVector3(-5, 5));
-shadowGenerator.addShadowCaster(octahedron.mesh)
+shadowGenerator.addShadowCaster(octahedron.mesh)*/
 
 let I = 0;
 
@@ -59,8 +59,8 @@ function updateScene() {
 
     if (I == 1) {
         cuboid.applyImpulse(new Impulse(new Vector3(0, 100, 10), new Vector3(Math.random(), Math.random(), Math.random())));
-        cylinder.applyImpulse(new Impulse(new Vector3(20, 50, 100), new Vector3(Math.random(), Math.random(), Math.random())));
-        octahedron.applyImpulse(new Impulse(new Vector3(70, 10, 30), new Vector3(Math.random(), Math.random(), Math.random())));
+        //cylinder.applyImpulse(new Impulse(new Vector3(20, 50, 100), new Vector3(Math.random(), Math.random(), Math.random())));
+        //octahedron.applyImpulse(new Impulse(new Vector3(70, 10, 30), new Vector3(Math.random(), Math.random(), Math.random())));
     }
     const deltaTime = Math.min(engine.getDeltaTime() / 1000, 0.017);
     physicsEngine.update(deltaTime / 2);

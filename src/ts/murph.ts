@@ -4,8 +4,8 @@ import {Color3, Mesh} from "@babylonjs/core";
 import {AABB} from "./aabb";
 import {computeImpulse, Contact, testInterpenetration} from "./utils/intersection";
 import {displayPoint, displayTriangle} from "./utils/display";
-import {getMeshTrianglesWorldSpace} from "./utils/vertex";
-import {triangleIntersectsWithAABB} from "./pointIntersectsWithAABB";
+import {getMeshTrianglesWorldSpace, getMeshVerticesWorldSpace} from "./utils/vertex";
+import {pointIntersectsWithAABB, triangleIntersectsWithAABB} from "./pointIntersectsWithAABB";
 
 export class Murph {
     private readonly bodies: RigidBody[] = [];
@@ -111,9 +111,20 @@ export class Murph {
         for (const triangle of relevantTrianglesA) this.helperMeshes.push(displayTriangle(triangle, Color3.Teal(), 0));
         for (const triangle of relevantTrianglesB) this.helperMeshes.push(displayTriangle(triangle, Color3.Yellow(), 0));
 
+        const pointsA = getMeshVerticesWorldSpace(bodyA.mesh, bodyA.getNextWorldMatrix());
+        const pointsB = getMeshVerticesWorldSpace(bodyB.mesh, bodyB.getNextWorldMatrix());
+
+        const relevantPointsA = pointsA.filter(point => pointIntersectsWithAABB(point, contact.aabbOverlap));
+        const relevantPointsB = pointsB.filter(point => pointIntersectsWithAABB(point, contact.aabbOverlap));
+
+        for (const point of relevantPointsA) this.helperMeshes.push(displayPoint(point, Color3.White(), 0));
+        for (const point of relevantPointsB) this.helperMeshes.push(displayPoint(point, Color3.Black(), 0));
+
+        contact.aabbOverlap.setVisible(true);
+
         if (!this.isPaused && depth > 3) this.togglePause();
 
-        console.log(tmin * 1000, tmax * 1000, penetrationDistance, depth);
+        console.log(bodyA.mesh.name, bodyB.mesh.name, tmin * 1000, tmax * 1000, penetrationDistance, depth);
         //console.log(bodyA.mesh.name, bodyB.mesh.name, penetrationDistance);
         //console.log(bodyA.mesh.getWorldMatrix().m, bodyA.getNextWorldMatrix().m);
         if (Math.abs(penetrationDistance) < 0.1 || depth > 10) {

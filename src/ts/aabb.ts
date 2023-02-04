@@ -33,6 +33,7 @@ export class AABB {
 
     static FromMesh(mesh: AbstractMesh) {
         const [min, max] = AABB.getMinMax(mesh);
+
         return new AABB(min, max);
     }
 
@@ -112,6 +113,12 @@ export class AABB {
 
     updateFromMesh(mesh: AbstractMesh) {
         [this.min, this.max] = AABB.getMinMax(mesh);
+
+        // make it 10% bigger
+        const size = this.max.subtract(this.min);
+        const offset = size.scale(0.1);
+        this.min.subtractInPlace(offset);
+        this.max.addInPlace(offset);
 
         if (this.helperMesh) {
             this.helperMesh.position = this.max.add(this.min).scaleInPlace(0.5);
