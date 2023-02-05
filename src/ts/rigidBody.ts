@@ -1,9 +1,9 @@
-import {AbstractMesh, Matrix, Quaternion, Vector3} from "@babylonjs/core";
-import {Matrix3} from "./matrix3";
-import {Murph} from "./murph";
-import {Impulse} from "./impulse";
-import {AABB} from "./aabb";
-import {copyAintoB, RigidBodyState} from "./rigidBodyState";
+import { AbstractMesh, Matrix, Quaternion, Vector3 } from "@babylonjs/core";
+import { Matrix3 } from "./matrix3";
+import { Murph } from "./murph";
+import { Impulse } from "./impulse";
+import { AABB } from "./aabb";
+import { copyAintoB, RigidBodyState } from "./rigidBodyState";
 
 export class RigidBody {
     readonly mesh: AbstractMesh;
@@ -23,7 +23,7 @@ export class RigidBody {
         rotationMatrix: Matrix3.identity(),
         inverseInertiaTensor: Matrix3.identity(),
         aabb: new AABB(Vector3.Zero(), Vector3.Zero())
-    }
+    };
 
     readonly nextState: RigidBodyState = {
         position: Vector3.Zero(),
@@ -35,17 +35,17 @@ export class RigidBody {
         rotationMatrix: Matrix3.identity(),
         inverseInertiaTensor: Matrix3.identity(),
         aabb: new AABB(Vector3.Zero(), Vector3.Zero())
-    }
+    };
 
-    private cumulatedImpulses: Impulse[] = [];
+    cumulatedImpulses: Impulse[] = [];
 
     constructor(mesh: AbstractMesh, mass: number, inertiaTensor0: Matrix3, engine: Murph) {
         engine.addBody(this);
 
         this.mesh = mesh;
 
-        this.currentState.aabb.updateFromMesh(this.mesh);
-        this.currentState.aabb.setVisible(true);
+        this.currentState.aabb.updateFromRigidBody(this);
+        this.currentState.aabb.setVisible(false);
 
         this.mesh.rotationQuaternion = Quaternion.Identity();
 
@@ -67,7 +67,7 @@ export class RigidBody {
         this.mesh.position = position;
         this.currentState.position = position;
         this.mesh.computeWorldMatrix(true);
-        this.currentState.aabb.updateFromMesh(this.mesh);
+        this.currentState.aabb.updateFromRigidBody(this);
     }
 
     get positionRef(): Vector3 {
@@ -117,12 +117,12 @@ export class RigidBody {
     public applyNextStep() {
         copyAintoB(this.nextState, this.currentState);
 
-        if(this.mass === 0) return;
+        if (this.mass === 0) return;
 
         this.mesh.position = this.currentState.position;
         this.mesh.rotationQuaternion = this.currentState.rotationQuaternion;
 
-        this.currentState.aabb.updateFromMesh(this.mesh);
+        this.currentState.aabb.updateFromRigidBody(this);
 
         // TODO
         this.cumulatedImpulses = [];
@@ -142,16 +142,12 @@ export class RigidBody {
         this.nextState.rotationQuaternion.toRotationMatrix(rotationMatrix);
         worldMatrix.multiplyToRef(rotationMatrix, worldMatrix);
 
+        const scaleMatrix = Matrix.Scaling(this.mesh.scaling.x, this.mesh.scaling.y, this.mesh.scaling.z);
+        worldMatrix.multiplyToRef(scaleMatrix, worldMatrix);
+
         const translationMatrix = Matrix.Translation(this.nextState.position.x, this.nextState.position.y, this.nextState.position.z);
         worldMatrix.multiplyToRef(translationMatrix, worldMatrix);
 
         return worldMatrix;
-    }
-
-    public computeCollisionImpulse(other: RigidBody, normal: Vector3, point: Vector3): Impulse {
-        const relativeVelocity = this.getVelocityAtPoint(point).subtract(other.getVelocityAtPoint(point));
-        const normalVelocity = Vector3.Dot(relativeVelocity, normal);
-        const impulse = normal.scale(-normalVelocity * (1 + 0.5));
-        return new Impulse(impulse, point);
     }
 }

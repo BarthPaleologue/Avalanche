@@ -7,6 +7,7 @@ import {
     Vector3,
     VertexBuffer
 } from "@babylonjs/core";
+import { RigidBody } from "./rigidBody";
 
 export class AABB {
     min: Vector3;
@@ -19,34 +20,30 @@ export class AABB {
     constructor(min: Vector3, max: Vector3) {
         [this.min, this.max] = [min, max];
 
-        this.helperMesh = this.isVisible ? AABB.computeLinesMesh(this.min, this.max): null;
+        this.helperMesh = this.isVisible ? AABB.computeLinesMesh(this.min, this.max) : null;
     }
 
     setVisible(isVisible: boolean) {
         this.isVisible = isVisible;
-        if (this.isVisible) this.helperMesh = AABB.computeLinesMesh(this.min, this.max, this.color);
-        else {
+        if (this.isVisible && this.helperMesh == null) this.helperMesh = AABB.computeLinesMesh(this.min, this.max, this.color);
+        else if (!this.isVisible) {
             this.helperMesh?.dispose();
             this.helperMesh = null;
         }
     }
 
-    static FromMesh(mesh: AbstractMesh) {
-        const [min, max] = AABB.getMinMax(mesh);
-
-        return new AABB(min, max);
-    }
-
-    static getMinMax(mesh: AbstractMesh): [Vector3, Vector3] {
+    static getMinMax(body: RigidBody): [Vector3, Vector3] {
+        const mesh = body.mesh;
         // use the vertices of the mesh to compute the min and max
         const vertices = mesh.getVerticesData(VertexBuffer.PositionKind);
         if (vertices == null) throw new Error(`Mesh ${mesh.name} has no vertices`);
         // the vertices are stored in an array of floats, so we need to convert them to Vector3
         const vectors: Vector3[] = [];
+        const worldMatrix = body.getNextWorldMatrix();
         for (let i = 0; i < vertices.length; i += 3) {
             let newVector = new Vector3(vertices[i], vertices[i + 1], vertices[i + 2]);
             // we need to transform the vertices to world space
-            newVector = Vector3.TransformCoordinates(newVector, mesh.getWorldMatrix());
+            newVector = Vector3.TransformCoordinates(newVector, worldMatrix);
             vectors.push(newVector);
         }
 
@@ -61,7 +58,7 @@ export class AABB {
     }
 
     static computeLinesMesh(min: Vector3, max: Vector3, color = new Color3(1, 1, 1)): Mesh {
-        const box = MeshBuilder.CreateBox("aabb", {size: 1});
+        const box = MeshBuilder.CreateBox("aabb", { size: 1 });
         box.scaling = max.subtract(min);
         box.position = max.add(min).scale(0.5);
 
@@ -111,12 +108,12 @@ export class AABB {
         return [this.Intersects(a, b), new AABB(min, max)];
     }
 
-    updateFromMesh(mesh: AbstractMesh) {
-        [this.min, this.max] = AABB.getMinMax(mesh);
+    updateFromRigidBody(body: RigidBody) {
+        [this.min, this.max] = AABB.getMinMax(body);
 
         // make it 10% bigger
         const size = this.max.subtract(this.min);
-        const offset = size.scale(0.1);
+        const offset = size.scale(0.2);
         this.min.subtractInPlace(offset);
         this.max.addInPlace(offset);
 

@@ -46,6 +46,22 @@ export function displayPoint(point: Vector3, color = Color3.Purple(), duration =
     return mesh;
 }
 
+export function displayRay(rayOrigin: Vector3, rayDirection: Vector3, color = Color3.Red(), duration = 16): Mesh {
+    const mesh = MeshBuilder.CreateLines("ray", {
+        points: [rayOrigin, rayOrigin.add(rayDirection.scale(10))],
+    });
+
+    const material = new StandardMaterial("ray");
+    material.emissiveColor = color;
+    material.backFaceCulling = false;
+    material.disableLighting = true;
+    mesh.material = material;
+
+    if (duration === 0) return mesh;
+    setTimeout(() => mesh.dispose(), duration);
+    return mesh;
+}
+
 export function arrowhead(start: Vector3, vec: Vector3, color: Color3, duration = 16) {
     const shape = [
         new Vector3(-0.25, 0, 0),
