@@ -78,8 +78,12 @@ export class RigidBody {
         return this.currentState.position.clone();
     }
 
-    get inverseInertiaTensor(): Matrix3 {
+    get currentInverseInertiaTensor(): Matrix3 {
         return this.currentState.inverseInertiaTensor;
+    }
+
+    get nextInverseInertiaTensor(): Matrix3 {
+        return this.nextState.inverseInertiaTensor;
     }
 
     public applyImpulse(impulse: Impulse) {
@@ -149,5 +153,14 @@ export class RigidBody {
         worldMatrix.multiplyToRef(translationMatrix, worldMatrix);
 
         return worldMatrix;
+    }
+
+    /**
+     * 
+     * @param point (in relative coordinates)
+     * @returns 
+     */
+    public getVelocityAtPointNext(point: Vector3): Vector3 {
+        return this.nextState.velocity.add(this.nextState.omega.cross(point));
     }
 }

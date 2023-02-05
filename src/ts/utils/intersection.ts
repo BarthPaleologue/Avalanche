@@ -121,19 +121,22 @@ export function computeImpulse(a: RigidBody, b: RigidBody, pointA: Vector3, poin
     const ra = pointA;
     const rb = pointB;
 
-    const va = a.currentState.velocity.add(a.currentState.omega.cross(ra));
-    const vb = b.currentState.velocity.add(b.currentState.omega.cross(rb));
+    const va = a.getVelocityAtPointNext(ra);
+    const vb = b.getVelocityAtPointNext(rb);
     // relative velocity
     const rv = Vector3.Dot(normal, vb.subtract(va));
 
+    // if points are moving away from each other, no impulse is needed
+    if (rv > 0) return [new Impulse(Vector3.Zero(), Vector3.Zero()), new Impulse(Vector3.Zero(), Vector3.Zero())];
+
     let denominator = 0;
-    denominator += a.mass > 0 ? 1 / a.mass : 0;
-    denominator += b.mass > 0 ? 1 / b.mass : 0;
-    denominator += Vector3.Dot(normal, a.inverseInertiaTensor.applyTo(ra.cross(normal)).cross(ra));
-    denominator += Vector3.Dot(normal, b.inverseInertiaTensor.applyTo(rb.cross(normal)).cross(rb));
+    denominator += a.mass != 0 ? 1 / a.mass : 0;
+    denominator += b.mass != 0 ? 1 / b.mass : 0;
+    denominator += Vector3.Dot(normal, a.nextInverseInertiaTensor.applyTo(ra.cross(normal)).cross(ra));
+    denominator += Vector3.Dot(normal, b.nextInverseInertiaTensor.applyTo(rb.cross(normal)).cross(rb));
     // calculate impulse scalar
-    const restitution = 0.7;
-    const j = 50.0 * -(1 + restitution) * rv / denominator;
+    const restitution = 0.5;
+    const j = -(1 + restitution) * rv / denominator;
 
     // calculate impulse vector
     return [new Impulse(normal.scale(-j), ra), new Impulse(normal.scale(j), rb)];
