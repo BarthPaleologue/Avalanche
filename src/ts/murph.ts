@@ -9,7 +9,7 @@ import { pointIntersectsWithAABB, triangleIntersectsWithAABB } from "./pointInte
 import { copyAintoB } from "./rigidBodyState";
 
 export class Murph {
-    private readonly bodies: RigidBody[] = [];
+    readonly bodies: RigidBody[] = [];
     private readonly fields: ForceField[] = [];
 
     private contacts: Contact[] = [];
@@ -25,6 +25,11 @@ export class Murph {
 
     public addBody(body: RigidBody) {
         this.bodies.push(body);
+    }
+
+    public removeBody(body: RigidBody) {
+        const index = this.bodies.indexOf(body);
+        if (index > -1) this.bodies.splice(index, 1);
     }
 
     public addField(field: ForceField) {

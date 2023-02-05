@@ -26,7 +26,7 @@ camera.attachControl();
 
 const light = new DirectionalLight("light", new Vector3(1, -1, 1), scene);
 light.position = new Vector3(0, 10, 0);
-const shadowGenerator = new ShadowGenerator(1024, light);
+const shadowGenerator = new ShadowGenerator(512, light);
 shadowGenerator.usePercentageCloserFiltering = true;
 
 const physicsEngine = new Murph();
@@ -71,6 +71,20 @@ function updateScene() {
         cylinder.applyImpulse(new Impulse(new Vector3(0.2, 0.5, 1), new Vector3(Math.random(), Math.random(), Math.random())));
         octahedron.applyImpulse(new Impulse(new Vector3(0.7, 0.1, 0.3), new Vector3(Math.random(), Math.random(), Math.random())));
     }
+    if (I % 100 == 0) {
+        const newCube = RigidBodyFactory.CreateCuboid("cuboid" + I, new Vector3(1, 1, 1), 1, physicsEngine, scene);
+        newCube.setInitialPosition(new Vector3(Math.random() * 10 - 5, 10, Math.random() * 10 - 5));
+        shadowGenerator.addShadowCaster(newCube.mesh);
+        newCube.applyImpulse(new Impulse(new Vector3(0, 1, 0), new Vector3(Math.random(), Math.random(), Math.random())));
+    }
+
+    for (const body of physicsEngine.bodies) {
+        if (body.positionRef.length() > 100) {
+            body.mesh.dispose();
+            physicsEngine.removeBody(body);
+        }
+    }
+
     const deltaTime = Math.min(engine.getDeltaTime() / 1000, 0.017);
     physicsEngine.update(deltaTime / 2);
     I++;
