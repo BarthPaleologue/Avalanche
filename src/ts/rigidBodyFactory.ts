@@ -1,10 +1,10 @@
-import {MeshBuilder, Scene, StandardMaterial, Vector3} from "@babylonjs/core";
-import {Murph} from "./murph";
-import {Matrix3} from "./matrix3";
-import {RigidBody} from "./rigidBody";
+import { MeshBuilder, Scene, StandardMaterial, Vector3 } from "@babylonjs/core";
+import { Murph } from "./murph";
+import { Matrix3 } from "./matrix3";
+import { RigidBody } from "./rigidBody";
 
 export class RigidBodyFactory {
-    static WIREFRAME = true;
+    static WIREFRAME = false;
 
     static CreateCuboid(name: string, scaling: Vector3, mass: number, engine: Murph, scene: Scene): RigidBody {
         const mesh = MeshBuilder.CreateBox(name, {
@@ -67,7 +67,7 @@ export class RigidBodyFactory {
         ), engine);
     }
 
-    static CreateOctahedron(name: string, radius:number, mass: number, engine: Murph, scene: Scene): RigidBody {
+    static CreateOctahedron(name: string, radius: number, mass: number, engine: Murph, scene: Scene): RigidBody {
         const mesh = MeshBuilder.CreatePolyhedron(name, {
             type: 1,
             size: radius

@@ -37,9 +37,9 @@ ground.setInitialPosition(new Vector3(0, -10, 0));
 ground.mesh.receiveShadows = true;
 camera.target = ground.mesh.position;
 
-/*const sphere = RigidBodyFactory.CreateSphere("sphere", 1, 1, physicsEngine, scene);
+const sphere = RigidBodyFactory.CreateSphere("sphere", 1, 1, physicsEngine, scene);
 shadowGenerator.addShadowCaster(sphere.mesh);
-sphere.setInitialPosition(randomVector3(-3, 3));*/
+sphere.setInitialPosition(randomVector3(-3, 3));
 
 const cuboid = RigidBodyFactory.CreateCuboid("cuboid", new Vector3(1, 1, 1), 1, physicsEngine, scene);
 cuboid.setInitialPosition(randomVector3(-3, 3));

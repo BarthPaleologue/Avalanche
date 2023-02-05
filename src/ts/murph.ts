@@ -129,12 +129,12 @@ export class Murph {
 
         console.warn(bodyA.mesh.name, bodyB.mesh.name, tmin * 1000, tmax * 1000, penetrationDistance, depth);
         console.log("There are", pointsA.length, "contact points");
-        for (const point of pointsA) this.helperMeshes.push(displayPoint(point, Color3.White(), 0));
-        for (const point of pointsB) this.helperMeshes.push(displayPoint(point, Color3.Black(), 0));
+        //for (const point of pointsA) this.helperMeshes.push(displayPoint(point, Color3.White(), 0));
+        //for (const point of pointsB) this.helperMeshes.push(displayPoint(point, Color3.Black(), 0));
 
         //console.log(bodyA.mesh.name, bodyB.mesh.name, penetrationDistance);
         //console.log(bodyA.mesh.getWorldMatrix().m, bodyA.getNextWorldMatrix().m);
-        if (Math.abs(penetrationDistance) < EPSILON || depth > 10) {
+        if (Math.abs(penetrationDistance) < EPSILON || depth > 5) {
             // The interpenetration is below our threshold, so we can compute the impulses
             // and update the bodies
             console.log("resolution of contact");
