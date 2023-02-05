@@ -1,9 +1,9 @@
-import {RigidBody} from "../rigidBody";
-import {Vector3} from "@babylonjs/core";
-import {Impulse} from "../impulse";
+import { RigidBody } from "../rigidBody";
+import { Impulse } from "../impulse";
+import { Force } from "./force";
 
 export interface ForceField {
-    computeForce(body: RigidBody): Vector3;
+    computeForce(body: RigidBody): Force;
 
     computeImpulse(body: RigidBody): Impulse;
 }

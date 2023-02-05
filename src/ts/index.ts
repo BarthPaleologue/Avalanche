@@ -66,9 +66,9 @@ function updateScene() {
     ground.currentState.aabb.updateFromRigidBody(ground);
 
     if (I == 1) {
-        cuboid.applyImpulse(new Impulse(new Vector3(0, 100, 10), new Vector3(Math.random(), Math.random(), Math.random())));
-        cylinder.applyImpulse(new Impulse(new Vector3(20, 50, 100), new Vector3(Math.random(), Math.random(), Math.random())));
-        octahedron.applyImpulse(new Impulse(new Vector3(70, 10, 30), new Vector3(Math.random(), Math.random(), Math.random())));
+        cuboid.applyImpulse(new Impulse(new Vector3(0, 1, 0.1), new Vector3(Math.random(), Math.random(), Math.random())));
+        cylinder.applyImpulse(new Impulse(new Vector3(0.2, 0.5, 1), new Vector3(Math.random(), Math.random(), Math.random())));
+        octahedron.applyImpulse(new Impulse(new Vector3(0.7, 0.1, 0.3), new Vector3(Math.random(), Math.random(), Math.random())));
     }
     const deltaTime = Math.min(engine.getDeltaTime() / 1000, 0.017);
     physicsEngine.update(deltaTime / 2);

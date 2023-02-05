@@ -50,8 +50,8 @@ export class Murph {
 
         for (const field of this.fields) {
             for (const body of this.bodies) {
-                const impulse = field.computeImpulse(body);
-                body.applyImpulse(impulse);
+                const force = field.computeForce(body);
+                body.applyForce(force);
             }
         }
 
@@ -186,8 +186,8 @@ export class Murph {
                 const [impulseA, impulseB] = computeImpulse(bodyA, bodyB, ra, rb, triangleNormal);
 
 
-                impulseA.force.scaleInPlace(1 / initialIntervalLength);
-                impulseB.force.scaleInPlace(1 / initialIntervalLength);
+                //impulseA.force.scaleInPlace(1 / initialIntervalLength);
+                //impulseB.force.scaleInPlace(1 / initialIntervalLength);
 
                 //arrowhead(bodyA.nextState.position, impulseA.force.normalizeToNew(), Color3.Blue());
                 //arrowhead(bodyB.nextState.position, impulseB.force.normalizeToNew(), Color3.Green());

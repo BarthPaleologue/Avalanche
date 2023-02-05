@@ -4,6 +4,7 @@ import { Murph } from "./murph";
 import { Impulse } from "./impulse";
 import { AABB } from "./aabb";
 import { copyAintoB, RigidBodyState } from "./rigidBodyState";
+import { Force } from "./forceFields/force";
 
 export class RigidBody {
     readonly mesh: AbstractMesh;
@@ -38,6 +39,7 @@ export class RigidBody {
     };
 
     cumulatedImpulses: Impulse[] = [];
+    cumulatedForces: Force[] = [];
 
     constructor(mesh: AbstractMesh, mass: number, inertiaTensor0: Matrix3, engine: Murph) {
         engine.addBody(this);
@@ -90,6 +92,10 @@ export class RigidBody {
         this.cumulatedImpulses.push(impulse);
     }
 
+    public applyForce(force: Force) {
+        this.cumulatedForces.push(force);
+    }
+
     /**
      * Resets the next state and recomputes it for t = t + deltaTime
      * @param deltaTime the time step in seconds
@@ -99,10 +105,16 @@ export class RigidBody {
 
         if (this.mass === 0) return;
 
-        for (const impulse of this.cumulatedImpulses) {
-            this.nextState.momentum.addInPlace(impulse.force.scale(deltaTime));
-            this.nextState.angularMomentum.addInPlace(impulse.point.cross(impulse.force).scale(deltaTime));
+        for (const force of this.cumulatedForces) {
+            this.nextState.momentum.addInPlace(force.vector.scale(deltaTime));
+            this.nextState.angularMomentum.addInPlace(force.point.cross(force.vector).scale(deltaTime));
         }
+
+        for (const impulse of this.cumulatedImpulses) {
+            this.nextState.momentum.addInPlace(impulse.force);
+            this.nextState.angularMomentum.addInPlace(impulse.point.cross(impulse.force));
+        }
+
         this.nextState.velocity = this.nextState.momentum.scale(this.inverseMass);
 
         const omegaQuaternion = new Quaternion(this.currentState.omega.x, this.currentState.omega.y, this.currentState.omega.z, 0);
@@ -130,6 +142,7 @@ export class RigidBody {
 
         // TODO
         this.cumulatedImpulses = [];
+        this.cumulatedForces = [];
     }
 
     public getVelocityAtPoint(point: Vector3): Vector3 {
