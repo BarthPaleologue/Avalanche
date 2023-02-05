@@ -25,6 +25,7 @@ const camera = new ArcRotateCamera("camera", 0, 3.14 / 4.0, 15, Vector3.Zero(), 
 camera.attachControl();
 
 const light = new DirectionalLight("light", new Vector3(1, -1, 1), scene);
+light.position = new Vector3(0, 10, 0);
 const shadowGenerator = new ShadowGenerator(1024, light);
 shadowGenerator.usePercentageCloserFiltering = true;
 
