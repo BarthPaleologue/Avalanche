@@ -185,10 +185,11 @@ export class Murph {
             }
 
             // Recompute the next step taking into account the new velocity
-            bodyA.computeNextStep(initialIntervalLength);
-            bodyB.computeNextStep(initialIntervalLength);
+            bodyA.computeNextStep(initialIntervalLength - tmax);
+            bodyB.computeNextStep(initialIntervalLength - tmax);
 
-            if (testInterpenetration(contact)[0] > 0) {
+            const [finalInterpenetration, _, __, finalTriangles, finalPenetrations] = testInterpenetration(contact);
+            if (finalInterpenetration > 0) {
                 // we push the bodies apart to avoid interpenetration
                 // the push is a weighted average of the mass of the bodies
                 const totalMass = bodyA.mass + bodyB.mass;
