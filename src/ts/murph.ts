@@ -3,10 +3,8 @@ import { ForceField } from "./forceFields/forceField";
 import { Color3, Mesh, Vector3 } from "@babylonjs/core";
 import { AABB } from "./aabb";
 import { computeImpulse, Contact, EPSILON, testInterpenetration } from "./utils/intersection";
-import { arrowhead, displayPoint, displayTriangle } from "./utils/display";
-import { getMeshTrianglesWorldSpace, getMeshVerticesWorldSpace, getTriangleNormal } from "./utils/vertex";
-import { pointIntersectsWithAABB, triangleIntersectsWithAABB } from "./aabbIntersection";
-import { copyAintoB } from "./rigidBodyState";
+import { getTriangleNormal } from "./utils/vertex";
+import { displayTriangle } from "./utils/display";
 
 export class Murph {
     readonly bodies: RigidBody[] = [];
@@ -16,7 +14,6 @@ export class Murph {
 
     private helperMeshes: Mesh[] = [];
 
-    private clock = 0;
     private isPaused = false;
 
     constructor() {
@@ -30,10 +27,17 @@ export class Murph {
     public removeBody(body: RigidBody) {
         const index = this.bodies.indexOf(body);
         if (index > -1) this.bodies.splice(index, 1);
+        else throw new Error("Body not found");
     }
 
     public addField(field: ForceField) {
         this.fields.push(field);
+    }
+
+    public removeField(field: ForceField) {
+        const index = this.fields.indexOf(field);
+        if (index > -1) this.fields.splice(index, 1);
+        else throw new Error("Field not found");
     }
 
     /*private buildBoundingVolumeHierarchy() {
@@ -47,9 +51,8 @@ export class Murph {
 
     public update(deltaTime: number) {
         if (this.isPaused) return;
-        this.clock += deltaTime;
 
-        console.clear();
+        //console.clear();
 
         for (const mesh of this.helperMeshes) mesh.dispose();
 
@@ -106,52 +109,21 @@ export class Murph {
 
     private resolveContact(contact: Contact, tmin: number, tmax: number, initialIntervalLength: number, depth: number) {
         const [bodyA, bodyB] = [contact.a, contact.b];
+        if (bodyA.mass == 0 && bodyB.mass == 0) return; // both bodies are static
+
         const [maxPenetrationDistance, pointsA, pointsB, triangles, penetrationDistances] = testInterpenetration(contact);
 
-        /*this.helperMeshes.push(displayPoint(pointA, Color3.Blue(), 0));
-        this.helperMeshes.push(displayPoint(pointB, Color3.Red(), 0));
-        this.helperMeshes.push(displayTriangle(triangle, Color3.Green(), 0));*/
+        //console.warn(bodyA.mesh.name, bodyB.mesh.name, tmin * 1000, tmax * 1000, maxPenetrationDistance, depth);
+        //console.log("There are", pointsA.length, "contact points");
 
-        /*const trianglesA = getMeshTrianglesWorldSpace(bodyA.mesh, bodyA.getNextWorldMatrix());
-        const trianglesB = getMeshTrianglesWorldSpace(bodyB.mesh, bodyB.getNextWorldMatrix());
-
-        const relevantTrianglesA = trianglesA.filter(triangle => triangleIntersectsWithAABB(triangle, contact.aabbOverlap));
-        const relevantTrianglesB = trianglesB.filter(triangle => triangleIntersectsWithAABB(triangle, contact.aabbOverlap));
-
-        for (const triangle of relevantTrianglesA) this.helperMeshes.push(displayTriangle(triangle, Color3.Teal(), 0));
-        for (const triangle of relevantTrianglesB) this.helperMeshes.push(displayTriangle(triangle, Color3.Yellow(), 0));
-*/
-        /*const pointsA = getMeshVerticesWorldSpace(bodyA.mesh, bodyA.getNextWorldMatrix());
-        const pointsB = getMeshVerticesWorldSpace(bodyB.mesh, bodyB.getNextWorldMatrix());
-
-        const relevantPointsA = pointsA.filter(point => pointIntersectsWithAABB(point, contact.aabbOverlap));
-        const relevantPointsB = pointsB.filter(point => pointIntersectsWithAABB(point, contact.aabbOverlap));
-
-        for (const point of relevantPointsA) this.helperMeshes.push(displayPoint(point, Color3.White(), 0));
-        for (const point of relevantPointsB) this.helperMeshes.push(displayPoint(point, Color3.Black(), 0));
-
-        contact.aabbOverlap.setVisible(true);*/
-
-        console.warn(bodyA.mesh.name, bodyB.mesh.name, tmin * 1000, tmax * 1000, maxPenetrationDistance, depth);
-        console.log("There are", pointsA.length, "contact points");
-        //for (const point of pointsA) this.helperMeshes.push(displayPoint(point, Color3.White(), 0));
-        //for (const point of pointsB) this.helperMeshes.push(displayPoint(point, Color3.Black(), 0));
-
-        //console.log(bodyA.mesh.name, bodyB.mesh.name, penetrationDistance);
-        //console.log(bodyA.mesh.getWorldMatrix().m, bodyA.getNextWorldMatrix().m);
         if ((Math.abs(maxPenetrationDistance) < EPSILON) || depth > 10) {
             // The interpenetration is below our threshold, so we can compute the impulses
             // and update the bodies
-            console.log("resolution of contact");
+            //console.log("resolution of contact");
 
             // first apply the first part of the trajectory until the collision
-            bodyA.computeNextStep(tmax);
-            bodyB.computeNextStep(tmax);
-
             bodyA.applyNextStep();
             bodyB.applyNextStep();
-
-            //arrowhead(pointA, pointA.subtract(pointB), Color3.Green(), 0);
 
             for (let i = 0; i < pointsA.length; i++) {
                 if (Math.abs(penetrationDistances[i]) > EPSILON) continue; // the point might have been pushed out of the triangle
@@ -166,15 +138,6 @@ export class Murph {
                 const rb = pointB.subtract(bodyB.nextState.position);
                 const [impulseA, impulseB] = computeImpulse(bodyA, bodyB, ra, rb, triangleNormal);
 
-
-                //impulseA.force.scaleInPlace(1 / initialIntervalLength);
-                //impulseB.force.scaleInPlace(1 / initialIntervalLength);
-
-                //arrowhead(bodyA.nextState.position, impulseA.force.normalizeToNew(), Color3.Blue());
-                //arrowhead(bodyB.nextState.position, impulseB.force.normalizeToNew(), Color3.Green());
-
-                //console.log(impulseA.force.length(), impulseB.force.length());
-
                 bodyA.applyImpulse(impulseA);
                 bodyB.applyImpulse(impulseB);
             }
@@ -186,58 +149,60 @@ export class Murph {
             const [finalInterpenetration, _, __, finalTriangles, finalPenetrations] = testInterpenetration(contact);
             if (finalInterpenetration > 0) {
                 // we push the bodies apart to avoid interpenetration
-                // the push is a weighted average of the mass of the bodies
-                const totalMass = bodyA.mass + bodyB.mass;
-                const pushB = bodyB.mass / totalMass;
-
                 const normal = Vector3.Zero();
 
                 for (let i = 0; i < finalTriangles.length; i++) {
                     if (finalInterpenetration == finalPenetrations[i]) {
                         const triangle = finalTriangles[i];
-                        const triangleNormal = getTriangleNormal(triangle).negate();
+                        const triangleNormal = getTriangleNormal(triangle);
                         normal.set(triangleNormal.x, triangleNormal.y, triangleNormal.z);
                         break;
                     }
+                    //normal.addInPlace(getTriangleNormal(finalTriangles[i]));
                 }
+                console.assert(normal.length() > 0);
+                //normal.normalize();
 
                 const pushDist = finalInterpenetration;
+                // the push is a weighted average of the mass of the bodies
+                const totalMass = bodyA.mass + bodyB.mass;
+                const pushA = bodyB.mass / totalMass;
 
-                const distanceA = bodyA.mass == 0 ? 0 : pushB * pushDist;
+                const distanceA = bodyA.mass == 0 ? 0 : pushA * pushDist;
                 const distanceB = bodyB.mass == 0 ? 0 : pushDist - distanceA;
 
-                bodyA.nextState.position.addInPlace(normal.scale(distanceA));
-                bodyB.nextState.position.subtractInPlace(normal.scale(distanceB));
+                bodyA.nextState.position.subtractInPlace(normal.scale(distanceA));
+                bodyB.nextState.position.addInPlace(normal.scale(distanceB));
             }
 
             //console.log("momentum", bodyA.nextState.momentum.length(), bodyB.nextState.momentum.length());
             //arrowhead(bodyB.nextState.position, bodyB.nextState.momentum, Color3.Green(), 0);
         } else if (maxPenetrationDistance > 0) {
-            // the bodies are interpenetrating, we use bisection
+            // the bodies are interpenetrating, we use bisection backwards
             // to find the time of impact
-            console.log("interpenetration: bisecting backward");
+            //console.log("interpenetration: bisecting backward");
 
             const tmid = (tmin + tmax) / 2;
-            console.log("computing for dt=", tmid);
+            //console.log("computing for dt=", tmid);
             bodyA.computeNextStep(tmid);
             bodyB.computeNextStep(tmid);
 
             this.resolveContact(contact, tmin, tmid, initialIntervalLength, depth + 1);
         } else if (maxPenetrationDistance < 0 && tmax - tmin < initialIntervalLength) {
-            // the bodies are not interpenetrating, but we are using bisection
-            // to find the time of impact, so we need to continue the bisection
-            console.log("Interpenetration earlier. No interpenetration now: bisecting forward");
+            // the bodies are not interpenetrating, but they were interpenetrating earlier 
+            // so we use bisection forward to find the time of impact
+            //console.log("Interpenetration earlier. No interpenetration now: bisecting forward");
 
             const tmid = (tmin + tmax) / 2;
 
-            console.log("computing for dt=", tmax + tmid);
+            //console.log("computing for dt=", tmax + tmid);
             bodyA.computeNextStep(tmax + tmid);
             bodyB.computeNextStep(tmax + tmid);
 
             this.resolveContact(contact, tmax, tmax + tmid, initialIntervalLength, depth + 1);
         } else {
             // the bodies are not interpenetrating, we don't need to do anything
-            console.log("No interpenetration, no recursion");
+            //console.log("No interpenetration, no recursion");
         }
     }
 }

@@ -1,4 +1,6 @@
 import { AbstractMesh, Matrix, Vector3, VertexBuffer } from "@babylonjs/core";
+import { AABB } from "../aabb";
+import { pointIntersectsWithAABB, triangleIntersectsWithAABB } from "../aabbIntersection";
 
 export function getMeshVerticesWorldSpace(mesh: AbstractMesh, worldMatrix: Matrix): Vector3[] {
     const positions = mesh.getVerticesData(VertexBuffer.PositionKind) as number[];
@@ -8,6 +10,17 @@ export function getMeshVerticesWorldSpace(mesh: AbstractMesh, worldMatrix: Matri
         // we need to transform the vertices to world space
         newVector = Vector3.TransformCoordinates(newVector, worldMatrix);
         vectors.push(newVector);
+    }
+    return vectors;
+}
+
+export function getMeshVerticesWorldSpaceInAABB(mesh: AbstractMesh, worldMatrix: Matrix, aabb: AABB) {
+    const positions = mesh.getVerticesData(VertexBuffer.PositionKind) as number[];
+    const vectors: Vector3[] = [];
+    for (let i = 0; i < positions.length; i += 3) {
+        let newVector = new Vector3(positions[i], positions[i + 1], positions[i + 2]);
+        newVector = Vector3.TransformCoordinates(newVector, worldMatrix);
+        if (pointIntersectsWithAABB(newVector, aabb)) vectors.push(newVector);
     }
     return vectors;
 }
@@ -23,16 +36,17 @@ export function getTriangleNormal(triangle: Triangle): Vector3 {
     return Vector3.Cross(ab, ac).normalize().negate();
 }
 
-export function getMeshTrianglesWorldSpace(mesh: AbstractMesh, worldMatrix: Matrix): Triangle[] {
+export function getMeshTrianglesWorldSpaceInAABB(mesh: AbstractMesh, worldMatrix: Matrix, aabb: AABB): Triangle[] {
     const vertices = getMeshVerticesWorldSpace(mesh, worldMatrix);
     const indices = mesh.getIndices() as number[];
     const triangles: Triangle[] = [];
     for (let i = 0; i < indices.length; i += 3) {
-        triangles.push([
+        const triangle: Triangle = [
             vertices[indices[i]],
             vertices[indices[i + 1]],
             vertices[indices[i + 2]]
-        ]);
+        ];
+        if (triangleIntersectsWithAABB(triangle, aabb)) triangles.push(triangle);
     }
     return triangles;
 }

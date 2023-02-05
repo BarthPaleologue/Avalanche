@@ -1,4 +1,4 @@
-import { MeshBuilder, Scene, StandardMaterial, Vector3 } from "@babylonjs/core";
+import { Color3, MeshBuilder, Scene, StandardMaterial, Vector3 } from "@babylonjs/core";
 import { Murph } from "./murph";
 import { Matrix3 } from "./matrix3";
 import { RigidBody } from "./rigidBody";
@@ -12,9 +12,10 @@ export class RigidBodyFactory {
             height: scaling.y,
             depth: scaling.z
         }, scene);
-        const wireframe = new StandardMaterial("wireframe");
-        wireframe.wireframe = this.WIREFRAME;
-        mesh.material = wireframe;
+        const material = new StandardMaterial("wireframe");
+        material.diffuseColor = Color3.Random();
+        material.wireframe = this.WIREFRAME;
+        mesh.material = material;
         return new RigidBody(mesh, mass, Matrix3.diag(
             mass * (scaling.y * scaling.y + scaling.z * scaling.z) / 12,
             mass * (scaling.x * scaling.x + scaling.z * scaling.z) / 12,
@@ -27,9 +28,10 @@ export class RigidBodyFactory {
             diameter: diameter,
             segments: 2
         }, scene);
-        const wireframe = new StandardMaterial("wireframe");
-        wireframe.wireframe = this.WIREFRAME;
-        mesh.material = wireframe;
+        const material = new StandardMaterial("wireframe");
+        material.diffuseColor = Color3.Random();
+        material.wireframe = this.WIREFRAME;
+        mesh.material = material;
         return new RigidBody(mesh, mass, Matrix3.diag(
             mass * diameter * diameter / 12,
             mass * diameter * diameter / 12,
@@ -42,9 +44,10 @@ export class RigidBodyFactory {
             diameter: radius * 2,
             height: height
         }, scene);
-        const wireframe = new StandardMaterial("wireframe");
-        wireframe.wireframe = this.WIREFRAME;
-        mesh.material = wireframe;
+        const material = new StandardMaterial("wireframe");
+        material.diffuseColor = Color3.Random();
+        material.wireframe = this.WIREFRAME;
+        mesh.material = material;
         return new RigidBody(mesh, mass, Matrix3.diag(
             mass * (radius * radius + height * height) / 12,
             mass * radius * radius / 2,
@@ -57,9 +60,10 @@ export class RigidBodyFactory {
             width: width,
             height: height,
         }, scene);
-        const wireframe = new StandardMaterial("wireframe");
-        wireframe.wireframe = this.WIREFRAME;
-        mesh.material = wireframe;
+        const material = new StandardMaterial("wireframe");
+        material.diffuseColor = Color3.Random();
+        material.wireframe = this.WIREFRAME;
+        mesh.material = material;
         return new RigidBody(mesh, mass, Matrix3.diag(
             mass * (height * height + width * width) / 12,
             mass * (height * height + width * width) / 12,
@@ -72,9 +76,10 @@ export class RigidBodyFactory {
             type: 1,
             size: radius
         }, scene);
-        const wireframe = new StandardMaterial("wireframe");
-        wireframe.wireframe = this.WIREFRAME;
-        mesh.material = wireframe;
+        const material = new StandardMaterial("wireframe");
+        material.diffuseColor = Color3.Random();
+        material.wireframe = this.WIREFRAME;
+        mesh.material = material;
         return new RigidBody(mesh, mass, Matrix3.diag(
             mass * (radius * radius + radius * radius) / 12,
             mass * (radius * radius + radius * radius) / 12,

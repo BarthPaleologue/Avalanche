@@ -9,8 +9,8 @@ export class UniformPonctualField implements ForceField {
     readonly point: Vector3;
     readonly strength: number;
 
-    constructor(point: Vector3, strength: number, physicsEngine: Murph) {
-        physicsEngine.addField(this);
+    constructor(point: Vector3, strength: number, physicsEngine?: Murph) {
+        if (physicsEngine) physicsEngine.addField(this);
         this.point = point;
         this.strength = strength;
     }

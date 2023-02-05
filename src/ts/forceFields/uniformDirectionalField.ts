@@ -8,8 +8,8 @@ import { Force } from "./force";
 export class UniformDirectionalField implements ForceField {
     readonly acceleration: Vector3;
 
-    constructor(acceleration: Vector3, physicsEngine: Murph) {
-        physicsEngine.addField(this);
+    constructor(acceleration: Vector3, physicsEngine?: Murph) {
+        if (physicsEngine) physicsEngine.addField(this);
         this.acceleration = acceleration;
     }
 

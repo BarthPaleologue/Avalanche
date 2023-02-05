@@ -30,8 +30,9 @@ const shadowGenerator = new ShadowGenerator(512, light);
 shadowGenerator.usePercentageCloserFiltering = true;
 
 const physicsEngine = new Murph();
-const gravity = new UniformDirectionalField(new Vector3(0, -9.81, 0), physicsEngine);
-//const gravity = new UniformPonctualField(new Vector3(0, 3, 0), 5, physicsEngine);
+let isGravityUniform = true;
+const gravityUniform = new UniformDirectionalField(new Vector3(0, -9.81, 0), physicsEngine);
+const gravityPonctual = new UniformPonctualField(new Vector3(0, 3, 0), 5);
 
 const ground = RigidBodyFactory.CreateCuboid("ground", new Vector3(20, 5, 20), 0, physicsEngine, scene);
 ground.setInitialPosition(new Vector3(0, -10, 0));
@@ -92,12 +93,16 @@ function updateScene() {
 
 // use zqsd to move the target of the camera
 document.addEventListener("keydown", e => {
-    if (e.key == "z") camera.target.addInPlace(camera.getDirection(new Vector3(0, 0, 1)));
-    if (e.key == "s") camera.target.addInPlace(camera.getDirection(new Vector3(0, 0, -1)));
-    if (e.key == "q") camera.target.addInPlace(camera.getDirection(new Vector3(-1, 0, 0)));
-    if (e.key == "d") camera.target.addInPlace(camera.getDirection(new Vector3(1, 0, 0)));
-    if (e.key == "a") camera.target.addInPlace(camera.getDirection(new Vector3(0, 1, 0)));
-    if (e.key == "e") camera.target.addInPlace(camera.getDirection(new Vector3(0, -1, 0)));
+    if (e.key == "g") {
+        isGravityUniform = !isGravityUniform;
+        if (isGravityUniform) {
+            physicsEngine.removeField(gravityUniform);
+            physicsEngine.addField(gravityPonctual);
+        } else {
+            physicsEngine.removeField(gravityPonctual);
+            physicsEngine.addField(gravityUniform);
+        }
+    }
 });
 
 scene.executeWhenReady(() => {
@@ -107,6 +112,8 @@ scene.executeWhenReady(() => {
 });
 
 window.addEventListener("resize", () => {
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
     engine.resize();
 });
 

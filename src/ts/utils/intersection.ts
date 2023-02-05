@@ -1,12 +1,10 @@
-import { Color3, Ray, Vector3 } from "@babylonjs/core";
-import { closestPointOnEdge, Edge, getMeshTrianglesWorldSpace, getMeshVerticesWorldSpace, Triangle } from "./vertex";
-import { pointIntersectsWithAABB, triangleIntersectsWithAABB } from "../aabbIntersection";
-import { displayPoint, displayRay, displayTriangle } from "./display";
+import { Ray, Vector3 } from "@babylonjs/core";
+import { closestPointOnEdge, Edge, getMeshTrianglesWorldSpaceInAABB, getMeshVerticesWorldSpaceInAABB, Triangle } from "./vertex";
 import { RigidBody } from "../rigidBody";
 import { AABB } from "../aabb";
 import { Impulse } from "../impulse";
 
-export const EPSILON = 0.02;
+export const EPSILON = 0.05;
 
 /**
  * Returns [isIntersecting, penetration distance, normal, point]
@@ -35,14 +33,14 @@ export function vertexToFacePenetration(contact: Contact, reverse = false): [num
     const worldMatrixA = bodyA.getNextWorldMatrix();
     const worldMatrixB = bodyB.getNextWorldMatrix();
 
-    const points = reverse ? getMeshVerticesWorldSpace(bodyB.mesh, worldMatrixB) : getMeshVerticesWorldSpace(bodyA.mesh, worldMatrixA);
-    const triangles = reverse ? getMeshTrianglesWorldSpace(bodyA.mesh, worldMatrixA) : getMeshTrianglesWorldSpace(bodyB.mesh, worldMatrixB);
+    const pointsToCheck = reverse ?
+        getMeshVerticesWorldSpaceInAABB(bodyB.mesh, worldMatrixB, contact.aabbOverlap) :
+        getMeshVerticesWorldSpaceInAABB(bodyA.mesh, worldMatrixA, contact.aabbOverlap);
 
-    const pointsToCheck = points.filter((point: Vector3) => pointIntersectsWithAABB(point, contact.aabbOverlap));
-    const trianglesToCheck = triangles.filter((triangle: Triangle) => triangleIntersectsWithAABB(triangle, contact.aabbOverlap));
+    const trianglesToCheck = reverse ?
+        getMeshTrianglesWorldSpaceInAABB(bodyA.mesh, worldMatrixA, contact.aabbOverlap) :
+        getMeshTrianglesWorldSpaceInAABB(bodyB.mesh, worldMatrixB, contact.aabbOverlap);
 
-    //contact.aabbOverlap.setVisible(true);
-    //contact.aabbOverlap.color = Color3.Black();
 
     let maxPenetration = Number.NEGATIVE_INFINITY;
 
