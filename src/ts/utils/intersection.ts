@@ -41,8 +41,8 @@ export function vertexToFacePenetration(contact: Contact, reverse = false): [num
     const pointsToCheck = points.filter((point: Vector3) => pointIntersectsWithAABB(point, contact.aabbOverlap));
     const trianglesToCheck = triangles.filter((triangle: Triangle) => triangleIntersectsWithAABB(triangle, contact.aabbOverlap));
 
-    contact.aabbOverlap.setVisible(true);
-    contact.aabbOverlap.color = Color3.Black();
+    //contact.aabbOverlap.setVisible(true);
+    //contact.aabbOverlap.color = Color3.Black();
 
     let maxPenetration = Number.NEGATIVE_INFINITY;
 
@@ -81,10 +81,10 @@ export function vertexToFacePenetration(contact: Contact, reverse = false): [num
             collisionPointsB.push(collisionPointB);
             collisionTriangles.push(collisionTriangle);
 
-            displayRay(collisionPointA, collisionPointB.subtract(collisionPointA).normalize(), Color3.Red(), 0);
-            displayPoint(collisionPointA, Color3.Red(), 0);
-            displayPoint(collisionPointB, Color3.Red(), 0);
-            displayTriangle(collisionTriangle, Color3.Green(), 0);
+            //displayRay(collisionPointA, collisionPointB.subtract(collisionPointA).normalize(), Color3.Red(), 0);
+            //displayPoint(collisionPointA, Color3.Red(), 0);
+            //displayPoint(collisionPointB, Color3.Red(), 0);
+            //displayTriangle(collisionTriangle, Color3.Green(), 0);
         }
     }
 
