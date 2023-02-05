@@ -127,8 +127,9 @@ export class Murph {
         contact.aabbOverlap.setVisible(true);*/
 
         console.warn(bodyA.mesh.name, bodyB.mesh.name, tmin * 1000, tmax * 1000, penetrationDistance, depth);
-        console.log("There are", pointsA.length, "+", pointsB.length, "contact points");
+        console.log("There are", pointsA.length, "contact points");
         for (const point of pointsA) this.helperMeshes.push(displayPoint(point, Color3.White(), 0));
+        for (const point of pointsB) this.helperMeshes.push(displayPoint(point, Color3.Black(), 0));
 
         //console.log(bodyA.mesh.name, bodyB.mesh.name, penetrationDistance);
         //console.log(bodyA.mesh.getWorldMatrix().m, bodyA.getNextWorldMatrix().m);
@@ -146,7 +147,7 @@ export class Murph {
 
             //arrowhead(pointA, pointA.subtract(pointB), Color3.Green(), 0);
 
-            if (!this.isPaused) this.togglePause();
+            //if (!this.isPaused) this.togglePause();
 
             //displayPoint(pointA, Color3.Blue(), 0);
             //displayPoint(pointB, Color3.Red(), 0);

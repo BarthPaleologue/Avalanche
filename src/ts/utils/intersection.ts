@@ -88,10 +88,7 @@ export function vertexToFacePenetration(contact: Contact, reverse = false): [num
         }
     }
 
-    //displayTriangle(collisionTriangle);
-
-    // if the normal is zero, there were no collisions
-    //if (collisionNormal.lengthSquared() == 0) return [maxPenetration, Vector3.Zero(), Vector3.Zero()];
+    console.assert(collisionPointsA.length == collisionPointsB.length && collisionPointsA.length == collisionTriangles.length);
 
     if (reverse) return [maxPenetration, collisionPointsB, collisionPointsA, collisionTriangles];
     return [maxPenetration, collisionPointsA, collisionPointsB, collisionTriangles];
@@ -130,7 +127,7 @@ export function computeImpulse(a: RigidBody, b: RigidBody, pointA: Vector3, poin
     denominator += Vector3.Dot(normal, b.inverseInertiaTensor.applyTo(rb.cross(normal)).cross(rb));
     // calculate impulse scalar
     const restitution = 0.7;
-    const j = 500.0 * -(1 + restitution) * rv / denominator;
+    const j = 1000.0 * -(1 + restitution) * rv / denominator;
 
     // calculate impulse vector
     return [new Impulse(normal.scale(-j), ra), new Impulse(normal.scale(j), rb)];
