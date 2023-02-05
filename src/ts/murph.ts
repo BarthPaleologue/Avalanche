@@ -134,7 +134,7 @@ export class Murph {
 
         //console.log(bodyA.mesh.name, bodyB.mesh.name, penetrationDistance);
         //console.log(bodyA.mesh.getWorldMatrix().m, bodyA.getNextWorldMatrix().m);
-        if (Math.abs(maxPenetrationDistance) < EPSILON || depth > 5) {
+        if (Math.abs(maxPenetrationDistance) < EPSILON || depth > 7) {
             // The interpenetration is below our threshold, so we can compute the impulses
             // and update the bodies
             console.log("resolution of contact");

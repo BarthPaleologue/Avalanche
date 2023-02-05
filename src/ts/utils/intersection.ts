@@ -6,7 +6,7 @@ import { RigidBody } from "../rigidBody";
 import { AABB } from "../aabb";
 import { Impulse } from "../impulse";
 
-export const EPSILON = 0.05;
+export const EPSILON = 0.02;
 
 /**
  * Returns [isIntersecting, penetration distance, normal, point]
@@ -133,7 +133,7 @@ export function computeImpulse(a: RigidBody, b: RigidBody, pointA: Vector3, poin
     denominator += Vector3.Dot(normal, b.inverseInertiaTensor.applyTo(rb.cross(normal)).cross(rb));
     // calculate impulse scalar
     const restitution = 0.7;
-    const j = 100.0 * -(1 + restitution) * rv / denominator;
+    const j = 50.0 * -(1 + restitution) * rv / denominator;
 
     // calculate impulse vector
     return [new Impulse(normal.scale(-j), ra), new Impulse(normal.scale(j), rb)];
