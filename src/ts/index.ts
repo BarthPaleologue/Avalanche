@@ -32,7 +32,7 @@ const physicsEngine = new Murph();
 const gravity = new UniformDirectionalField(new Vector3(0, -9.81, 0), physicsEngine);
 //const gravity = new UniformPonctualField(new Vector3(0, 3, 0), 5, physicsEngine);
 
-const ground = RigidBodyFactory.CreateCuboid("ground", new Vector3(10, 5, 10), 0, physicsEngine, scene);
+const ground = RigidBodyFactory.CreateCuboid("ground", new Vector3(20, 5, 20), 0, physicsEngine, scene);
 ground.setInitialPosition(new Vector3(0, -10, 0));
 ground.mesh.receiveShadows = true;
 camera.target = ground.mesh.position;

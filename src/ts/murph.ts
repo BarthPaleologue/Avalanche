@@ -6,6 +6,7 @@ import { computeImpulse, Contact, EPSILON, testInterpenetration } from "./utils/
 import { arrowhead, displayPoint, displayTriangle } from "./utils/display";
 import { getMeshTrianglesWorldSpace, getMeshVerticesWorldSpace } from "./utils/vertex";
 import { pointIntersectsWithAABB, triangleIntersectsWithAABB } from "./pointIntersectsWithAABB";
+import { copyAintoB } from "./rigidBodyState";
 
 export class Murph {
     private readonly bodies: RigidBody[] = [];
@@ -144,6 +145,19 @@ export class Murph {
 
             bodyA.applyNextStep();
             bodyB.applyNextStep();
+
+            if (penetrationDistance > 0) {
+                // we push the bodies apart to avoid interpenetration
+                copyAintoB(bodyA.currentState, bodyA.nextState);
+                copyAintoB(bodyB.currentState, bodyB.nextState);
+
+                const push = bodyA.nextState.position.subtract(bodyB.nextState.position).normalize().scale(penetrationDistance);
+                bodyA.nextState.position.addInPlace(push.scale(0.5));
+                bodyB.nextState.position.subtractInPlace(push.scale(0.5));
+
+                bodyA.applyNextStep();
+                bodyB.applyNextStep();
+            }
 
             //arrowhead(pointA, pointA.subtract(pointB), Color3.Green(), 0);
 
