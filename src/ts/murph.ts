@@ -139,7 +139,7 @@ export class Murph {
 
         //console.log(bodyA.mesh.name, bodyB.mesh.name, penetrationDistance);
         //console.log(bodyA.mesh.getWorldMatrix().m, bodyA.getNextWorldMatrix().m);
-        if (Math.abs(maxPenetrationDistance) < EPSILON || depth > 7) {
+        if ((Math.abs(maxPenetrationDistance) < EPSILON) || depth > 10) {
             // The interpenetration is below our threshold, so we can compute the impulses
             // and update the bodies
             console.log("resolution of contact");
@@ -153,11 +153,6 @@ export class Murph {
 
             //arrowhead(pointA, pointA.subtract(pointB), Color3.Green(), 0);
 
-            //if (!this.isPaused) this.togglePause();
-
-            //displayPoint(pointA, Color3.Blue(), 0);
-            //displayPoint(pointB, Color3.Red(), 0);
-
             for (let i = 0; i < pointsA.length; i++) {
                 if (Math.abs(penetrationDistances[i]) > EPSILON) continue; // the point might have been pushed out of the triangle
 
@@ -165,7 +160,7 @@ export class Murph {
                 const pointB = pointsB[i];
                 const triangle = triangles[i];
 
-                const triangleNormal = getTriangleNormal(triangle).negate();
+                const triangleNormal = getTriangleNormal(triangle);
 
                 const ra = pointA.subtract(bodyA.nextState.position);
                 const rb = pointB.subtract(bodyB.nextState.position);
@@ -193,13 +188,26 @@ export class Murph {
                 // we push the bodies apart to avoid interpenetration
                 // the push is a weighted average of the mass of the bodies
                 const totalMass = bodyA.mass + bodyB.mass;
-                const pushA = bodyA.mass / totalMass;
                 const pushB = bodyB.mass / totalMass;
 
-                const push = bodyA.nextState.position.subtract(bodyB.nextState.position).normalize().scale(maxPenetrationDistance);
+                const normal = Vector3.Zero();
 
-                bodyA.nextState.position.addInPlace(push.scale(pushA));
-                bodyB.nextState.position.subtractInPlace(push.scale(pushB));
+                for (let i = 0; i < finalTriangles.length; i++) {
+                    if (finalInterpenetration == finalPenetrations[i]) {
+                        const triangle = finalTriangles[i];
+                        const triangleNormal = getTriangleNormal(triangle).negate();
+                        normal.set(triangleNormal.x, triangleNormal.y, triangleNormal.z);
+                        break;
+                    }
+                }
+
+                const pushDist = finalInterpenetration;
+
+                const distanceA = bodyA.mass == 0 ? 0 : pushB * pushDist;
+                const distanceB = bodyB.mass == 0 ? 0 : pushDist - distanceA;
+
+                bodyA.nextState.position.addInPlace(normal.scale(distanceA));
+                bodyB.nextState.position.subtractInPlace(normal.scale(distanceB));
             }
 
             //console.log("momentum", bodyA.nextState.momentum.length(), bodyB.nextState.momentum.length());
