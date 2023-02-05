@@ -135,7 +135,7 @@ export function computeImpulse(a: RigidBody, b: RigidBody, pointA: Vector3, poin
     denominator += Vector3.Dot(normal, a.nextInverseInertiaTensor.applyTo(ra.cross(normal)).cross(ra));
     denominator += Vector3.Dot(normal, b.nextInverseInertiaTensor.applyTo(rb.cross(normal)).cross(rb));
     // calculate impulse scalar
-    const restitution = 0.5;
+    const restitution = 0.4;
     const j = -(1 + restitution) * rv / denominator;
 
     // calculate impulse vector

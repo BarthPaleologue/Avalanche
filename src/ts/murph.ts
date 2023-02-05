@@ -146,25 +146,6 @@ export class Murph {
             bodyA.applyNextStep();
             bodyB.applyNextStep();
 
-            if (maxPenetrationDistance > 0) {
-                // we push the bodies apart to avoid interpenetration
-                copyAintoB(bodyA.currentState, bodyA.nextState);
-                copyAintoB(bodyB.currentState, bodyB.nextState);
-
-                // the push is a weighted average of the mass of the bodies
-                const totalMass = bodyA.mass + bodyB.mass;
-                const pushA = bodyA.mass / totalMass;
-                const pushB = bodyB.mass / totalMass;
-
-                const push = bodyA.nextState.position.subtract(bodyB.nextState.position).normalize().scale(maxPenetrationDistance);
-
-                bodyA.nextState.position.addInPlace(push.scale(pushA));
-                bodyB.nextState.position.subtractInPlace(push.scale(pushB));
-
-                bodyA.applyNextStep();
-                bodyB.applyNextStep();
-            }
-
             //arrowhead(pointA, pointA.subtract(pointB), Color3.Green(), 0);
 
             //if (!this.isPaused) this.togglePause();
@@ -201,6 +182,19 @@ export class Murph {
             // Recompute the next step taking into account the new velocity
             bodyA.computeNextStep(initialIntervalLength);
             bodyB.computeNextStep(initialIntervalLength);
+
+            if (testInterpenetration(contact)[0] > 0) {
+                // we push the bodies apart to avoid interpenetration
+                // the push is a weighted average of the mass of the bodies
+                const totalMass = bodyA.mass + bodyB.mass;
+                const pushA = bodyA.mass / totalMass;
+                const pushB = bodyB.mass / totalMass;
+
+                const push = bodyA.nextState.position.subtract(bodyB.nextState.position).normalize().scale(maxPenetrationDistance);
+
+                bodyA.nextState.position.addInPlace(push.scale(pushA));
+                bodyB.nextState.position.subtractInPlace(push.scale(pushB));
+            }
 
             //console.log("momentum", bodyA.nextState.momentum.length(), bodyB.nextState.momentum.length());
             //arrowhead(bodyB.nextState.position, bodyB.nextState.momentum, Color3.Green(), 0);
