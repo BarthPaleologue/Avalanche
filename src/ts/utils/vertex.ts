@@ -1,4 +1,4 @@
-import {AbstractMesh, Matrix, Vector3, VertexBuffer} from "@babylonjs/core";
+import { AbstractMesh, Matrix, Vector3, VertexBuffer } from "@babylonjs/core";
 
 export function getMeshVerticesWorldSpace(mesh: AbstractMesh, worldMatrix: Matrix): Vector3[] {
     const positions = mesh.getVerticesData(VertexBuffer.PositionKind) as number[];
@@ -14,6 +14,13 @@ export function getMeshVerticesWorldSpace(mesh: AbstractMesh, worldMatrix: Matri
 
 export type Triangle = [Vector3, Vector3, Vector3];
 
+export function getTriangleNormal(triangle: Triangle): Vector3 {
+    const [a, b, c] = triangle;
+    const ab = b.subtract(a);
+    const ac = c.subtract(a);
+    return Vector3.Cross(ab, ac).normalize();
+}
+
 export function getMeshTrianglesWorldSpace(mesh: AbstractMesh, worldMatrix: Matrix): Triangle[] {
     const vertices = getMeshVerticesWorldSpace(mesh, worldMatrix);
     const indices = mesh.getIndices() as number[];
@@ -23,7 +30,7 @@ export function getMeshTrianglesWorldSpace(mesh: AbstractMesh, worldMatrix: Matr
             vertices[indices[i]],
             vertices[indices[i + 1]],
             vertices[indices[i + 2]]
-        ])
+        ]);
     }
     return triangles;
 }

@@ -4,7 +4,7 @@ import { Color3, Mesh, Vector3 } from "@babylonjs/core";
 import { AABB } from "./aabb";
 import { computeImpulse, Contact, EPSILON, testInterpenetration } from "./utils/intersection";
 import { arrowhead, displayPoint, displayTriangle } from "./utils/display";
-import { getMeshTrianglesWorldSpace, getMeshVerticesWorldSpace } from "./utils/vertex";
+import { getMeshTrianglesWorldSpace, getMeshVerticesWorldSpace, getTriangleNormal } from "./utils/vertex";
 import { pointIntersectsWithAABB, triangleIntersectsWithAABB } from "./pointIntersectsWithAABB";
 import { copyAintoB } from "./rigidBodyState";
 
@@ -101,7 +101,7 @@ export class Murph {
 
     private resolveContact(contact: Contact, tmin: number, tmax: number, initialIntervalLength: number, depth: number) {
         const [bodyA, bodyB] = [contact.a, contact.b];
-        const [penetrationDistance, pointsA, pointsB, triangles] = testInterpenetration(contact);
+        const [maxPenetrationDistance, pointsA, pointsB, triangles, penetrationDistances] = testInterpenetration(contact);
 
         /*this.helperMeshes.push(displayPoint(pointA, Color3.Blue(), 0));
         this.helperMeshes.push(displayPoint(pointB, Color3.Red(), 0));
@@ -127,14 +127,14 @@ export class Murph {
 
         contact.aabbOverlap.setVisible(true);*/
 
-        console.warn(bodyA.mesh.name, bodyB.mesh.name, tmin * 1000, tmax * 1000, penetrationDistance, depth);
+        console.warn(bodyA.mesh.name, bodyB.mesh.name, tmin * 1000, tmax * 1000, maxPenetrationDistance, depth);
         console.log("There are", pointsA.length, "contact points");
         //for (const point of pointsA) this.helperMeshes.push(displayPoint(point, Color3.White(), 0));
         //for (const point of pointsB) this.helperMeshes.push(displayPoint(point, Color3.Black(), 0));
 
         //console.log(bodyA.mesh.name, bodyB.mesh.name, penetrationDistance);
         //console.log(bodyA.mesh.getWorldMatrix().m, bodyA.getNextWorldMatrix().m);
-        if (Math.abs(penetrationDistance) < EPSILON || depth > 5) {
+        if (Math.abs(maxPenetrationDistance) < EPSILON || depth > 5) {
             // The interpenetration is below our threshold, so we can compute the impulses
             // and update the bodies
             console.log("resolution of contact");
@@ -146,14 +146,20 @@ export class Murph {
             bodyA.applyNextStep();
             bodyB.applyNextStep();
 
-            if (penetrationDistance > 0) {
+            if (maxPenetrationDistance > 0) {
                 // we push the bodies apart to avoid interpenetration
                 copyAintoB(bodyA.currentState, bodyA.nextState);
                 copyAintoB(bodyB.currentState, bodyB.nextState);
 
-                const push = bodyA.nextState.position.subtract(bodyB.nextState.position).normalize().scale(penetrationDistance);
-                bodyA.nextState.position.addInPlace(push.scale(0.5));
-                bodyB.nextState.position.subtractInPlace(push.scale(0.5));
+                // the push is a weighted average of the mass of the bodies
+                const totalMass = bodyA.mass + bodyB.mass;
+                const pushA = bodyA.mass / totalMass;
+                const pushB = bodyB.mass / totalMass;
+
+                const push = bodyA.nextState.position.subtract(bodyB.nextState.position).normalize().scale(maxPenetrationDistance);
+
+                bodyA.nextState.position.addInPlace(push.scale(pushA));
+                bodyB.nextState.position.subtractInPlace(push.scale(pushB));
 
                 bodyA.applyNextStep();
                 bodyB.applyNextStep();
@@ -166,20 +172,14 @@ export class Murph {
             //displayPoint(pointA, Color3.Blue(), 0);
             //displayPoint(pointB, Color3.Red(), 0);
 
-            bodyA.nextState.aabb.color = new Color3(0, 1, 0);
-            bodyB.nextState.aabb.color = new Color3(0, 1, 0);
-
-            bodyA.cumulatedImpulses = [];
-            bodyB.cumulatedImpulses = [];
-
-
             for (let i = 0; i < pointsA.length; i++) {
+                if (Math.abs(penetrationDistances[i]) > EPSILON) continue; // the point might have been pushed out of the triangle
+
                 const pointA = pointsA[i];
                 const pointB = pointsB[i];
                 const triangle = triangles[i];
 
-                const triangleNormal = Vector3.Cross(triangle[1].subtract(triangle[0]), triangle[2].subtract(triangle[0])).normalize().negate();
-                //arrowhead(pointA, triangleNormal, Color3.Green(), 0);
+                const triangleNormal = getTriangleNormal(triangle).negate();
 
                 const ra = pointA.subtract(bodyA.nextState.position);
                 const rb = pointB.subtract(bodyB.nextState.position);
@@ -189,32 +189,22 @@ export class Murph {
                 //arrowhead(bodyA.nextState.position, impulseA.force.normalizeToNew(), Color3.Blue());
                 //arrowhead(bodyB.nextState.position, impulseB.force.normalizeToNew(), Color3.Green());
 
-                //bodyA.currentState.momentum = Vector3.Zero();
-                //bodyB.currentState.momentum = Vector3.Zero();
-
                 //console.log(impulseA.force.length(), impulseB.force.length());
 
                 bodyA.applyImpulse(impulseA);
-                //console.log(contact.a.mesh.name);
                 bodyB.applyImpulse(impulseB);
             }
+
             // Recompute the next step taking into account the new velocity
             bodyA.computeNextStep(initialIntervalLength);
             bodyB.computeNextStep(initialIntervalLength);
 
-            console.log("momentum", bodyA.nextState.momentum.length(), bodyB.nextState.momentum.length());
+            //console.log("momentum", bodyA.nextState.momentum.length(), bodyB.nextState.momentum.length());
             //arrowhead(bodyB.nextState.position, bodyB.nextState.momentum, Color3.Green(), 0);
-
-            bodyA.nextState.aabb.color = new Color3(1, 1, 1);
-            bodyB.nextState.aabb.color = new Color3(1, 1, 1);
-
-        } else if (penetrationDistance > 0) {
+        } else if (maxPenetrationDistance > 0) {
             // the bodies are interpenetrating, we use bisection
             // to find the time of impact
             console.log("interpenetration: bisecting backward");
-
-            bodyA.nextState.aabb.color = new Color3(1, 0, 1);
-            bodyB.nextState.aabb.color = new Color3(1, 0, 1);
 
             const tmid = (tmin + tmax) / 2;
             console.log("computing for dt=", tmid);
@@ -222,13 +212,10 @@ export class Murph {
             bodyB.computeNextStep(tmid);
 
             this.resolveContact(contact, tmin, tmid, initialIntervalLength, depth + 1);
-        } else if (penetrationDistance < 0 && tmax - tmin < initialIntervalLength) {
+        } else if (maxPenetrationDistance < 0 && tmax - tmin < initialIntervalLength) {
             // the bodies are not interpenetrating, but we are using bisection
             // to find the time of impact, so we need to continue the bisection
             console.log("Interpenetration earlier. No interpenetration now: bisecting forward");
-
-            bodyA.nextState.aabb.color = new Color3(1, 0, 1);
-            bodyB.nextState.aabb.color = new Color3(1, 0, 1);
 
             const tmid = (tmin + tmax) / 2;
 
@@ -239,10 +226,7 @@ export class Murph {
             this.resolveContact(contact, tmax, tmax + tmid, initialIntervalLength, depth + 1);
         } else {
             // the bodies are not interpenetrating, we don't need to do anything
-
-            console.log("No interpenetration, ending recursion");
-            bodyA.nextState.aabb.color = new Color3(1, 0, 0);
-            bodyB.nextState.aabb.color = new Color3(1, 0, 0);
+            console.log("No interpenetration, no recursion");
         }
     }
 }
