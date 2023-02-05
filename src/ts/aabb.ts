@@ -1,7 +1,5 @@
 import {
-    AbstractMesh, Color3,
-    Color4,
-    LinesMesh,
+    Color3,
     Mesh,
     MeshBuilder, StandardMaterial,
     Vector3,

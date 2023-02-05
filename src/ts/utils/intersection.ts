@@ -1,6 +1,6 @@
 import { Color3, Ray, Vector3 } from "@babylonjs/core";
-import { getMeshTrianglesWorldSpace, getMeshVerticesWorldSpace, Triangle } from "./vertex";
-import { pointIntersectsWithAABB, triangleIntersectsWithAABB } from "../pointIntersectsWithAABB";
+import { closestPointOnEdge, Edge, getMeshTrianglesWorldSpace, getMeshVerticesWorldSpace, Triangle } from "./vertex";
+import { pointIntersectsWithAABB, triangleIntersectsWithAABB } from "../aabbIntersection";
 import { displayPoint, displayRay, displayTriangle } from "./display";
 import { RigidBody } from "../rigidBody";
 import { AABB } from "../aabb";
@@ -101,6 +101,36 @@ export function vertexToFacePenetration(contact: Contact, reverse = false): [num
     if (reverse) return [maxPenetration, collisionPointsB, collisionPointsA, collisionTriangles, collisionPenetrations];
     return [maxPenetration, collisionPointsA, collisionPointsB, collisionTriangles, collisionPenetrations];
 }
+
+export function findCollisions(edges1: Edge[], edges2: Edge[]): [number, Vector3[], Vector3[], number[]] {
+    const closestDistances: number[] = [];
+    const intersectionPointsEdgesA: Vector3[] = [];
+    const intersectionPointsEdgesB: Vector3[] = [];
+    const distances: number[] = [];
+
+    for (const edge1 of edges1) {
+        for (const edge2 of edges2) {
+            const closestPoint = closestPointOnEdge(edge1[0], edge2);
+            const distanceSquared = Vector3.DistanceSquared(edge1[0], closestPoint);
+            if (distanceSquared <= EPSILON ** 2) {
+                closestDistances.push(Math.sqrt(distanceSquared));
+                intersectionPointsEdgesA.push(edge1[0]);
+                intersectionPointsEdgesB.push(closestPoint);
+                distances.push(Vector3.Distance(edge1[0], closestPoint));
+            }
+        }
+    }
+
+    let closestDistance = Number.MAX_VALUE;
+    for (const distance of closestDistances) {
+        if (distance < closestDistance) {
+            closestDistance = distance;
+        }
+    }
+
+    return [closestDistance, intersectionPointsEdgesA, intersectionPointsEdgesB, distances];
+}
+
 
 export function testInterpenetration(contact: Contact): [number, Vector3[], Vector3[], Triangle[], number[]] {
     const [penetrationDistance, pointsA, pointsB, triangles, collisionPenetrations] = vertexToFacePenetration(contact, false);

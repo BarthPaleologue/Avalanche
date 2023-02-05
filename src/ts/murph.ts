@@ -5,7 +5,7 @@ import { AABB } from "./aabb";
 import { computeImpulse, Contact, EPSILON, testInterpenetration } from "./utils/intersection";
 import { arrowhead, displayPoint, displayTriangle } from "./utils/display";
 import { getMeshTrianglesWorldSpace, getMeshVerticesWorldSpace, getTriangleNormal } from "./utils/vertex";
-import { pointIntersectsWithAABB, triangleIntersectsWithAABB } from "./pointIntersectsWithAABB";
+import { pointIntersectsWithAABB, triangleIntersectsWithAABB } from "./aabbIntersection";
 import { copyAintoB } from "./rigidBodyState";
 
 export class Murph {
