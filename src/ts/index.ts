@@ -39,9 +39,9 @@ ground.setInitialPosition(new Vector3(0, -10, 0));
 ground.mesh.receiveShadows = true;
 camera.target = ground.mesh.position;
 
-const sphere = RigidBodyFactory.CreateSphere("sphere", 1, 1, physicsEngine, scene);
-shadowGenerator.addShadowCaster(sphere.mesh);
-sphere.setInitialPosition(randomVector3(-3, 3));
+const dodecahedron = RigidBodyFactory.CreateDodecahedron("dodecahedron", 1, 1, physicsEngine, scene);
+shadowGenerator.addShadowCaster(dodecahedron.mesh);
+dodecahedron.setInitialPosition(randomVector3(-3, 3));
 
 const cuboid = RigidBodyFactory.CreateCuboid("cuboid", new Vector3(1, 1, 1), 1, physicsEngine, scene);
 cuboid.setInitialPosition(randomVector3(-3, 3));
@@ -55,10 +55,16 @@ const octahedron = RigidBodyFactory.CreateOctahedron("octahedron", 1, 1, physics
 octahedron.setInitialPosition(randomVector3(-5, 5));
 shadowGenerator.addShadowCaster(octahedron.mesh);
 
-// on mesh click, center the camera on it
+// on mesh click, apply impulse
 scene.onPointerObservable.add((pointerInfo) => {
     if (pointerInfo.pickInfo!.hit) {
-        camera.target = pointerInfo.pickInfo!.pickedMesh!.position;
+        const mesh = pointerInfo.pickInfo!.pickedMesh!;
+        const body = physicsEngine.bodies.find(b => b.mesh == mesh);
+        if (body) {
+            const point = pointerInfo.pickInfo!.pickedPoint!.subtract(body.positionRef).normalize();
+            const direction = new Vector3(Math.random() - 0.5, Math.random(), Math.random() - 0.5).scale(Math.random() * 2);
+            body.applyImpulse(new Impulse(direction, point));
+        }
     }
 });
 
@@ -73,7 +79,7 @@ function updateScene() {
         octahedron.applyImpulse(new Impulse(new Vector3(0.7, 0.1, 0.3), new Vector3(Math.random(), Math.random(), Math.random())));
     }
     if (I % 100 == 0) {
-        const newCube = RigidBodyFactory.CreateCuboid("cuboid" + I, new Vector3(1, 1, 1), 1, physicsEngine, scene);
+        const newCube = RigidBodyFactory.CreateRandom("cuboid" + I, 1, 1, physicsEngine, scene);
         newCube.setInitialPosition(new Vector3(Math.random() * 10 - 5, 10, Math.random() * 10 - 5));
         shadowGenerator.addShadowCaster(newCube.mesh);
         newCube.applyImpulse(new Impulse(new Vector3(0, 1, 0), new Vector3(Math.random(), Math.random(), Math.random())));
@@ -95,7 +101,7 @@ function updateScene() {
 document.addEventListener("keydown", e => {
     if (e.key == "g") {
         isGravityUniform = !isGravityUniform;
-        if (isGravityUniform) {
+        if (!isGravityUniform) {
             physicsEngine.removeField(gravityUniform);
             physicsEngine.addField(gravityPonctual);
         } else {

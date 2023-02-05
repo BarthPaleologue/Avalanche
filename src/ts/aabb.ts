@@ -111,7 +111,7 @@ export class AABB {
 
         // make it 10% bigger
         const size = this.max.subtract(this.min);
-        const offset = size.scale(0.5);
+        const offset = size.scale(0.3);
         this.min.subtractInPlace(offset);
         this.max.addInPlace(offset);
 

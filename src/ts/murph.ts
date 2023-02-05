@@ -2,7 +2,7 @@ import { RigidBody } from "./rigidBody";
 import { ForceField } from "./forceFields/forceField";
 import { Color3, Mesh, Vector3 } from "@babylonjs/core";
 import { AABB } from "./aabb";
-import { computeImpulse, Contact, EPSILON, testInterpenetration } from "./utils/intersection";
+import { computeCollisionImpulse, computeFrictionImpulse, Contact, EPSILON, testInterpenetration } from "./utils/intersection";
 import { getTriangleNormal } from "./utils/vertex";
 import { displayTriangle } from "./utils/display";
 
@@ -136,10 +136,15 @@ export class Murph {
 
                 const ra = pointA.subtract(bodyA.nextState.position);
                 const rb = pointB.subtract(bodyB.nextState.position);
-                const [impulseA, impulseB] = computeImpulse(bodyA, bodyB, ra, rb, triangleNormal);
+                const [impulseA, impulseB] = computeCollisionImpulse(bodyA, bodyB, ra, rb, triangleNormal);
 
                 bodyA.applyImpulse(impulseA);
                 bodyB.applyImpulse(impulseB);
+
+                const [frictionImpulseA, frictionImpulseB] = computeFrictionImpulse(bodyA, bodyB, ra, rb, triangleNormal);
+
+                bodyA.applyImpulse(frictionImpulseA);
+                bodyB.applyImpulse(frictionImpulseB);
             }
 
             // Recompute the next step taking into account the new velocity
