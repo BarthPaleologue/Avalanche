@@ -4,7 +4,7 @@ import { Color3, Mesh, Vector3 } from "@babylonjs/core";
 import { AABB } from "./aabb";
 import { computeCollisionImpulse, computeFrictionImpulse, Contact, EPSILON, testInterpenetration } from "./utils/intersection";
 import { getTriangleNormal } from "./utils/vertex";
-import { displayTriangle } from "./utils/display";
+import { displayPoint, displayTriangle } from "./utils/display";
 
 export class Murph {
     readonly bodies: RigidBody[] = [];
@@ -47,6 +47,10 @@ export class Murph {
 
     public togglePause() {
         this.isPaused = !this.isPaused;
+    }
+
+    get paused() {
+        return this.isPaused;
     }
 
     public update(deltaTime: number) {
@@ -109,7 +113,7 @@ export class Murph {
 
     private resolveContact(contact: Contact, tmin: number, tmax: number, initialIntervalLength: number, depth: number) {
         const [bodyA, bodyB] = [contact.a, contact.b];
-        if (bodyA.mass == 0 && bodyB.mass == 0) return; // both bodies are static
+        if (bodyA.isStatic && bodyB.isStatic) return; // both bodies are static
 
         const [maxPenetrationDistance, pointsA, pointsB, triangles, penetrationDistances] = testInterpenetration(contact);
 
@@ -138,6 +142,14 @@ export class Murph {
                 const rb = pointB.subtract(bodyB.nextState.position);
                 const [impulseA, impulseB] = computeCollisionImpulse(bodyA, bodyB, ra, rb, triangleNormal);
 
+                /*if (impulseA.force.length() > 10 && !this.isPaused) {
+                    this.togglePause();
+                    this.helperMeshes.push(displayPoint(pointA, Color3.Red(), 0));
+                    this.helperMeshes.push(displayPoint(pointB, Color3.Red(), 0));
+
+                    this.helperMeshes.push(displayTriangle(triangle, Color3.Red(), 0));
+                }*/
+
                 bodyA.applyImpulse(impulseA);
                 bodyB.applyImpulse(impulseB);
 
@@ -163,18 +175,16 @@ export class Murph {
                         normal.set(triangleNormal.x, triangleNormal.y, triangleNormal.z);
                         break;
                     }
-                    //normal.addInPlace(getTriangleNormal(finalTriangles[i]));
                 }
                 console.assert(normal.length() > 0);
-                //normal.normalize();
 
                 const pushDist = finalInterpenetration;
                 // the push is a weighted average of the mass of the bodies
                 const totalMass = bodyA.mass + bodyB.mass;
-                const pushA = bodyB.mass / totalMass;
+                const pushA = bodyB.isStatic ? 1 : bodyB.mass / totalMass;
 
-                const distanceA = bodyA.mass == 0 ? 0 : pushA * pushDist;
-                const distanceB = bodyB.mass == 0 ? 0 : pushDist - distanceA;
+                const distanceA = bodyA.isStatic ? 0 : pushA * pushDist;
+                const distanceB = bodyB.isStatic ? 0 : pushDist - distanceA;
 
                 bodyA.nextState.position.subtractInPlace(normal.scale(distanceA));
                 bodyB.nextState.position.addInPlace(normal.scale(distanceB));

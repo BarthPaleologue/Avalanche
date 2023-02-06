@@ -2,6 +2,7 @@ import {
     ArcRotateCamera, DirectionalLight,
     Engine,
     Scene, ShadowGenerator,
+    Tools,
     Vector3
 } from "@babylonjs/core";
 
@@ -78,7 +79,7 @@ function updateScene() {
         cylinder.applyImpulse(new Impulse(new Vector3(0.2, 0.5, 1), new Vector3(Math.random(), Math.random(), Math.random())));
         octahedron.applyImpulse(new Impulse(new Vector3(0.7, 0.1, 0.3), new Vector3(Math.random(), Math.random(), Math.random())));
     }
-    if (I % 100 == 0) {
+    if (I % 100 == 0 && !physicsEngine.paused) {
         const newCube = RigidBodyFactory.CreateRandom("cuboid" + I, 1, 1, physicsEngine, scene);
         newCube.setInitialPosition(new Vector3(Math.random() * 10 - 5, 10, Math.random() * 10 - 5));
         shadowGenerator.addShadowCaster(newCube.mesh);
@@ -109,6 +110,12 @@ document.addEventListener("keydown", e => {
             physicsEngine.addField(gravityUniform);
         }
     }
+    if (e.key == "p") Tools.CreateScreenshotAsync(engine, camera, { precision: 2 }).then((data) => {
+        const link = document.createElement("a");
+        link.download = "screenshot.png";
+        link.href = data;
+        link.click();
+    });
 });
 
 scene.executeWhenReady(() => {

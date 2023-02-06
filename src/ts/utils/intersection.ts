@@ -155,11 +155,11 @@ export function computeCollisionImpulse(a: RigidBody, b: RigidBody, pointA: Vect
     const rv = Vector3.Dot(normal, vb.subtract(va));
 
     // if points are moving away from each other, no impulse is needed
-    if (rv > 0) return [new Impulse(Vector3.Zero(), Vector3.Zero()), new Impulse(Vector3.Zero(), Vector3.Zero())];
+    if (rv > 0 || Math.abs(rv) < EPSILON) return [new Impulse(Vector3.Zero(), Vector3.Zero()), new Impulse(Vector3.Zero(), Vector3.Zero())];
 
     let denominator = 0;
-    denominator += a.mass != 0 ? 1 / a.mass : 0;
-    denominator += b.mass != 0 ? 1 / b.mass : 0;
+    denominator += !a.isStatic ? 1 / a.mass : 0;
+    denominator += !b.isStatic ? 1 / b.mass : 0;
     denominator += Vector3.Dot(normal, a.nextInverseInertiaTensor.applyTo(ra.cross(normal)).cross(ra));
     denominator += Vector3.Dot(normal, b.nextInverseInertiaTensor.applyTo(rb.cross(normal)).cross(rb));
     // calculate impulse scalar
@@ -188,14 +188,14 @@ export function computeFrictionImpulse(a: RigidBody, b: RigidBody, pointA: Vecto
 
     // relative velocity
     const rv = vb.subtract(va);
-    if (rv.lengthSquared() < EPSILON) return [new Impulse(Vector3.Zero(), Vector3.Zero()), new Impulse(Vector3.Zero(), Vector3.Zero())];
+    if (Vector3.Dot(rv, normal) > 0 || rv.lengthSquared() < EPSILON * EPSILON) return [new Impulse(Vector3.Zero(), Vector3.Zero()), new Impulse(Vector3.Zero(), Vector3.Zero())];
 
     // tangent vector
     const tangent = rv.subtract(normal.scale(Vector3.Dot(normal, rv))).normalize();
 
     let denominator = 0;
-    denominator += a.mass != 0 ? 1 / a.mass : 0;
-    denominator += b.mass != 0 ? 1 / b.mass : 0;
+    denominator += !a.isStatic ? 1 / a.mass : 0;
+    denominator += !b.isStatic ? 1 / b.mass : 0;
     denominator += Vector3.Dot(tangent, a.nextInverseInertiaTensor.applyTo(ra.cross(tangent)).cross(ra));
     denominator += Vector3.Dot(tangent, b.nextInverseInertiaTensor.applyTo(rb.cross(tangent)).cross(rb));
 

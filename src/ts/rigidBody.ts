@@ -65,6 +65,10 @@ export class RigidBody {
         this.currentState.rotationMatrix = Matrix3.identity();
     }
 
+    get isStatic(): boolean {
+        return this.mass == 0;
+    }
+
     setInitialPosition(position: Vector3) {
         this.mesh.position = position;
         this.currentState.position = position;
