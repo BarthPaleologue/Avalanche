@@ -1,5 +1,5 @@
 import {
-    ArcRotateCamera, DirectionalLight,
+    ArcRotateCamera, AssetsManager, DirectionalLight,
     Engine,
     Scene, ShadowGenerator,
     Tools,
@@ -13,14 +13,17 @@ import { RigidBodyFactory } from "./rigidBodyFactory";
 import { UniformPonctualField } from "./forceFields/uniformPonctualField";
 import { UniformDirectionalField } from "./forceFields/uniformDirectionalField";
 import { randomVector3 } from "./utils/random";
+import { Assets } from "./assets";
 
 const canvas = document.getElementById("renderer") as HTMLCanvasElement;
 canvas.width = window.innerWidth;
 canvas.height = window.innerHeight;
 
-const engine = new Engine(canvas);
+const engine = new Engine(canvas, true);
 
 const scene = new Scene(engine);
+
+await Assets.Init(scene);
 
 const camera = new ArcRotateCamera("camera", 0, 3.14 / 4.0, 15, Vector3.Zero(), scene);
 camera.attachControl();
@@ -55,6 +58,10 @@ shadowGenerator.addShadowCaster(cylinder.mesh);
 const octahedron = RigidBodyFactory.CreateOctahedron("octahedron", 1, 1, physicsEngine, scene);
 octahedron.setInitialPosition(randomVector3(-5, 5));
 shadowGenerator.addShadowCaster(octahedron.mesh);
+
+const bunny = RigidBodyFactory.CreateStanfordBunny("bunny", 1, 1, physicsEngine, scene);
+bunny.setInitialPosition(randomVector3(-5, 5));
+shadowGenerator.addShadowCaster(bunny.mesh);
 
 // on mesh click, apply impulse
 scene.onPointerObservable.add((pointerInfo) => {

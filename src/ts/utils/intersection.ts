@@ -61,18 +61,17 @@ export function vertexToFacePenetration(contact: Contact, reverse = false): [num
         let collisionPenetration = Number.NEGATIVE_INFINITY;
         let collisionTriangle: Triangle = [Vector3.Zero(), Vector3.Zero(), Vector3.Zero()];
 
-        for (const triangle of trianglesToCheck) {
-            const rayOrigin = reverse ? contact.b.nextState.position : contact.a.nextState.position;
-            const rayDirection = point.subtract(rayOrigin).normalize();
-            const rayLength = point.subtract(rayOrigin).length();
+        const rayOrigin = reverse ? contact.b.nextState.position : contact.a.nextState.position;
+        const rayDirection = point.subtract(rayOrigin).normalize();
+        const rayLength = point.subtract(rayOrigin).length();
 
+        for (const triangle of trianglesToCheck) {
             const intersectDistance = intersectRayTriangle(rayOrigin, rayDirection, triangle);
             if (intersectDistance <= 0) continue;
 
             const penetration = rayLength - intersectDistance;
 
             if (penetration > maxPenetration) maxPenetration = penetration;
-
 
             if (penetration > collisionPenetration) {
                 collisionPenetration = penetration;
@@ -172,7 +171,7 @@ export function computeCollisionImpulse(a: RigidBody, b: RigidBody, pointA: Vect
     denominator += Vector3.Dot(normal, a.nextInverseInertiaTensor.applyTo(ra.cross(normal)).cross(ra));
     denominator += Vector3.Dot(normal, b.nextInverseInertiaTensor.applyTo(rb.cross(normal)).cross(rb));
     // calculate impulse scalar
-    const restitution = 0.4;
+    const restitution = 0.7;
     const j = -(1 + restitution) * rv / denominator;
 
     // calculate impulse vector

@@ -109,7 +109,7 @@ export class AABB {
     updateFromRigidBody(body: RigidBody) {
         [this.min, this.max] = AABB.getMinMax(body);
 
-        // make it 10% bigger
+        // make it 20% bigger
         const size = this.max.subtract(this.min);
         const offset = size.scale(0.2);
         this.min.subtractInPlace(offset);

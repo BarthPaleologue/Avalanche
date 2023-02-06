@@ -5,11 +5,11 @@ import { Impulse } from "./impulse";
 import { AABB } from "./aabb";
 import { copyAintoB, RigidBodyState } from "./rigidBodyState";
 import { Force } from "./forceFields/force";
+import { Settings } from "./settings";
 
 export class RigidBody {
     readonly mesh: AbstractMesh;
     readonly mass: number;
-    private readonly inverseMass: number;
 
     private readonly inertiaTensor0: Matrix3;
     private readonly inverseInertiaTensor0: Matrix3;
@@ -49,15 +49,14 @@ export class RigidBody {
         this.mesh = mesh;
 
         this.currentState.aabb.updateFromRigidBody(this);
-        this.currentState.aabb.setVisible(false);
+        this.currentState.aabb.setVisible(Settings.DISPLAY_BOUNDING_BOXES);
 
         this.mesh.rotationQuaternion = Quaternion.Identity();
 
         this.mass = mass;
-        this.inverseMass = 1 / mass;
 
         this.inertiaTensor0 = inertiaTensor0;
-        this.inverseInertiaTensor0 = this.mass > 0 ? inertiaTensor0.inverse() : Matrix3.identity();
+        this.inverseInertiaTensor0 = this.mass != 0 ? inertiaTensor0.inverse() : Matrix3.identity();
 
         this.currentState.inverseInertiaTensor = Matrix3.identity();
 
@@ -110,7 +109,7 @@ export class RigidBody {
     public computeNextStep(deltaTime: number) {
         copyAintoB(this.currentState, this.nextState);
 
-        if (this.mass === 0) return;
+        if (this.isStatic) return;
 
         for (const force of this.cumulatedForces) {
             this.nextState.momentum.addInPlace(force.vector.scale(deltaTime));
@@ -122,7 +121,7 @@ export class RigidBody {
             this.nextState.angularMomentum.addInPlace(impulse.point.cross(impulse.force));
         }
 
-        this.nextState.velocity = this.nextState.momentum.scale(this.inverseMass);
+        this.nextState.velocity = this.nextState.momentum.scale(1 / this.mass);
 
         const omegaQuaternion = new Quaternion(this.currentState.omega.x, this.currentState.omega.y, this.currentState.omega.z, 0);
 
@@ -146,7 +145,7 @@ export class RigidBody {
     public applyNextStep() {
         copyAintoB(this.nextState, this.currentState);
 
-        if (this.mass === 0) return;
+        if (this.isStatic) return;
 
         this.mesh.position = this.currentState.position;
         this.mesh.rotationQuaternion = this.currentState.rotationQuaternion;
