@@ -18,8 +18,4 @@ export class UniformPonctualField implements ForceField {
     computeForce(body: RigidBody): Force {
         return new Force(this.point.subtract(body.positionRef).normalize().scale(this.strength));
     }
-
-    computeImpulse(body: RigidBody): Impulse {
-        return new Impulse(this.point.subtract(body.positionRef).normalize().scale(this.strength));
-    }
 }

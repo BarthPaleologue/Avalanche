@@ -23,6 +23,7 @@ export class RigidBody {
         angularMomentum: Vector3.Zero(),
         rotationMatrix: Matrix3.identity(),
         inverseInertiaTensor: Matrix3.identity(),
+        worldMatrix: Matrix.Identity(),
         aabb: new AABB(Vector3.Zero(), Vector3.Zero())
     };
 
@@ -35,6 +36,7 @@ export class RigidBody {
         angularMomentum: Vector3.Zero(),
         rotationMatrix: Matrix3.identity(),
         inverseInertiaTensor: Matrix3.identity(),
+        worldMatrix: Matrix.Identity(),
         aabb: new AABB(Vector3.Zero(), Vector3.Zero())
     };
 
@@ -73,6 +75,7 @@ export class RigidBody {
         this.mesh.position = position;
         this.currentState.position = position;
         this.mesh.computeWorldMatrix(true);
+        this.currentState.worldMatrix = this.mesh.getWorldMatrix();
         this.currentState.aabb.updateFromRigidBody(this);
     }
 
@@ -130,6 +133,12 @@ export class RigidBody {
 
         this.nextState.rotationMatrix = Matrix3.fromQuaternion(this.currentState.rotationQuaternion);
 
+        this.nextState.worldMatrix = Matrix.Compose(
+            this.mesh.scaling,
+            this.nextState.rotationQuaternion,
+            this.nextState.position
+        );
+
         this.nextState.inverseInertiaTensor = this.nextState.rotationMatrix.multiply(this.inverseInertiaTensor0).multiply(this.nextState.rotationMatrix.transpose());
         this.nextState.omega = this.nextState.inverseInertiaTensor.applyTo(this.nextState.angularMomentum);
     }
@@ -157,19 +166,7 @@ export class RigidBody {
      * Returns the world matrix of the rigid body.
      */
     public getNextWorldMatrix(): Matrix {
-        const worldMatrix = Matrix.Identity();
-
-        const rotationMatrix = Matrix.Identity();
-        this.nextState.rotationQuaternion.toRotationMatrix(rotationMatrix);
-        worldMatrix.multiplyToRef(rotationMatrix, worldMatrix);
-
-        const scaleMatrix = Matrix.Scaling(this.mesh.scaling.x, this.mesh.scaling.y, this.mesh.scaling.z);
-        worldMatrix.multiplyToRef(scaleMatrix, worldMatrix);
-
-        const translationMatrix = Matrix.Translation(this.nextState.position.x, this.nextState.position.y, this.nextState.position.z);
-        worldMatrix.multiplyToRef(translationMatrix, worldMatrix);
-
-        return worldMatrix;
+        return this.nextState.worldMatrix;
     }
 
     /**

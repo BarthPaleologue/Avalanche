@@ -115,12 +115,12 @@ export class Murph {
         const [bodyA, bodyB] = [contact.a, contact.b];
         if (bodyA.isStatic && bodyB.isStatic) return; // both bodies are static
 
-        const [maxPenetrationDistance, pointsA, pointsB, triangles, penetrationDistances] = testInterpenetration(contact);
+        const [maxPenetrationDistance, pointsA, pointsB, triangleNormals, penetrationDistances] = testInterpenetration(contact);
 
         //console.warn(bodyA.mesh.name, bodyB.mesh.name, tmin * 1000, tmax * 1000, maxPenetrationDistance, depth);
         //console.log("There are", pointsA.length, "contact points");
 
-        if ((Math.abs(maxPenetrationDistance) < EPSILON) || depth > 10) {
+        if ((Math.abs(maxPenetrationDistance) < EPSILON) || depth > 7) {
             // The interpenetration is below our threshold, so we can compute the impulses
             // and update the bodies
             //console.log("resolution of contact");
@@ -134,21 +134,12 @@ export class Murph {
 
                 const pointA = pointsA[i];
                 const pointB = pointsB[i];
-                const triangle = triangles[i];
 
-                const triangleNormal = getTriangleNormal(triangle);
+                const triangleNormal = triangleNormals[i];
 
                 const ra = pointA.subtract(bodyA.nextState.position);
                 const rb = pointB.subtract(bodyB.nextState.position);
                 const [impulseA, impulseB] = computeCollisionImpulse(bodyA, bodyB, ra, rb, triangleNormal);
-
-                /*if (impulseA.force.length() > 10 && !this.isPaused) {
-                    this.togglePause();
-                    this.helperMeshes.push(displayPoint(pointA, Color3.Red(), 0));
-                    this.helperMeshes.push(displayPoint(pointB, Color3.Red(), 0));
-
-                    this.helperMeshes.push(displayTriangle(triangle, Color3.Red(), 0));
-                }*/
 
                 bodyA.applyImpulse(impulseA);
                 bodyB.applyImpulse(impulseB);
@@ -163,15 +154,14 @@ export class Murph {
             bodyA.computeNextStep(initialIntervalLength - tmax);
             bodyB.computeNextStep(initialIntervalLength - tmax);
 
-            const [finalInterpenetration, _, __, finalTriangles, finalPenetrations] = testInterpenetration(contact);
+            const [finalInterpenetration, _, __, finalTriangleNormals, finalPenetrations] = testInterpenetration(contact);
             if (finalInterpenetration > 0) {
                 // we push the bodies apart to avoid interpenetration
                 const normal = Vector3.Zero();
 
-                for (let i = 0; i < finalTriangles.length; i++) {
+                for (let i = 0; i < finalTriangleNormals.length; i++) {
                     if (finalInterpenetration == finalPenetrations[i]) {
-                        const triangle = finalTriangles[i];
-                        const triangleNormal = getTriangleNormal(triangle);
+                        const triangleNormal = finalTriangleNormals[i];
                         normal.set(triangleNormal.x, triangleNormal.y, triangleNormal.z);
                         break;
                     }

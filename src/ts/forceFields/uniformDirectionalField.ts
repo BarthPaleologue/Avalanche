@@ -16,8 +16,4 @@ export class UniformDirectionalField implements ForceField {
     computeForce(body: RigidBody): Force {
         return new Force(this.acceleration.scale(body.mass));
     }
-
-    computeImpulse(body: RigidBody): Impulse {
-        return new Impulse(this.acceleration.scale(body.mass));
-    }
 }

@@ -33,7 +33,7 @@ export function getTriangleNormal(triangle: Triangle): Vector3 {
     const [a, b, c] = triangle;
     const ab = b.subtract(a);
     const ac = c.subtract(a);
-    return Vector3.Cross(ab, ac).normalize().negate();
+    return Vector3.Cross(ab, ac).normalize();
 }
 
 export function getMeshTrianglesWorldSpaceInAABB(mesh: AbstractMesh, worldMatrix: Matrix, aabb: AABB): Triangle[] {
