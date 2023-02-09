@@ -1,6 +1,6 @@
 import { Vector3 } from "@babylonjs/core";
 import { AABB } from "./aabb";
-import { Triangle } from "./utils/vertex";
+import { Triangle } from "./utils/triangle";
 
 export function pointIntersectsWithAABB(point: Vector3, aabb: AABB): boolean {
     return aabb.min.x <= point.x && point.x <= aabb.max.x

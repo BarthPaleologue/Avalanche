@@ -3,4 +3,5 @@ export const Settings = {
     WIREFRAME: false,
     USE_DYNAMIC_INERTIA_TENSOR: true,
     MAX_DEPTH: 12,
+    EPSILON: 0.05
 };

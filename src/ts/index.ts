@@ -43,13 +43,13 @@ ground.setInitialPosition(new Vector3(0, -10, 0));
 ground.mesh.receiveShadows = true;
 camera.target = ground.mesh.position;
 
-const dodecahedron = RigidBodyFactory.CreateDodecahedron("dodecahedron", 1, 1, physicsEngine, scene);
-shadowGenerator.addShadowCaster(dodecahedron.mesh);
-dodecahedron.setInitialPosition(randomVector3(-3, 3));
-
 const cuboid = RigidBodyFactory.CreateCuboid("cuboid", new Vector3(1, 1, 1), 1, physicsEngine, scene);
 cuboid.setInitialPosition(randomVector3(-3, 3));
 shadowGenerator.addShadowCaster(cuboid.mesh);
+
+const dodecahedron = RigidBodyFactory.CreateDodecahedron("dodecahedron", 1, 1, physicsEngine, scene);
+shadowGenerator.addShadowCaster(dodecahedron.mesh);
+dodecahedron.setInitialPosition(randomVector3(-3, 3));
 
 const cylinder = RigidBodyFactory.CreateCylinder("cylinder", 0.5, 1.5, 1, physicsEngine, scene);
 cylinder.setInitialPosition(randomVector3(-5, 5));

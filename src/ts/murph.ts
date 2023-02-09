@@ -2,9 +2,8 @@ import { RigidBody } from "./rigidBody";
 import { ForceField } from "./forceFields/forceField";
 import { Color3, Mesh, Vector3 } from "@babylonjs/core";
 import { AABB } from "./aabb";
-import { computeCollisionImpulse, computeFrictionImpulse, Contact, EPSILON, testInterpenetration } from "./utils/intersection";
-import { getTriangleNormal } from "./utils/vertex";
-import { displayPoint, displayTriangle } from "./utils/display";
+import { computeCollisionImpulse, computeFrictionImpulse, Contact, testInterpenetration } from "./utils/intersection";
+import { displayPoint, displayRay, displayTriangle } from "./utils/display";
 import { Settings } from "./settings";
 
 export class Murph {
@@ -121,13 +120,20 @@ export class Murph {
         //console.warn(bodyA.mesh.name, bodyB.mesh.name, tmin * 1000, tmax * 1000, maxPenetrationDistance, depth);
         //console.log("There are", pointsA.length, "contact points");
 
-        if ((maxPenetrationDistance < 0 && maxPenetrationDistance > -EPSILON) || depth > Settings.MAX_DEPTH) {
+        if ((maxPenetrationDistance < 0 && maxPenetrationDistance > -Settings.EPSILON) || depth > Settings.MAX_DEPTH) {
             // The interpenetration is below our threshold, so we can compute the impulses
             // and update the bodies
             //console.log("resolution of contact");
 
             //console.warn(bodyA.mesh.name, bodyB.mesh.name, tmin * 1000, tmax * 1000, maxPenetrationDistance, depth);
-            //console.log("There are", pointsA.length, "contact points");
+            /*console.log("There are", pointsA.length, "contact points");
+            for (const point of pointsA) this.helperMeshes.push(displayPoint(point, Color3.Red(), 0));
+            for (const point of pointsB) this.helperMeshes.push(displayPoint(point, Color3.Blue(), 0));
+            for (let i = 0; i < pointsA.length; i++) {
+                this.helperMeshes.push(displayRay(pointsA[i], pointsB[i].subtract(pointsA[i]),
+                    penetrationDistances[i] > -Settings.EPSILON ? Color3.Green() : Color3.Red(), 0));
+            }*/
+            //if (!this.isPaused) this.togglePause();
 
             if (depth > Settings.MAX_DEPTH) this.repellBodies(contact);
 
@@ -137,7 +143,7 @@ export class Murph {
             bodyB.applyNextStep();
 
             for (let i = 0; i < pointsA.length; i++) {
-                if (Math.abs(penetrationDistances[i]) > EPSILON) continue; // the point might have been pushed out of the triangle
+                if (Math.abs(penetrationDistances[i]) > Settings.EPSILON) continue; // the point might have been pushed out of the triangle
 
                 const pointA = pointsA[i];
                 const pointB = pointsB[i];

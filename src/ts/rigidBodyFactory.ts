@@ -5,7 +5,7 @@ import { Matrix3 } from "./utils/matrix3";
 import { RigidBody } from "./rigidBody";
 import { Settings } from "./settings";
 import { Assets } from "./assets";
-import { getMeshVerticesWorldSpace } from "./utils/vertex";
+import { getMeshAllVerticesWorldSpace, getMeshUniqueVerticesWorldSpace } from "./utils/vertex";
 
 export class RigidBodyFactory {
 
@@ -15,24 +15,19 @@ export class RigidBodyFactory {
             height: scaling.y,
             depth: scaling.z
         }, scene);
+
         const material = new StandardMaterial("wireframe");
         material.diffuseColor = Color3.Random();
         material.wireframe = Settings.WIREFRAME;
         mesh.material = material;
 
-        const inertiaTensor0 = computeInertiaTensorFromMesh(mesh, mass);
-        const inertiaTensor02 = Matrix3.diag(
+        const inertiaTensor0 = Matrix3.diag(
             mass * (scaling.y * scaling.y + scaling.z * scaling.z) / 12,
             mass * (scaling.x * scaling.x + scaling.z * scaling.z) / 12,
             mass * (scaling.x * scaling.x + scaling.y * scaling.y) / 12
         );
-        console.log("CUBE", inertiaTensor02, inertiaTensor0);
 
-        return new RigidBody(mesh, mass, Matrix3.diag(
-            mass * (scaling.y * scaling.y + scaling.z * scaling.z) / 12,
-            mass * (scaling.x * scaling.x + scaling.z * scaling.z) / 12,
-            mass * (scaling.x * scaling.x + scaling.y * scaling.y) / 12
-        ), engine);
+        return new RigidBody(mesh, mass, inertiaTensor0, engine);
     }
 
     static CreateSphere(name: string, diameter: number, mass: number, engine: Murph, scene: Scene): RigidBody {
@@ -40,6 +35,7 @@ export class RigidBodyFactory {
             diameter: diameter,
             segments: 2
         }, scene);
+
         const material = new StandardMaterial("wireframe");
         material.diffuseColor = Color3.Random();
         material.wireframe = Settings.WIREFRAME;
@@ -56,6 +52,7 @@ export class RigidBodyFactory {
             diameter: radius * 2,
             height: height
         }, scene);
+
         const material = new StandardMaterial("wireframe");
         material.diffuseColor = Color3.Random();
         material.wireframe = Settings.WIREFRAME;
@@ -66,14 +63,8 @@ export class RigidBodyFactory {
             mass * radius * radius / 2,
             mass * (radius * radius + height * height) / 12
         );
-        const inertiaTensor02 = computeInertiaTensorFromMesh(mesh, mass);
-        console.log("CYLINDER", inertiaTensor0, inertiaTensor02);
 
-        return new RigidBody(mesh, mass, Matrix3.diag(
-            mass * (radius * radius + height * height) / 12,
-            mass * radius * radius / 2,
-            mass * (radius * radius + height * height) / 12
-        ), engine);
+        return new RigidBody(mesh, mass, inertiaTensor0, engine);
     }
 
     static CreatePlane(name: string, width: number, height: number, mass: number, engine: Murph, scene: Scene): RigidBody {
@@ -81,6 +72,7 @@ export class RigidBodyFactory {
             width: width,
             height: height,
         }, scene);
+
         const material = new StandardMaterial("wireframe");
         material.diffuseColor = Color3.Random();
         material.wireframe = Settings.WIREFRAME;
@@ -106,6 +98,7 @@ export class RigidBodyFactory {
             type: 1,
             size: radius / Math.sqrt(2)
         }, scene);
+
         const material = new StandardMaterial("wireframe");
         material.diffuseColor = Color3.Random();
         material.wireframe = Settings.WIREFRAME;
@@ -127,6 +120,7 @@ export class RigidBodyFactory {
             type: 0,
             size: radius / Math.sqrt(2)
         }, scene);
+
         const material = new StandardMaterial("wireframe");
         material.diffuseColor = Color3.Random();
         material.wireframe = Settings.WIREFRAME;
@@ -148,6 +142,7 @@ export class RigidBodyFactory {
             type: 2,
             size: radius / Math.sqrt(2)
         }, scene);
+
         const material = new StandardMaterial("wireframe");
         material.diffuseColor = Color3.Random();
         material.wireframe = Settings.WIREFRAME;
@@ -169,6 +164,7 @@ export class RigidBodyFactory {
             type: 3,
             size: radius / Math.sqrt(2)
         }, scene);
+
         const material = new StandardMaterial("wireframe");
         material.diffuseColor = Color3.Random();
         material.wireframe = Settings.WIREFRAME;
@@ -237,7 +233,7 @@ export class RigidBodyFactory {
 
 
 export function computeInertiaTensorFromMesh(mesh: Mesh, mass: number): Matrix3 {
-    const vertices = getMeshVerticesWorldSpace(mesh, mesh.computeWorldMatrix(true));
+    const vertices = getMeshAllVerticesWorldSpace(mesh, mesh.computeWorldMatrix(true));
     const indices = mesh.getIndices() as number[];
 
     // compute the weight of each triangle

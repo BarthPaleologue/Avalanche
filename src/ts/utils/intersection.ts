@@ -1,10 +1,11 @@
 import { Ray, Vector3 } from "@babylonjs/core";
-import { closestPointOnEdge, Edge, getMeshTrianglesWorldSpaceInAABB, getMeshVerticesWorldSpaceInAABB, getTriangleNormal, Triangle } from "./vertex";
+import { getMeshUniqueVerticesWorldSpaceInAABB } from "./vertex";
 import { RigidBody } from "../rigidBody";
 import { AABB } from "../aabb";
 import { Impulse } from "../impulse";
-
-export const EPSILON = 0.05;
+import { Settings } from "../settings";
+import { Triangle, getMeshTrianglesWorldSpaceInAABB, getTriangleNormal } from "./triangle";
+import { Edge, closestPointOnEdge } from "./edge";
 
 /**
  * Returns [isIntersecting, penetration distance, normal, point]
@@ -40,8 +41,8 @@ export function vertexToFacePenetration(contact: Contact, reverse = false): [num
     const worldMatrixB = bodyB.getNextWorldMatrix();
 
     const pointsToCheck = reverse ?
-        getMeshVerticesWorldSpaceInAABB(bodyB.mesh, worldMatrixB, contact.aabbOverlap) :
-        getMeshVerticesWorldSpaceInAABB(bodyA.mesh, worldMatrixA, contact.aabbOverlap);
+        getMeshUniqueVerticesWorldSpaceInAABB(bodyB.mesh, worldMatrixB, contact.aabbOverlap) :
+        getMeshUniqueVerticesWorldSpaceInAABB(bodyA.mesh, worldMatrixA, contact.aabbOverlap);
 
     const trianglesToCheck = reverse ?
         getMeshTrianglesWorldSpaceInAABB(bodyA.mesh, worldMatrixA, contact.aabbOverlap) :
@@ -80,9 +81,8 @@ export function vertexToFacePenetration(contact: Contact, reverse = false): [num
             }
         }
 
-        if (maxPenetration == Number.NEGATIVE_INFINITY) continue;
-        if (collisionPointTriangle.lengthSquared() == 0) continue;
-        if (Math.abs(maxPenetration) < EPSILON || maxPenetration > EPSILON) {
+        if (collisionPenetration == Number.NEGATIVE_INFINITY) continue;
+        if (collisionPenetration > -Settings.EPSILON) {
             collisionPointsVertex.push(collisionPointVertex);
             collisionPointsTriangle.push(collisionPointTriangle);
 
@@ -98,7 +98,7 @@ export function vertexToFacePenetration(contact: Contact, reverse = false): [num
     return [maxPenetration, collisionPointsVertex, collisionPointsTriangle, collisionTriangleNormals, collisionPenetrations];
 }
 
-export function findCollisions(edges1: Edge[], edges2: Edge[]): [number, Vector3[], Vector3[], number[]] {
+export function findEdgeCollisions(edges1: Edge[], edges2: Edge[]): [number, Vector3[], Vector3[], number[]] {
     const closestDistances: number[] = [];
     const intersectionPointsEdgesA: Vector3[] = [];
     const intersectionPointsEdgesB: Vector3[] = [];
@@ -108,7 +108,7 @@ export function findCollisions(edges1: Edge[], edges2: Edge[]): [number, Vector3
         for (const edge2 of edges2) {
             const closestPoint = closestPointOnEdge(edge1[0], edge2);
             const distanceSquared = Vector3.DistanceSquared(edge1[0], closestPoint);
-            if (distanceSquared <= EPSILON ** 2) {
+            if (distanceSquared <= Settings.EPSILON ** 2) {
                 closestDistances.push(Math.sqrt(distanceSquared));
                 intersectionPointsEdgesA.push(edge1[0]);
                 intersectionPointsEdgesB.push(closestPoint);
@@ -135,6 +135,11 @@ export function findCollisions(edges1: Edge[], edges2: Edge[]): [number, Vector3
 export function testInterpenetration(contact: Contact): [number, Vector3[], Vector3[], Vector3[], number[]] {
     const [penetrationDistance1, pointsA1, pointsB1, triangleNormals1, collisionPenetrations1] = vertexToFacePenetration(contact, false);
     const [penetrationDistance2, pointsB2, pointsA2, triangleNormals2, collisionPenetrations2] = vertexToFacePenetration(contact, true);
+
+    /*console.log("A1:");
+    for (const point of pointsA1) console.log(point.toString());
+    console.log("A2:");
+    for (const point of pointsA2) console.log(point.toString());*/
 
     const maxPenetration = Math.max(penetrationDistance1, penetrationDistance2);
     const pointsA = pointsA1.concat(pointsA2);
@@ -163,7 +168,7 @@ export function computeCollisionImpulse(a: RigidBody, b: RigidBody, pointA: Vect
     const rv = Vector3.Dot(normal, vb.subtract(va));
 
     // if points are moving away from each other, no impulse is needed
-    if (rv > 0 || Math.abs(rv) < EPSILON) return [new Impulse(Vector3.Zero(), Vector3.Zero()), new Impulse(Vector3.Zero(), Vector3.Zero())];
+    if (rv > 0 || Math.abs(rv) < Settings.EPSILON) return [new Impulse(Vector3.Zero(), Vector3.Zero()), new Impulse(Vector3.Zero(), Vector3.Zero())];
 
     let denominator = 0;
     denominator += !a.isStatic ? 1 / a.mass : 0;
@@ -171,8 +176,11 @@ export function computeCollisionImpulse(a: RigidBody, b: RigidBody, pointA: Vect
     denominator += Vector3.Dot(normal, a.nextInverseInertiaTensor.applyTo(ra.cross(normal)).cross(ra));
     denominator += Vector3.Dot(normal, b.nextInverseInertiaTensor.applyTo(rb.cross(normal)).cross(rb));
     // calculate impulse scalar
-    const restitution = 0.7;
+    const restitution = 0.4;
     const j = -(1 + restitution) * rv / denominator;
+
+    //console.log(a.nextState.velocity.length(), b.nextState.velocity.length());
+    //console.log(rv, denominator, j);
 
     // calculate impulse vector
     return [new Impulse(normal.scale(-j), ra), new Impulse(normal.scale(j), rb)];
@@ -196,7 +204,7 @@ export function computeFrictionImpulse(a: RigidBody, b: RigidBody, pointA: Vecto
 
     // relative velocity
     const rv = vb.subtract(va);
-    if (Vector3.Dot(rv, normal) > 0 || rv.lengthSquared() < EPSILON * EPSILON) return [new Impulse(Vector3.Zero(), Vector3.Zero()), new Impulse(Vector3.Zero(), Vector3.Zero())];
+    if (Vector3.Dot(rv, normal) > 0 || rv.lengthSquared() < Settings.EPSILON ** 2) return [new Impulse(Vector3.Zero(), Vector3.Zero()), new Impulse(Vector3.Zero(), Vector3.Zero())];
 
     // tangent vector
     const tangent = rv.subtract(normal.scale(Vector3.Dot(normal, rv))).normalize();
