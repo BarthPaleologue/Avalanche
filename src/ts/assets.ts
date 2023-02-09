@@ -15,8 +15,8 @@ export class Assets {
             Assets.manager = new AssetsManager(scene);
             console.log("Initializing assets...");
 
-            const characterTask = Assets.manager.addMeshTask("bunnyTask", "", "", bunny);
-            characterTask.onSuccess = function (task: MeshAssetTask) {
+            const bunnyTask = Assets.manager.addMeshTask("bunnyTask", "", "", bunny);
+            bunnyTask.onSuccess = function (task: MeshAssetTask) {
                 Assets.Bunny = task.loadedMeshes[0] as Mesh;
                 Assets.Bunny.createNormals(true);
                 Assets.Bunny.isVisible = false;

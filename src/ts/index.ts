@@ -1,5 +1,5 @@
 import {
-    ArcRotateCamera, AssetsManager, DirectionalLight,
+    ArcRotateCamera, DirectionalLight,
     Engine,
     Scene, ShadowGenerator,
     Tools,
@@ -59,7 +59,7 @@ const octahedron = RigidBodyFactory.CreateOctahedron("octahedron", 1, 1, physics
 octahedron.setInitialPosition(randomVector3(-5, 5));
 shadowGenerator.addShadowCaster(octahedron.mesh);
 
-const bunny = RigidBodyFactory.CreateStanfordBunny("bunny", 1, 1, physicsEngine, scene);
+const bunny = RigidBodyFactory.CreateStanfordBunny("bunny", 1, 100, physicsEngine, scene);
 bunny.setInitialPosition(randomVector3(-5, 5));
 shadowGenerator.addShadowCaster(bunny.mesh);
 
@@ -98,6 +98,11 @@ function updateScene() {
             body.mesh.dispose();
             physicsEngine.removeBody(body);
         }
+        if (body.positionRef.y > 20 && body.currentState.velocity.length() > 10) {
+            console.warn("body " + body.mesh.name + " is going too fast");
+            body.mesh.dispose();
+            physicsEngine.removeBody(body);
+        }
     }
 
     const deltaTime = Math.min(engine.getDeltaTime() / 1000, 0.017);
@@ -126,7 +131,6 @@ document.addEventListener("keydown", e => {
 });
 
 scene.executeWhenReady(() => {
-    engine.loadingScreen.hideLoadingUI();
     scene.registerBeforeRender(() => updateScene());
     engine.runRenderLoop(() => scene.render());
 });
