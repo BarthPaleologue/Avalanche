@@ -176,11 +176,8 @@ export function computeCollisionImpulse(a: RigidBody, b: RigidBody, pointA: Vect
     denominator += Vector3.Dot(normal, a.nextInverseInertiaTensor.applyTo(ra.cross(normal)).cross(ra));
     denominator += Vector3.Dot(normal, b.nextInverseInertiaTensor.applyTo(rb.cross(normal)).cross(rb));
     // calculate impulse scalar
-    const restitution = 0.4;
+    const restitution = 0.7;
     const j = -(1 + restitution) * rv / denominator;
-
-    //console.log(a.nextState.velocity.length(), b.nextState.velocity.length());
-    //console.log(rv, denominator, j);
 
     // calculate impulse vector
     return [new Impulse(normal.scale(-j), ra), new Impulse(normal.scale(j), rb)];

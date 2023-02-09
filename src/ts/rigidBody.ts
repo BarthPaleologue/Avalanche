@@ -1,6 +1,6 @@
 import { AbstractMesh, Matrix, Quaternion, Vector3 } from "@babylonjs/core";
 import { Matrix3 } from "./utils/matrix3";
-import { Murph } from "./murph";
+import { AvalancheEngine } from "./engine";
 import { Impulse } from "./impulse";
 import { AABB } from "./aabb";
 import { copyAintoB, RigidBodyState } from "./rigidBodyState";
@@ -43,7 +43,7 @@ export class RigidBody {
     cumulatedImpulses: Impulse[] = [];
     cumulatedForces: Force[] = [];
 
-    constructor(mesh: AbstractMesh, mass: number, inertiaTensor0: Matrix3, engine: Murph) {
+    constructor(mesh: AbstractMesh, mass: number, inertiaTensor0: Matrix3, engine: AvalancheEngine) {
         engine.addBody(this);
 
         this.mesh = mesh;

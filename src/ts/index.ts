@@ -7,7 +7,7 @@ import {
 } from "@babylonjs/core";
 
 import "../styles/index.scss";
-import { Murph } from "./murph";
+import { AvalancheEngine } from "./engine";
 import { Impulse } from "./impulse";
 import { RigidBodyFactory } from "./rigidBodyFactory";
 import { UniformPonctualField } from "./forceFields/uniformPonctualField";
@@ -33,7 +33,7 @@ light.position = new Vector3(0, 10, 0);
 const shadowGenerator = new ShadowGenerator(512, light);
 shadowGenerator.usePercentageCloserFiltering = true;
 
-const physicsEngine = new Murph();
+const physicsEngine = new AvalancheEngine();
 let isGravityUniform = true;
 const gravityUniform = new UniformDirectionalField(new Vector3(0, -9.81, 0), physicsEngine);
 const gravityPonctual = new UniformPonctualField(new Vector3(0, 3, 0), 5);
@@ -59,9 +59,9 @@ const octahedron = RigidBodyFactory.CreateOctahedron("octahedron", 1, 1, physics
 octahedron.setInitialPosition(randomVector3(-5, 5));
 shadowGenerator.addShadowCaster(octahedron.mesh);
 
-const bunny = RigidBodyFactory.CreateStanfordBunny("bunny", 1, 100, physicsEngine, scene);
+/*const bunny = RigidBodyFactory.CreateStanfordBunny("bunny", 1, 10, physicsEngine, scene);
 bunny.setInitialPosition(randomVector3(-5, 5));
-shadowGenerator.addShadowCaster(bunny.mesh);
+shadowGenerator.addShadowCaster(bunny.mesh);*/
 
 // on mesh click, apply impulse
 scene.onPointerObservable.add((pointerInfo) => {
@@ -106,7 +106,7 @@ function updateScene() {
     }
 
     const deltaTime = Math.min(engine.getDeltaTime() / 1000, 0.017);
-    physicsEngine.update(deltaTime / 2);
+    physicsEngine.update(deltaTime);
     I++;
 }
 
