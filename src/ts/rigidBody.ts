@@ -1,5 +1,5 @@
 import { AbstractMesh, Matrix, Quaternion, Vector3 } from "@babylonjs/core";
-import { Matrix3 } from "./matrix3";
+import { Matrix3 } from "./utils/matrix3";
 import { Murph } from "./murph";
 import { Impulse } from "./impulse";
 import { AABB } from "./aabb";

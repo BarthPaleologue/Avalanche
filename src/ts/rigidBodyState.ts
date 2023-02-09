@@ -1,5 +1,5 @@
 import { Matrix, Quaternion, Vector3 } from "@babylonjs/core";
-import { Matrix3 } from "./matrix3";
+import { Matrix3 } from "./utils/matrix3";
 import { AABB } from "./aabb";
 
 export interface RigidBodyState {

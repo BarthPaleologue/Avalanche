@@ -1,4 +1,4 @@
-import {Quaternion, Vector3} from "@babylonjs/core";
+import { Quaternion, Vector3 } from "@babylonjs/core";
 
 export class Matrix3 {
     m00: number;
@@ -28,6 +28,14 @@ export class Matrix3 {
             1, 0, 0,
             0, 1, 0,
             0, 0, 1
+        );
+    }
+
+    public static zero(): Matrix3 {
+        return new Matrix3(
+            0, 0, 0,
+            0, 0, 0,
+            0, 0, 0
         );
     }
 
@@ -100,6 +108,49 @@ export class Matrix3 {
             this.m01, this.m11, this.m21,
             this.m02, this.m12, this.m22
         );
+    }
+
+    public addInPlace(rhs: Matrix3): Matrix3 {
+        this.m00 += rhs.m00;
+        this.m01 += rhs.m01;
+        this.m02 += rhs.m02;
+        this.m10 += rhs.m10;
+        this.m11 += rhs.m11;
+        this.m12 += rhs.m12;
+        this.m20 += rhs.m20;
+        this.m21 += rhs.m21;
+        this.m22 += rhs.m22;
+        return this;
+    }
+
+    public scaleInPlace(rhs: number): Matrix3 {
+        this.m00 *= rhs;
+        this.m01 *= rhs;
+        this.m02 *= rhs;
+        this.m10 *= rhs;
+        this.m11 *= rhs;
+        this.m12 *= rhs;
+        this.m20 *= rhs;
+        this.m21 *= rhs;
+        this.m22 *= rhs;
+        return this;
+    }
+
+    public subtractInPlace(rhs: Matrix3): Matrix3 {
+        this.m00 -= rhs.m00;
+        this.m01 -= rhs.m01;
+        this.m02 -= rhs.m02;
+        this.m10 -= rhs.m10;
+        this.m11 -= rhs.m11;
+        this.m12 -= rhs.m12;
+        this.m20 -= rhs.m20;
+        this.m21 -= rhs.m21;
+        this.m22 -= rhs.m22;
+        return this;
+    }
+
+    public trace(): number {
+        return this.m00 + this.m11 + this.m22;
     }
 
     public clone(): Matrix3 {
