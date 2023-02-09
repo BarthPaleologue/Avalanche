@@ -5,6 +5,7 @@ import { AABB } from "./aabb";
 import { computeCollisionImpulse, computeFrictionImpulse, Contact, EPSILON, testInterpenetration } from "./utils/intersection";
 import { getTriangleNormal } from "./utils/vertex";
 import { displayPoint, displayTriangle } from "./utils/display";
+import { Settings } from "./settings";
 
 export class Murph {
     readonly bodies: RigidBody[] = [];
@@ -120,12 +121,18 @@ export class Murph {
         //console.warn(bodyA.mesh.name, bodyB.mesh.name, tmin * 1000, tmax * 1000, maxPenetrationDistance, depth);
         //console.log("There are", pointsA.length, "contact points");
 
-        if ((Math.abs(maxPenetrationDistance) < EPSILON) || depth > 7) {
+        if ((maxPenetrationDistance < 0 && maxPenetrationDistance > -EPSILON) || depth > Settings.MAX_DEPTH) {
             // The interpenetration is below our threshold, so we can compute the impulses
             // and update the bodies
             //console.log("resolution of contact");
 
+            //console.warn(bodyA.mesh.name, bodyB.mesh.name, tmin * 1000, tmax * 1000, maxPenetrationDistance, depth);
+            //console.log("There are", pointsA.length, "contact points");
+
+            if (depth > Settings.MAX_DEPTH) this.repellBodies(contact);
+
             // first apply the first part of the trajectory until the collision
+
             bodyA.applyNextStep();
             bodyB.applyNextStep();
 
@@ -154,31 +161,7 @@ export class Murph {
             bodyA.computeNextStep(initialIntervalLength - tmax);
             bodyB.computeNextStep(initialIntervalLength - tmax);
 
-            const [finalInterpenetration, _, __, finalTriangleNormals, finalPenetrations] = testInterpenetration(contact);
-            if (finalInterpenetration > 0) {
-                // we push the bodies apart to avoid interpenetration
-                const normal = Vector3.Zero();
-
-                for (let i = 0; i < finalTriangleNormals.length; i++) {
-                    if (finalInterpenetration == finalPenetrations[i]) {
-                        const triangleNormal = finalTriangleNormals[i];
-                        normal.set(triangleNormal.x, triangleNormal.y, triangleNormal.z);
-                        break;
-                    }
-                }
-                console.assert(normal.length() > 0);
-
-                const pushDist = finalInterpenetration;
-                // the push is a weighted average of the mass of the bodies
-                const totalMass = bodyA.mass + bodyB.mass;
-                const pushA = bodyB.isStatic ? 1 : bodyB.mass / totalMass;
-
-                const distanceA = bodyA.isStatic ? 0 : pushA * pushDist;
-                const distanceB = bodyB.isStatic ? 0 : pushDist - distanceA;
-
-                bodyA.nextState.position.subtractInPlace(normal.scale(distanceA));
-                bodyB.nextState.position.addInPlace(normal.scale(distanceB));
-            }
+            this.repellBodies(contact);
 
             //console.log("momentum", bodyA.nextState.momentum.length(), bodyB.nextState.momentum.length());
             //arrowhead(bodyB.nextState.position, bodyB.nextState.momentum, Color3.Green(), 0);
@@ -208,6 +191,36 @@ export class Murph {
         } else {
             // the bodies are not interpenetrating, we don't need to do anything
             //console.log("No interpenetration, no recursion");
+        }
+    }
+
+    private repellBodies(contact: Contact) {
+        const bodyA = contact.a;
+        const bodyB = contact.b;
+        const [finalInterpenetration, _, __, finalTriangleNormals, finalPenetrations] = testInterpenetration(contact);
+        if (finalInterpenetration > 0) {
+            // we push the bodies apart to avoid interpenetration
+            const normal = Vector3.Zero();
+
+            for (let i = 0; i < finalTriangleNormals.length; i++) {
+                if (finalInterpenetration == finalPenetrations[i]) {
+                    const triangleNormal = finalTriangleNormals[i];
+                    normal.set(triangleNormal.x, triangleNormal.y, triangleNormal.z);
+                    break;
+                }
+            }
+            console.assert(normal.length() > 0);
+
+            const pushDist = finalInterpenetration;
+            // the push is a weighted average of the mass of the bodies
+            const totalMass = bodyA.mass + bodyB.mass;
+            const pushA = bodyB.isStatic ? 1 : bodyB.mass / totalMass;
+
+            const distanceA = bodyA.isStatic ? 0 : pushA * pushDist;
+            const distanceB = bodyB.isStatic ? 0 : pushDist - distanceA;
+
+            bodyA.nextState.position.subtractInPlace(normal.scale(distanceA));
+            bodyB.nextState.position.addInPlace(normal.scale(distanceB));
         }
     }
 }
