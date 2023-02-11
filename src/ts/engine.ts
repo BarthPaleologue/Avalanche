@@ -1,9 +1,10 @@
 import { RigidBody } from "./rigidBody";
 import { ForceField } from "./forceFields/forceField";
 import { Color3, Mesh, StandardMaterial, Vector3 } from "@babylonjs/core";
-import { computeCollisionImpulse, computeFrictionImpulse, Contact, testInterpenetration } from "./utils/intersection";
+import { Contact, testInterpenetration } from "./utils/intersection";
 import { displayPoint } from "./utils/display";
 import { Settings } from "./settings";
+import { computeCollisionImpulse, computeFrictionImpulse } from "./utils/impulses";
 
 export class AvalancheEngine {
     readonly bodies: RigidBody[] = [];
@@ -115,7 +116,7 @@ export class AvalancheEngine {
         const [bodyA, bodyB] = [contact.a, contact.b];
         if (bodyA.isStatic && bodyB.isStatic) return; // both bodies are static
 
-        const [maxPenetrationDistance, pointsA, pointsB, triangleNormals, penetrationDistances] = testInterpenetration(contact);
+        let [maxPenetrationDistance, pointsA, pointsB, triangleNormals, penetrationDistances] = testInterpenetration(contact);
 
         if ((maxPenetrationDistance < 0 && maxPenetrationDistance > -Settings.EPSILON) || depth > Settings.MAX_DEPTH) {
             // The interpenetration is below our threshold, so we can compute the impulses
@@ -129,7 +130,11 @@ export class AvalancheEngine {
 
             // if the depth limit is reached, we repel the bodies as 
             // we couldn't find a t where the bodies are not interpenetrating
-            if (depth > Settings.MAX_DEPTH) this.repellBodies(contact);
+            if (depth > Settings.MAX_DEPTH) {
+                this.repellBodies(contact);
+                // recompute the interpenetration
+                [maxPenetrationDistance, pointsA, pointsB, triangleNormals, penetrationDistances] = testInterpenetration(contact);
+            }
 
             // first apply the first part of the trajectory before the collision
             // the next step was computed on the last iteration or during the broad phase
@@ -170,7 +175,7 @@ export class AvalancheEngine {
             // If the bodies are still interpenetrating, we repel them
             this.repellBodies(contact);
         } else if (maxPenetrationDistance > 0) {
-            // the bodies are interpenetrating, we use bisection backwards
+            // the bodies are interpenetrating too much, we use bisection backwards
             // to find the time of impact
             const tmid = (tmin + tmax) / 2;
 
@@ -180,7 +185,7 @@ export class AvalancheEngine {
             this.resolveContactBisection(contact, tmin, tmid, initialIntervalLength, depth + 1);
 
         } else if (maxPenetrationDistance < 0 && tmax - tmin < initialIntervalLength) {
-            // the bodies are not interpenetrating, but they were interpenetrating earlier 
+            // the bodies are not interpenetrating enough, but they were interpenetrating earlier 
             // so we use bisection forward to find the time of impact
             const tmid = (tmin + tmax) / 2;
 

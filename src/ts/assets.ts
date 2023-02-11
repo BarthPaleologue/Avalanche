@@ -1,11 +1,12 @@
-import { AssetsManager, Color3, Mesh, MeshAssetTask, Scene, StandardMaterial, Texture } from "@babylonjs/core";
+import { AssetsManager, Color3, Mesh, MeshAssetTask, Scene, StandardMaterial, Texture, TextureAssetTask } from "@babylonjs/core";
 
+import heightmap from "../assets/heightMap.png";
 import bunny from "../assets/simplify_bunny4.obj";
 
 export class Assets {
     static IS_READY = false;
 
-    //static Character: AbstractMesh;
+    static HeightMap: Texture;
     static Bunny: Mesh;
 
     private static manager: AssetsManager;
@@ -14,6 +15,12 @@ export class Assets {
         return new Promise((resolve) => {
             Assets.manager = new AssetsManager(scene);
             console.log("Initializing assets...");
+
+            const heightMapTask = Assets.manager.addTextureTask("heightMapTask", heightmap);
+            heightMapTask.onSuccess = function (task: TextureAssetTask) {
+                Assets.HeightMap = task.texture;
+                console.log("Heightmap loaded");
+            };
 
             const bunnyTask = Assets.manager.addMeshTask("bunnyTask", "", "", bunny);
             bunnyTask.onSuccess = function (task: MeshAssetTask) {

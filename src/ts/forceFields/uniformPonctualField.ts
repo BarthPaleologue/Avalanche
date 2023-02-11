@@ -1,7 +1,6 @@
 import { ForceField } from "./forceField";
 import { Vector3 } from "@babylonjs/core";
 import { RigidBody } from "../rigidBody";
-import { Impulse } from "../impulse";
 import { AvalancheEngine } from "../engine";
 import { Force } from "./force";
 

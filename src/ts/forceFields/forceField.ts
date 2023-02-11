@@ -1,5 +1,4 @@
 import { RigidBody } from "../rigidBody";
-import { Impulse } from "../impulse";
 import { Force } from "./force";
 
 export interface ForceField {

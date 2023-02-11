@@ -2,7 +2,6 @@ import { Ray, Vector3 } from "@babylonjs/core";
 import { getMeshUniqueVerticesWorldSpaceInAABB } from "./vertex";
 import { RigidBody } from "../rigidBody";
 import { AABB } from "../aabb";
-import { Impulse } from "../impulse";
 import { Settings } from "../settings";
 import { Triangle, getMeshTrianglesWorldSpaceInAABB, getTriangleNormal } from "./triangle";
 import { Edge, closestPointOnEdge } from "./edge";
@@ -35,8 +34,8 @@ export function vertexToFacePenetration(bodyA: RigidBody, bodyB: RigidBody, over
     const worldMatrixA = bodyA.getNextWorldMatrix();
     const worldMatrixB = bodyB.getNextWorldMatrix();
 
-    const pointsToCheck = getMeshUniqueVerticesWorldSpaceInAABB(bodyA.mesh, worldMatrixA, overlap);
-    const trianglesToCheck = getMeshTrianglesWorldSpaceInAABB(bodyB.mesh, worldMatrixB, overlap);
+    const pointsA = getMeshUniqueVerticesWorldSpaceInAABB(bodyA.mesh, worldMatrixA, overlap);
+    const trianglesB = getMeshTrianglesWorldSpaceInAABB(bodyB.mesh, worldMatrixB, overlap);
 
     let maxPenetration = Number.NEGATIVE_INFINITY;
 
@@ -45,7 +44,7 @@ export function vertexToFacePenetration(bodyA: RigidBody, bodyB: RigidBody, over
     const collisionNormals: Vector3[] = [];
     const penetrationDistances: number[] = [];
 
-    for (const point of pointsToCheck) {
+    for (const point of pointsA) {
         const collisionPointVertex = point;
         let collisionPointTriangle = Vector3.Zero();
         let collisionPenetration = Number.NEGATIVE_INFINITY;
@@ -55,7 +54,7 @@ export function vertexToFacePenetration(bodyA: RigidBody, bodyB: RigidBody, over
         const rayDirection = point.subtract(rayOrigin).normalize();
         const rayLength = point.subtract(rayOrigin).length();
 
-        for (const triangle of trianglesToCheck) {
+        for (const triangle of trianglesB) {
             /*const rayDirection2 = reverse ? getTriangleNormal(triangle) : getTriangleNormal(triangle).negate();
             const intersectDistance2 = intersectRayTriangle(point, rayDirection2, triangle);
             if (intersectDistance2 == null || intersectDistance2 <= -rayLength) continue;
@@ -128,85 +127,17 @@ export function findEdgeCollisions(edges1: Edge[], edges2: Edge[]): [number, Vec
  * @returns [maxPenetration, collisionPointsA, collisionPointsB, collisionTriangleNormals, collisionPenetrations]
  */
 export function testInterpenetration(contact: Contact): [number, Vector3[], Vector3[], Vector3[], number[]] {
-    const [penetrationDistance1, pointsA1, pointsB1, triangleNormals1, collisionPenetrations1] = vertexToFacePenetration(contact.a, contact.b, contact.aabbOverlap);
-    const [penetrationDistance2, pointsB2, pointsA2, triangleNormals2, collisionPenetrations2] = vertexToFacePenetration(contact.b, contact.a, contact.aabbOverlap);
+    const [penetrationDistance1, pointsA1, pointsB1, triangleNormals1, penetrationDistances1] = vertexToFacePenetration(contact.a, contact.b, contact.aabbOverlap);
+    const [penetrationDistance2, pointsB2, pointsA2, triangleNormals2, penetrationDistances2] = vertexToFacePenetration(contact.b, contact.a, contact.aabbOverlap);
 
+    // We need to negate the triangle normals because we need all the normals to point in the same direction
     for (const triangleNormal of triangleNormals2) triangleNormal.negateInPlace();
 
     const maxPenetration = Math.max(penetrationDistance1, penetrationDistance2);
     const pointsA = pointsA1.concat(pointsA2);
     const pointsB = pointsB1.concat(pointsB2);
     const triangleNormals = triangleNormals1.concat(triangleNormals2);
-    const collisionPenetrations = collisionPenetrations1.concat(collisionPenetrations2);
+    const penetrationDistances = penetrationDistances1.concat(penetrationDistances2);
 
-    return [maxPenetration, pointsA, pointsB, triangleNormals, collisionPenetrations];
-}
-
-/**
- * Returns the impulse to apply to each body due to a collision
- * @param a The first rigid body
- * @param b The second rigid body
- * @param pointA the point on body A (local space)
- * @param pointB the point on body B (local space)
- * @param normal the normal of the collision
- */
-export function computeCollisionImpulse(a: RigidBody, b: RigidBody, pointA: Vector3, pointB: Vector3, normal: Vector3): [Impulse, Impulse] {
-    const ra = pointA;
-    const rb = pointB;
-
-    const va = a.getVelocityAtPointNext(ra);
-    const vb = b.getVelocityAtPointNext(rb);
-    // relative velocity
-    const rv = Vector3.Dot(normal, vb.subtract(va));
-
-    // if points are moving away from each other, no impulse is needed
-    if (rv > 0 || Math.abs(rv) < Settings.EPSILON) return [new Impulse(Vector3.Zero(), Vector3.Zero()), new Impulse(Vector3.Zero(), Vector3.Zero())];
-
-    let denominator = 0;
-    denominator += !a.isStatic ? 1 / a.mass : 0;
-    denominator += !b.isStatic ? 1 / b.mass : 0;
-    denominator += !a.isStatic ? Vector3.Dot(normal, a.nextInverseInertiaTensor.applyTo(ra.cross(normal)).cross(ra)) : 0;
-    denominator += !b.isStatic ? Vector3.Dot(normal, b.nextInverseInertiaTensor.applyTo(rb.cross(normal)).cross(rb)) : 0;
-    // calculate impulse scalar
-    const restitution = a.restitution * b.restitution;
-    const j = -(1 + restitution) * rv / denominator;
-
-    // calculate impulse vector
-    return [new Impulse(normal.scale(-j), ra), new Impulse(normal.scale(j), rb)];
-}
-
-/**
- * Returns the impulse to apply to each body due to friction
- * @param a The first rigid body
- * @param b The second rigid body
- * @param pointA the point on body A (local space)
- * @param pointB the point on body B (local space)
- * @param normal the normal of the collision
- * @returns the impulse to apply to each body
- */
-export function computeFrictionImpulse(a: RigidBody, b: RigidBody, pointA: Vector3, pointB: Vector3, normal: Vector3): [Impulse, Impulse] {
-    const ra = pointA;
-    const rb = pointB;
-
-    const va = a.getVelocityAtPointNext(ra);
-    const vb = b.getVelocityAtPointNext(rb);
-
-    // relative velocity
-    const rv = vb.subtract(va);
-    if (Vector3.Dot(rv, normal) > 0 || rv.lengthSquared() < Settings.EPSILON ** 2) return [new Impulse(Vector3.Zero(), Vector3.Zero()), new Impulse(Vector3.Zero(), Vector3.Zero())];
-
-    // tangent vector
-    const tangent = rv.subtract(normal.scale(Vector3.Dot(normal, rv))).normalize();
-
-    let denominator = 0;
-    denominator += !a.isStatic ? 1 / a.mass : 0;
-    denominator += !b.isStatic ? 1 / b.mass : 0;
-    denominator += Vector3.Dot(tangent, a.nextInverseInertiaTensor.applyTo(ra.cross(tangent)).cross(ra));
-    denominator += Vector3.Dot(tangent, b.nextInverseInertiaTensor.applyTo(rb.cross(tangent)).cross(rb));
-
-    // calculate impulse scalar
-    const j = -Vector3.Dot(rv, tangent) / denominator;
-
-    // calculate impulse vector
-    return [new Impulse(tangent.scale(-j), ra), new Impulse(tangent.scale(j), rb)];
+    return [maxPenetration, pointsA, pointsB, triangleNormals, penetrationDistances];
 }

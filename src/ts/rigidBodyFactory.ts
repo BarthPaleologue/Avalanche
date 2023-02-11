@@ -1,10 +1,11 @@
 import { Color3, Mesh, MeshBuilder, Scene, StandardMaterial, Vector3 } from "@babylonjs/core";
-import { AvalancheEngine } from "./engine";
 import { Matrix3 } from "./utils/matrix3";
 import { RigidBody } from "./rigidBody";
 import { Settings } from "./settings";
 import { Assets } from "./assets";
 import { getMeshAllVerticesWorldSpace } from "./utils/vertex";
+
+import heightmap from "../assets/heightMap.png";
 
 export class RigidBodyFactory {
 
@@ -80,6 +81,27 @@ export class RigidBodyFactory {
         material.diffuseColor = Color3.Random();
         material.wireframe = Settings.WIREFRAME;
         mesh.material = material;
+        return new RigidBody(mesh, mass, Matrix3.diag(
+            mass * (height * height + width * width) / 12,
+            mass * (height * height + width * width) / 12,
+            mass * (height * height + width * width) / 12
+        ), restitution);
+    }
+
+    static CreateGroundFromHeightMap(name: string, width: number, height: number, subdivisions: number, mass: number, restitution: number, scene: Scene): RigidBody {
+        const mesh = MeshBuilder.CreateGroundFromHeightMap(name, heightmap, {
+            width: width,
+            height: height,
+            subdivisions: subdivisions,
+            minHeight: 0,
+            maxHeight: 4,
+        }, scene);
+
+        const material = new StandardMaterial("wireframe");
+        material.diffuseColor = Color3.Random();
+        material.wireframe = Settings.WIREFRAME;
+        mesh.material = material;
+
         return new RigidBody(mesh, mass, Matrix3.diag(
             mass * (height * height + width * width) / 12,
             mass * (height * height + width * width) / 12,
@@ -211,6 +233,8 @@ export class RigidBodyFactory {
                 return this.CreateIcosahedron(name, radius, mass, restitution, scene);
             case 7:
                 return this.CreateDodecahedron(name, radius, mass, restitution, scene);
+            //case 8:
+            //    return this.CreateCylinder(name, radius / 2, radius, mass, restitution, scene);
         }
         throw new Error("Invalid random number");
     }

@@ -1,7 +1,6 @@
-import { AbstractMesh, Matrix, Mesh, Quaternion, Vector3 } from "@babylonjs/core";
+import { Matrix, Mesh, Quaternion, Vector3 } from "@babylonjs/core";
 import { Matrix3 } from "./utils/matrix3";
-import { AvalancheEngine } from "./engine";
-import { Impulse } from "./impulse";
+import { Impulse } from "./utils/impulses";
 import { AABB } from "./aabb";
 import { copyAintoB, RigidBodyState } from "./rigidBodyState";
 import { Force } from "./forceFields/force";
@@ -49,8 +48,10 @@ export class RigidBody {
 
         this.restitution = restitution;
 
-        this.currentState.aabb.updateFromMesh(this.mesh, this.mesh.computeWorldMatrix(true));
-        this.currentState.aabb.setVisible(Settings.DISPLAY_BOUNDING_BOXES);
+        this.mesh.onMeshReadyObservable.addOnce(() => {
+            this.currentState.aabb.updateFromMesh(this.mesh, this.mesh.computeWorldMatrix(true));
+            this.currentState.aabb.setVisible(Settings.DISPLAY_BOUNDING_BOXES);
+        });
 
         this.mesh.rotationQuaternion = Quaternion.Identity();
 
@@ -74,8 +75,10 @@ export class RigidBody {
         this.mesh.position = position;
         this.currentState.position = position;
         this.mesh.computeWorldMatrix(true);
-        this.currentState.worldMatrix = this.mesh.getWorldMatrix();
-        this.currentState.aabb.updateFromMesh(this.mesh, this.mesh.getWorldMatrix());
+        this.mesh.onMeshReadyObservable.addOnce(() => {
+            this.currentState.worldMatrix = this.mesh.getWorldMatrix();
+            this.currentState.aabb.updateFromMesh(this.mesh, this.mesh.getWorldMatrix());
+        });
     }
 
     get positionRef(): Vector3 {
