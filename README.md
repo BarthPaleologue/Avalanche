@@ -8,7 +8,15 @@
 
 Avalanche is a simple rigid body physics engine built on top of BabylonJS for educationnal purposes.
 
-Take a look at the online demo: [Here](https://barthpaleologue.github.io/Avalanche/dist/)
+Take a look at the online demos: 
+
+- Main Demo [Here](https://barthpaleologue.github.io/Avalanche/dist/)
+
+- Frictionless Avalanche [Here](https://barthpaleologue.github.io/Avalanche/dist/nofriction.html)
+
+- Wavy Carpet [Here](https://barthpaleologue.github.io/Avalanche/dist/carpet.html)
+
+- Small Planet [Here](https://barthpaleologue.github.io/Avalanche/dist/planeta.html)
 
 This project has been created using **webpack-cli**, you can now run
 
