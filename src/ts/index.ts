@@ -105,11 +105,13 @@ function updateScene() {
     for (const body of physicsEngine.bodies) {
         if (body.positionRef.length() > 100) {
             body.mesh.dispose();
+            body.currentState.aabb.helperMesh?.dispose();
             physicsEngine.removeBody(body);
         }
         if (body.positionRef.y > 20 && body.currentState.velocity.length() > 10) {
             console.warn("body " + body.mesh.name + " is going too fast");
             body.mesh.dispose();
+            body.currentState.aabb.helperMesh?.dispose();
             physicsEngine.removeBody(body);
         }
     }
