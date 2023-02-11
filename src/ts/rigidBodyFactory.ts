@@ -1,4 +1,4 @@
-import { Color3, Mesh, MeshBuilder, Scene, StandardMaterial, Vector3 } from "@babylonjs/core";
+import { Color3, Mesh, MeshBuilder, Scene, StandardMaterial, Vector3, VertexBuffer } from "@babylonjs/core";
 import { Matrix3 } from "./utils/matrix3";
 import { RigidBody } from "./rigidBody";
 import { Settings } from "./settings";
@@ -9,7 +9,7 @@ import heightmap from "../assets/heightMap.png";
 
 export class RigidBodyFactory {
 
-    static CreateCuboid(name: string, scaling: Vector3, mass: number, restitution: number, scene: Scene): RigidBody {
+    static CreateCuboid(name: string, scene: Scene, scaling = Vector3.One(), mass = 1, restitution = 0.7, friction = 0.9): RigidBody {
         const mesh = MeshBuilder.CreateBox(name, {
             width: scaling.x,
             height: scaling.y,
@@ -27,10 +27,10 @@ export class RigidBodyFactory {
             mass * (scaling.x * scaling.x + scaling.y * scaling.y) / 12
         );
 
-        return new RigidBody(mesh, mass, inertiaTensor0, restitution);
+        return new RigidBody(mesh, mass, inertiaTensor0, restitution, friction);
     }
 
-    static CreateSphere(name: string, diameter: number, mass: number, restitution: number, scene: Scene): RigidBody {
+    static CreateSphere(name: string, scene: Scene, diameter = 1, mass = 1, restitution = 0.7, friction = 0.9): RigidBody {
         const mesh = MeshBuilder.CreateSphere(name, {
             diameter: diameter,
             segments: 2
@@ -47,10 +47,10 @@ export class RigidBodyFactory {
             mass * diameter * diameter / 12
         );
 
-        return new RigidBody(mesh, mass, inertiaTensor0, restitution);
+        return new RigidBody(mesh, mass, inertiaTensor0, restitution, friction);
     }
 
-    static CreateCylinder(name: string, radius: number, height: number, mass: number, restitution: number, scene: Scene): RigidBody {
+    static CreateCylinder(name: string, scene: Scene, radius = 0.5, height = 1.5, mass = 1, restitution = 0.7, friction = 0.9): RigidBody {
         const mesh = MeshBuilder.CreateCylinder(name, {
             diameter: radius * 2,
             height: height,
@@ -68,10 +68,10 @@ export class RigidBodyFactory {
             mass * (radius * radius + height * height) / 12
         );
 
-        return new RigidBody(mesh, mass, inertiaTensor0, restitution);
+        return new RigidBody(mesh, mass, inertiaTensor0, restitution, friction);
     }
 
-    static CreatePlane(name: string, width: number, height: number, mass: number, restitution: number, scene: Scene): RigidBody {
+    static CreatePlane(name: string, scene: Scene, width = 1, height = 1, mass = 1, restitution = 0.7, friction = 0.9): RigidBody {
         const mesh = MeshBuilder.CreatePlane(name, {
             width: width,
             height: height,
@@ -85,28 +85,65 @@ export class RigidBodyFactory {
             mass * (height * height + width * width) / 12,
             mass * (height * height + width * width) / 12,
             mass * (height * height + width * width) / 12
-        ), restitution);
+        ), restitution, friction);
     }
 
-    static CreateGroundFromHeightMap(name: string, width: number, height: number, subdivisions: number, mass: number, restitution: number, scene: Scene): RigidBody {
+    static CreateGroundFromHeightMap(name: string, scene: Scene, width = 1, height = 1, subdivisions = 16, mass = 1, restitution = 0.7, friction = 0.9): RigidBody {
         const mesh = MeshBuilder.CreateGroundFromHeightMap(name, heightmap, {
             width: width,
             height: height,
             subdivisions: subdivisions,
             minHeight: 0,
-            maxHeight: 4,
+            maxHeight: 8,
         }, scene);
 
         const material = new StandardMaterial("wireframe");
         material.diffuseColor = Color3.Random();
         material.wireframe = Settings.WIREFRAME;
+        material.backFaceCulling = false;
         mesh.material = material;
 
         return new RigidBody(mesh, mass, Matrix3.diag(
             mass * (height * height + width * width) / 12,
             mass * (height * height + width * width) / 12,
             mass * (height * height + width * width) / 12
-        ), restitution);
+        ), restitution, friction);
+    }
+
+    static CreateWavyCarpet(name: string, scene: Scene, width = 1, height = 1, subdivisions = 16, mass = 1, restitution = 0.7, friction = 0.9): RigidBody {
+        // create a plane that moves up and down like a wavy carpet
+        const mesh = MeshBuilder.CreateGround(name, {
+            width: width,
+            height: height,
+            subdivisions: subdivisions,
+        }, scene);
+
+        const material = new StandardMaterial("wireframe");
+        material.diffuseColor = Color3.Random();
+        material.wireframe = Settings.WIREFRAME;
+        material.backFaceCulling = false;
+        mesh.material = material;
+
+        const body = new RigidBody(mesh, mass, Matrix3.diag(
+            mass * (height * height + width * width) / 12,
+            mass * (height * height + width * width) / 12,
+            mass * (height * height + width * width) / 12
+        ), restitution, friction);
+
+        const update = () => {
+            const time = performance.now() / 1000;
+            const vertices = mesh.getVerticesData(VertexBuffer.PositionKind) as number[];
+            for (let i = 0; i < vertices.length; i += 3) {
+                vertices[i + 1] = Math.sin(5 * time + vertices[i] * 50 + vertices[i + 2] * 50) * 1.0;
+            }
+            mesh.setVerticesData(VertexBuffer.PositionKind, vertices);
+            mesh.createNormals(true);
+            body.currentState.aabb.updateFromMesh(mesh, body.currentState.worldMatrix);
+        };
+
+        mesh.registerBeforeRender(update);
+
+        return body;
     }
 
     /**
@@ -118,7 +155,7 @@ export class RigidBodyFactory {
      * @param scene 
      * @returns 
      */
-    static CreateOctahedron(name: string, radius: number, mass: number, restitution: number, scene: Scene): RigidBody {
+    static CreateOctahedron(name: string, scene: Scene, radius = 1, mass = 1, restitution = 0.7, friction = 0.9): RigidBody {
         const mesh = MeshBuilder.CreatePolyhedron(name, {
             type: 1,
             size: radius / Math.sqrt(2)
@@ -137,10 +174,10 @@ export class RigidBodyFactory {
                 mass * (radius * radius + radius * radius) / 12
             );
 
-        return new RigidBody(mesh, mass, inertiaTensor0, restitution);
+        return new RigidBody(mesh, mass, inertiaTensor0, restitution, friction);
     }
 
-    static CreateTetrahedron(name: string, radius: number, mass: number, restitution: number, scene: Scene): RigidBody {
+    static CreateTetrahedron(name: string, scene: Scene, radius = 1, mass = 1, restitution = 0.7, friction = 0.9): RigidBody {
         const mesh = MeshBuilder.CreatePolyhedron(name, {
             type: 0,
             size: radius / Math.sqrt(2)
@@ -159,10 +196,10 @@ export class RigidBodyFactory {
                 mass * (radius * radius + radius * radius) / 12
             );
 
-        return new RigidBody(mesh, mass, inertiaTensor0, restitution);
+        return new RigidBody(mesh, mass, inertiaTensor0, restitution, friction);
     }
 
-    static CreateIcosahedron(name: string, radius: number, mass: number, restitution: number, scene: Scene): RigidBody {
+    static CreateIcosahedron(name: string, scene: Scene, radius = 1, mass = 1, restitution = 0.7, friction = 0.9): RigidBody {
         const mesh = MeshBuilder.CreatePolyhedron(name, {
             type: 2,
             size: radius / Math.sqrt(2)
@@ -181,10 +218,10 @@ export class RigidBodyFactory {
                 mass * (radius * radius + radius * radius) / 12
             );
 
-        return new RigidBody(mesh, mass, inertiaTensor0, restitution);
+        return new RigidBody(mesh, mass, inertiaTensor0, restitution, friction);
     }
 
-    static CreateDodecahedron(name: string, radius: number, mass: number, restitution: number, scene: Scene): RigidBody {
+    static CreateDodecahedron(name: string, scene: Scene, radius = 1, mass = 1, restitution = 0.7, friction = 0.9): RigidBody {
         const mesh = MeshBuilder.CreatePolyhedron(name, {
             type: 3,
             size: radius / Math.sqrt(2)
@@ -203,7 +240,7 @@ export class RigidBodyFactory {
                 mass * (radius * radius + radius * radius) / 12
             );
 
-        return new RigidBody(mesh, mass, inertiaTensor0, restitution);
+        return new RigidBody(mesh, mass, inertiaTensor0, restitution, friction);
     }
 
     /**
@@ -214,25 +251,25 @@ export class RigidBodyFactory {
      * @param engine 
      * @param scene 
      */
-    static CreateRandom(name: string, radius: number, mass: number, restitution: number, scene: Scene): RigidBody {
+    static CreateRandom(name: string, scene: Scene, radius = 1, mass = 1, restitution = 0.7, friction = 0.9): RigidBody {
         const random = Math.floor(Math.random() * 8);
         switch (random) {
             case 0:
-                return this.CreateCuboid(name, Vector3.One().scaleInPlace(radius), mass, restitution, scene);
+                return this.CreateCuboid(name, scene, Vector3.One().scaleInPlace(radius), mass, restitution, friction);
             case 1:
-                return this.CreateCuboid(name, Vector3.One().scaleInPlace(radius), mass, restitution, scene);
+                return this.CreateCuboid(name, scene, Vector3.One().scaleInPlace(radius), mass, restitution, friction);
             case 2:
-                return this.CreateSphere(name, radius, mass, restitution, scene);
+                return this.CreateSphere(name, scene, radius, mass, restitution, friction);
             case 3:
-                return this.CreateOctahedron(name, radius, mass, restitution, scene);
+                return this.CreateOctahedron(name, scene, radius, mass, restitution, friction);
             case 4:
-                return this.CreateOctahedron(name, radius, mass, restitution, scene);
+                return this.CreateOctahedron(name, scene, radius, mass, restitution, friction);
             case 5:
-                return this.CreateSphere(name, radius, mass, restitution, scene);
+                return this.CreateSphere(name, scene, radius, mass, restitution, friction);
             case 6:
-                return this.CreateIcosahedron(name, radius, mass, restitution, scene);
+                return this.CreateIcosahedron(name, scene, radius, mass, restitution, friction);
             case 7:
-                return this.CreateDodecahedron(name, radius, mass, restitution, scene);
+                return this.CreateDodecahedron(name, scene, radius, mass, restitution, friction);
             //case 8:
             //    return this.CreateCylinder(name, radius / 2, radius, mass, restitution, scene);
         }

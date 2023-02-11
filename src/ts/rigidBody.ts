@@ -11,7 +11,7 @@ export class RigidBody {
     readonly mass: number;
 
     readonly restitution: number;
-    readonly friction: number = 1;
+    readonly friction: number;
 
     private readonly inverseInertiaTensor0: Matrix3;
 
@@ -44,10 +44,11 @@ export class RigidBody {
     cumulatedImpulses: Impulse[] = [];
     cumulatedForces: Force[] = [];
 
-    constructor(mesh: Mesh, mass: number, inertiaTensor0: Matrix3, restitution: number) {
+    constructor(mesh: Mesh, mass: number, inertiaTensor0: Matrix3, restitution = 0.7, friction = 0.9) {
         this.mesh = mesh;
 
         this.restitution = restitution;
+        this.friction = friction;
 
         this.mesh.onMeshReadyObservable.addOnce(() => {
             this.currentState.aabb.updateFromMesh(this.mesh, this.mesh.computeWorldMatrix(true));

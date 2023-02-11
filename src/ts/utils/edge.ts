@@ -50,10 +50,18 @@ export function getUniqueEdgesWorldSpaceInAABB(mesh: AbstractMesh, worldMatrix: 
     return edges;
 }
 
+/**
+ * Returns the closest point on an edge to a given point. The point returned is between the two points of the edge.
+ * @param point 
+ * @param edge 
+ * @returns 
+ */
 export function closestPointOnEdge(point: Vector3, edge: Edge): Vector3 {
     const [a, b] = edge;
     const ab = b.subtract(a);
     const ap = point.subtract(a);
-    const t = Vector3.Dot(ap, ab) / Vector3.Dot(ab, ab);
+    const abDotAp = Vector3.Dot(ab, ap);
+    const abDotAb = Vector3.Dot(ab, ab);
+    const t = abDotAp / abDotAb;
     return a.add(ab.scale(t));
 }

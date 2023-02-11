@@ -27,7 +27,7 @@ const scene = new Scene(engine);
 
 await Assets.Init(scene);
 
-const camera = new ArcRotateCamera("camera", 0, 3.14 / 4.0, 15, Vector3.Zero(), scene);
+const camera = new ArcRotateCamera("camera", 0, 3.14 / 2, 15, Vector3.Zero(), scene);
 camera.attachControl();
 
 const light = new DirectionalLight("light", new Vector3(1, -1, 1), scene);
@@ -43,21 +43,21 @@ let isGravityUniform = true;
 const gravityUniform = new UniformDirectionalField(new Vector3(0, -9.81, 0), physicsEngine);
 const gravityPonctual = new UniformPonctualField(new Vector3(0, 3, 0), 5);
 
-//const ground = RigidBodyFactory.CreateCuboid("ground", new Vector3(20, 1, 20), 0, 0.1, scene);
-const ground = RigidBodyFactory.CreateGroundFromHeightMap("ground", 20, 20, 8, 0, 0.1, scene);
+const ground = RigidBodyFactory.CreateCuboid("ground", scene, new Vector3(20, 1, 20), 0, 0.1);
+//const ground = RigidBodyFactory.CreateGroundFromHeightMap("ground", scene, 20, 20, 8, 0, 0.1);
 ground.setInitialPosition(new Vector3(0, -10, 0));
 ground.mesh.receiveShadows = true;
 camera.target = ground.mesh.position;
 
-const cuboid = RigidBodyFactory.CreateCuboid("cuboid", new Vector3(1, 1, 1), 1, 0.7, scene);
+const cuboid = RigidBodyFactory.CreateCuboid("cuboid", scene, new Vector3(1, 1, 1), 1);
 cuboid.setInitialPosition(randomVector3(-3, 3));
 shadowGenerator.addShadowCaster(cuboid.mesh);
 
-const dodecahedron = RigidBodyFactory.CreateDodecahedron("dodecahedron", 1, 1, 0.7, scene);
+const dodecahedron = RigidBodyFactory.CreateDodecahedron("dodecahedron", scene, 1, 1);
 shadowGenerator.addShadowCaster(dodecahedron.mesh);
 dodecahedron.setInitialPosition(randomVector3(-3, 3));
 
-const octahedron = RigidBodyFactory.CreateOctahedron("octahedron", 1, 1, 0.7, scene);
+const octahedron = RigidBodyFactory.CreateOctahedron("octahedron", scene, 1, 1);
 octahedron.setInitialPosition(randomVector3(-5, 5));
 shadowGenerator.addShadowCaster(octahedron.mesh);
 
@@ -86,7 +86,7 @@ function updateScene() {
         octahedron.applyImpulse(new Impulse(new Vector3(0.7, 0.1, 0.3), new Vector3(Math.random(), Math.random(), Math.random())));
     }
     if (I % 50 == 0 && !physicsEngine.paused) {
-        const newCube = RigidBodyFactory.CreateRandom("cuboid" + I, 1, 1, 0.7, scene);
+        const newCube = RigidBodyFactory.CreateRandom("cuboid" + I, scene);
         newCube.setInitialPosition(new Vector3(Math.random() * 10 - 5, 10, Math.random() * 10 - 5));
         physicsEngine.addBody(newCube);
 

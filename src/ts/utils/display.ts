@@ -1,5 +1,6 @@
 import { Color3, Mesh, MeshBuilder, StandardMaterial, Vector3, VertexData } from "@babylonjs/core";
 import { Triangle } from "./triangle";
+import { Edge } from "./edge";
 
 export function displayTriangle(triangle: Triangle, color = Color3.Green(), duration = 16): Mesh {
     const mesh = new Mesh("triangle");
@@ -52,6 +53,22 @@ export function displayRay(rayOrigin: Vector3, rayDirection: Vector3, color = Co
     });
 
     const material = new StandardMaterial("ray");
+    material.emissiveColor = color;
+    material.backFaceCulling = false;
+    material.disableLighting = true;
+    mesh.material = material;
+
+    if (duration === 0) return mesh;
+    setTimeout(() => mesh.dispose(), duration);
+    return mesh;
+}
+
+export function displayEdge(edge: Edge, color = Color3.Red(), duration = 16): Mesh {
+    const mesh = MeshBuilder.CreateLines("edge", {
+        points: edge,
+    });
+
+    const material = new StandardMaterial("edge");
     material.emissiveColor = color;
     material.backFaceCulling = false;
     material.disableLighting = true;

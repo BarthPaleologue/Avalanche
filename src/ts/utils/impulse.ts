@@ -70,7 +70,7 @@ export function computeFrictionImpulse(a: RigidBody, b: RigidBody, pointA: Vecto
     const rv = vb.subtract(va);
     if (Vector3.Dot(rv, normal) > 0 || rv.lengthSquared() < Settings.EPSILON ** 2) return [new Impulse(Vector3.Zero(), Vector3.Zero()), new Impulse(Vector3.Zero(), Vector3.Zero())];
 
-    // tangent vector
+    // tangent vector (relative velocity projected on the plane orthogonal to the normal)
     const tangent = rv.subtract(normal.scale(Vector3.Dot(normal, rv))).normalize();
 
     let denominator = 0;

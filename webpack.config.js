@@ -10,7 +10,9 @@ const htmlPath = path.join(__dirname, "/src/html/");
 const config = {
 
     entry: {
-        index: "./src/ts/index.ts",
+        index: "./src/ts/showcase.ts",
+        nofriction: "./src/ts/nofriction.ts",
+        carpet: "./src/ts/wavycarpet.ts",
     },
     output: {
         path: path.resolve(__dirname, "dist")
@@ -27,6 +29,18 @@ const config = {
             filename: "index.html",
             template: path.join(htmlPath, "index.html"),
             chunks: ["index"]
+        }),
+        new HtmlWebpackPlugin({
+            title: "Avalanche Demo - No Friction",
+            filename: "nofriction.html",
+            template: path.join(htmlPath, "index.html"),
+            chunks: ["nofriction"]
+        }),
+        new HtmlWebpackPlugin({
+            title: "Avalanche Demo - Carpet",
+            filename: "carpet.html",
+            template: path.join(htmlPath, "index.html"),
+            chunks: ["carpet"]
         }),
         new MiniCssExtractPlugin()
     ],

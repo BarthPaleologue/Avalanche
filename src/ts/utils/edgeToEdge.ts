@@ -1,69 +1,71 @@
-import { Vector3 } from "@babylonjs/core";
+import { Color3, Vector3 } from "@babylonjs/core";
 import { Settings } from "../settings";
 import { Edge, closestPointOnEdge, getMeshEdgesWorldSpace, getUniqueEdgesWorldSpaceInAABB } from "./edge";
 import { RigidBody } from "../rigidBody";
 import { AABB } from "../aabb";
-
-/*export function findEdgeCollisions(edges1: Edge[], edges2: Edge[]): [number, Vector3[], Vector3[], number[]] {
-    const closestDistances: number[] = [];
-    const intersectionPointsEdgesA: Vector3[] = [];
-    const intersectionPointsEdgesB: Vector3[] = [];
-    const distances: number[] = [];
-
-    for (const edge1 of edges1) {
-        for (const edge2 of edges2) {
-            const closestPoint = closestPointOnEdge(edge1[0], edge2);
-            const distanceSquared = Vector3.DistanceSquared(edge1[0], closestPoint);
-            if (distanceSquared <= Settings.EPSILON ** 2) {
-                closestDistances.push(Math.sqrt(distanceSquared));
-                intersectionPointsEdgesA.push(edge1[0]);
-                intersectionPointsEdgesB.push(closestPoint);
-                distances.push(Vector3.Distance(edge1[0], closestPoint));
-            }
-        }
-    }
-
-    let closestDistance = Number.MAX_VALUE;
-    for (const distance of closestDistances) {
-        if (distance < closestDistance) {
-            closestDistance = distance;
-        }
-    }
-
-    return [closestDistance, intersectionPointsEdgesA, intersectionPointsEdgesB, distances];
-}*/
+import { displayEdge } from "./display";
 
 export function findEdgeCollisions(bodyA: RigidBody, bodyB: RigidBody, overlap: AABB): [number, Vector3[], Vector3[], Vector3[], number[]] {
     const edgesA = getUniqueEdgesWorldSpaceInAABB(bodyA.mesh, bodyA.mesh.getWorldMatrix(), overlap);
     const edgesB = getUniqueEdgesWorldSpaceInAABB(bodyB.mesh, bodyB.mesh.getWorldMatrix(), overlap);
 
-    const closestDistances: number[] = [];
+    const penetrationDistances: number[] = [];
     const intersectionPointsEdgesA: Vector3[] = [];
     const intersectionPointsEdgesB: Vector3[] = [];
     const normals: Vector3[] = [];
-    const distances: number[] = [];
+
+    let maxPenetration = Number.NEGATIVE_INFINITY;
+
+    const intersectingEdges: [Edge, Edge][] = [];
 
     for (const edgeA of edgesA) {
+        const middleEdgeA = edgeA[0].add(edgeA[1]).scale(0.5);
         for (const edgeB of edgesB) {
-            const closestPoint = closestPointOnEdge(edgeA[0], edgeB);
-            const distanceSquared = Vector3.DistanceSquared(edgeA[0], closestPoint);
-            if (distanceSquared <= Settings.EPSILON ** 2) {
-                closestDistances.push(Math.sqrt(distanceSquared));
-                intersectionPointsEdgesA.push(edgeA[0]);
-                intersectionPointsEdgesB.push(closestPoint);
-                const normal = Vector3.Cross(edgeA[1].subtract(edgeA[0]), edgeB[1].subtract(edgeB[0])).normalize();
-                normals.push(normal);
-                distances.push(Vector3.Distance(edgeA[0], closestPoint));
+            const middleEdgeB = edgeB[0].add(edgeB[1]).scale(0.5);
+
+            const projectedA0 = closestPointOnEdge(edgeA[0], edgeB);
+            const projectedA1 = closestPointOnEdge(edgeA[1], edgeB);
+            const projectedAMiddle = projectedA0.add(projectedA1).scale(0.5);
+
+            const distToCenter1 = projectedAMiddle.subtract(bodyA.nextState.position).length();
+            const distToCenter2 = middleEdgeA.subtract(bodyA.nextState.position).length();
+
+            const penetrationDistance = distToCenter2 - distToCenter1;
+
+            if (penetrationDistance > -Settings.EPSILON) {
+                const projectedB0 = closestPointOnEdge(edgeB[0], edgeA);
+                const projectedB1 = closestPointOnEdge(edgeB[1], edgeA);
+                const projectedBMiddle = projectedB0.add(projectedB1).scale(0.5);
+
+                const distToCenter3 = projectedBMiddle.subtract(bodyB.nextState.position).length();
+                const distToCenter4 = middleEdgeB.subtract(bodyB.nextState.position).length();
+
+                const penetrationDistance2 = distToCenter4 - distToCenter3;
+
+                if (penetrationDistance2 > -Settings.EPSILON) {
+                    const penetration = Math.min(penetrationDistance, penetrationDistance2);
+                    if (penetration > maxPenetration) {
+                        maxPenetration = penetration;
+                    }
+
+                    penetrationDistances.push(penetration);
+                    if (!intersectionPointsEdgesA.includes(middleEdgeA)) intersectionPointsEdgesA.push(middleEdgeA);
+                    if (!intersectionPointsEdgesB.includes(middleEdgeB)) intersectionPointsEdgesB.push(middleEdgeB);
+
+                    const normal = edgeA[0].subtract(edgeA[1]).cross(edgeB[0].subtract(edgeB[1])).normalize();
+
+                    normals.push(normal);
+
+                    intersectingEdges.push([edgeA, edgeB]);
+                }
             }
         }
     }
 
-    let closestDistance = Number.MAX_VALUE;
-    for (const distance of closestDistances) {
-        if (distance < closestDistance) {
-            closestDistance = distance;
-        }
+    for (const [edgeA, edgeB] of intersectingEdges) {
+        //displayEdge(edgeA, Color3.Red(), 16);
+        //displayEdge(edgeB, Color3.Red());
     }
 
-    return [closestDistance, intersectionPointsEdgesA, intersectionPointsEdgesB, normals, distances];
+    return [maxPenetration, intersectionPointsEdgesA, intersectionPointsEdgesB, normals, penetrationDistances];
 }
