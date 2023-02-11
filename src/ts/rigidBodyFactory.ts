@@ -1,11 +1,10 @@
-import { AbstractMesh, AssetContainer, Color3, Mesh, MeshBuilder, Scene, SceneLoader, SimplificationType, StandardMaterial, Vector3 } from "@babylonjs/core";
-import '@babylonjs/loaders/OBJ/objFileLoader';
+import { Color3, Mesh, MeshBuilder, Scene, StandardMaterial, Vector3 } from "@babylonjs/core";
 import { AvalancheEngine } from "./engine";
 import { Matrix3 } from "./utils/matrix3";
 import { RigidBody } from "./rigidBody";
 import { Settings } from "./settings";
 import { Assets } from "./assets";
-import { getMeshAllVerticesWorldSpace, getMeshUniqueVerticesWorldSpace } from "./utils/vertex";
+import { getMeshAllVerticesWorldSpace } from "./utils/vertex";
 
 export class RigidBodyFactory {
 
