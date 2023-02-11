@@ -6,6 +6,7 @@ import {
     VertexBuffer
 } from "@babylonjs/core";
 import { RigidBody } from "./rigidBody";
+import { Settings } from "./settings";
 
 export class AABB {
     min: Vector3;
@@ -13,7 +14,7 @@ export class AABB {
     isVisible = false;
 
     helperMesh: Mesh | null;
-    color: Color3 = new Color3(1, 0, 1);
+    color: Color3 = new Color3(1, 1, 1);
 
     constructor(min: Vector3, max: Vector3) {
         [this.min, this.max] = [min, max];
@@ -109,11 +110,9 @@ export class AABB {
     updateFromRigidBody(body: RigidBody) {
         [this.min, this.max] = AABB.getMinMax(body);
 
-        // make it 20% bigger
-        const size = this.max.subtract(this.min);
-        const offset = size.scale(0.2);
-        this.min.subtractInPlace(offset);
-        this.max.addInPlace(offset);
+        // add a small offset to the min and max (Epsilon)
+        this.min.subtractInPlace(Vector3.One().scaleInPlace(10 * Settings.EPSILON));
+        this.max.addInPlace(Vector3.One().scaleInPlace(10 * Settings.EPSILON));
 
         if (this.helperMesh) {
             this.helperMesh.position = this.max.add(this.min).scaleInPlace(0.5);
