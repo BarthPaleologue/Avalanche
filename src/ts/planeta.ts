@@ -39,24 +39,22 @@ const ambientLight = new HemisphericLight("ambientLight", new Vector3(0, 1, 0), 
 ambientLight.intensity = 0.2;
 
 const physicsEngine = new AvalancheEngine();
-let isGravityUniform = true;
-const gravityUniform = new UniformDirectionalField(new Vector3(0, -9.81, 0), physicsEngine);
-const gravityPonctual = new UniformPonctualField(new Vector3(0, 3, 0), 5);
+const gravityPonctual = new UniformPonctualField(new Vector3(0, 3, 0), 5, physicsEngine);
 
-const ground = RigidBodyFactory.CreateGroundFromHeightMap("ground", scene, 20, 20, 8, 0, 1, 0);
+const ground = RigidBodyFactory.CreateSphere("ground", scene, 10, 0, 0.1);
 ground.setInitialPosition(new Vector3(0, -10, 0));
 ground.mesh.receiveShadows = true;
 camera.target = ground.mesh.position;
 
-const cuboid = RigidBodyFactory.CreateCuboid("cuboid", scene, new Vector3(1, 1, 1), 1, 0.7, 0);
+const cuboid = RigidBodyFactory.CreateCuboid("cuboid", scene, new Vector3(1, 1, 1), 1);
 cuboid.setInitialPosition(randomVector3(-3, 3));
 shadowGenerator.addShadowCaster(cuboid.mesh);
 
-const dodecahedron = RigidBodyFactory.CreateDodecahedron("dodecahedron", scene, 1, 1, 0.7, 0);
+const dodecahedron = RigidBodyFactory.CreateDodecahedron("dodecahedron", scene, 1, 1);
 shadowGenerator.addShadowCaster(dodecahedron.mesh);
 dodecahedron.setInitialPosition(randomVector3(-3, 3));
 
-const octahedron = RigidBodyFactory.CreateOctahedron("octahedron", scene, 1, 1, 0.7, 0);
+const octahedron = RigidBodyFactory.CreateOctahedron("octahedron", scene, 1, 1);
 octahedron.setInitialPosition(randomVector3(-5, 5));
 shadowGenerator.addShadowCaster(octahedron.mesh);
 
@@ -84,8 +82,8 @@ function updateScene() {
         cuboid.applyImpulse(new Impulse(new Vector3(0, 1, 0.1), new Vector3(Math.random(), Math.random(), Math.random())));
         octahedron.applyImpulse(new Impulse(new Vector3(0.7, 0.1, 0.3), new Vector3(Math.random(), Math.random(), Math.random())));
     }
-    if (I % 5 == 0 && !physicsEngine.paused) {
-        const newCube = RigidBodyFactory.CreateRandom("cuboid" + I, scene, 1, 1, 0.7, 0);
+    if (I % 50 == 0 && !physicsEngine.paused) {
+        const newCube = RigidBodyFactory.CreateRandom("cuboid" + I, scene);
         newCube.setInitialPosition(new Vector3(Math.random() * 10 - 5, 10, Math.random() * 10 - 5));
         physicsEngine.addBody(newCube);
 
@@ -114,16 +112,6 @@ function updateScene() {
 
 // use zqsd to move the target of the camera
 document.addEventListener("keydown", e => {
-    if (e.key == "g") {
-        isGravityUniform = !isGravityUniform;
-        if (!isGravityUniform) {
-            physicsEngine.removeField(gravityUniform);
-            physicsEngine.addField(gravityPonctual);
-        } else {
-            physicsEngine.removeField(gravityPonctual);
-            physicsEngine.addField(gravityUniform);
-        }
-    }
     if (e.key == "p") Tools.CreateScreenshotAsync(engine, camera, { precision: 2 }).then((data) => {
         const link = document.createElement("a");
         link.download = "screenshot.png";

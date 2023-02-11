@@ -27,7 +27,7 @@ const scene = new Scene(engine);
 
 await Assets.Init(scene);
 
-const camera = new ArcRotateCamera("camera", 0, 3.14 / 2, 15, Vector3.Zero(), scene);
+const camera = new ArcRotateCamera("camera", 0, 3.14 / 2, 20, Vector3.Zero(), scene);
 camera.attachControl();
 
 const light = new DirectionalLight("light", new Vector3(1, -1, 1), scene);
