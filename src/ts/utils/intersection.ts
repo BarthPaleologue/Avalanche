@@ -8,16 +8,16 @@ import { Triangle, getMeshTrianglesWorldSpaceInAABB, getTriangleNormal } from ".
 import { Edge, closestPointOnEdge } from "./edge";
 
 /**
- * Returns [isIntersecting, penetration distance, normal, point]
+ * Returns the distance between the ray and the triangle. Returns null if there is no intersection.
  * @param rayOrigin
  * @param rayDirection
  * @param triangle
  */
-function intersectRayTriangle(rayOrigin: Vector3, rayDirection: Vector3, triangle: Triangle): number {
+function intersectRayTriangle(rayOrigin: Vector3, rayDirection: Vector3, triangle: Triangle): number | null {
     const ray = new Ray(rayOrigin, rayDirection);
     const intersection = ray.intersectsTriangle(triangle[0], triangle[1], triangle[2]);
     if (intersection) return intersection.distance;
-    else return Number.NEGATIVE_INFINITY;
+    return null;
 }
 
 export type Contact = {
@@ -31,30 +31,19 @@ export type Contact = {
  * @param reverse 
  * @returns [maxPenetration, collisionVerticesA, collisionRayPointsB, collisionTriangles, collisionPenetrations]
  */
-export function vertexToFacePenetration(contact: Contact, reverse = false): [number, Vector3[], Vector3[], Vector3[], number[]] {
-    // if reverse is false, we check if a point of A is inside B
-    // if reverse is true, we check if a point of B is inside A
-    const bodyA = contact.a;
-    const bodyB = contact.b;
-
+export function vertexToFacePenetration(bodyA: RigidBody, bodyB: RigidBody, overlap: AABB): [number, Vector3[], Vector3[], Vector3[], number[]] {
     const worldMatrixA = bodyA.getNextWorldMatrix();
     const worldMatrixB = bodyB.getNextWorldMatrix();
 
-    const pointsToCheck = reverse ?
-        getMeshUniqueVerticesWorldSpaceInAABB(bodyB.mesh, worldMatrixB, contact.aabbOverlap) :
-        getMeshUniqueVerticesWorldSpaceInAABB(bodyA.mesh, worldMatrixA, contact.aabbOverlap);
-
-    const trianglesToCheck = reverse ?
-        getMeshTrianglesWorldSpaceInAABB(bodyA.mesh, worldMatrixA, contact.aabbOverlap) :
-        getMeshTrianglesWorldSpaceInAABB(bodyB.mesh, worldMatrixB, contact.aabbOverlap);
-
+    const pointsToCheck = getMeshUniqueVerticesWorldSpaceInAABB(bodyA.mesh, worldMatrixA, overlap);
+    const trianglesToCheck = getMeshTrianglesWorldSpaceInAABB(bodyB.mesh, worldMatrixB, overlap);
 
     let maxPenetration = Number.NEGATIVE_INFINITY;
 
-    const collisionPointsVertex: Vector3[] = [];
-    const collisionPointsTriangle: Vector3[] = [];
-    const collisionTriangleNormals: Vector3[] = [];
-    const collisionPenetrations: number[] = [];
+    const collisionPointsA: Vector3[] = [];
+    const collisionPointsB: Vector3[] = [];
+    const collisionNormals: Vector3[] = [];
+    const penetrationDistances: number[] = [];
 
     for (const point of pointsToCheck) {
         const collisionPointVertex = point;
@@ -62,13 +51,19 @@ export function vertexToFacePenetration(contact: Contact, reverse = false): [num
         let collisionPenetration = Number.NEGATIVE_INFINITY;
         let collisionTriangle: Triangle = [Vector3.Zero(), Vector3.Zero(), Vector3.Zero()];
 
-        const rayOrigin = reverse ? contact.b.nextState.position : contact.a.nextState.position;
+        const rayOrigin = bodyA.nextState.position;
         const rayDirection = point.subtract(rayOrigin).normalize();
         const rayLength = point.subtract(rayOrigin).length();
 
         for (const triangle of trianglesToCheck) {
+            /*const rayDirection2 = reverse ? getTriangleNormal(triangle) : getTriangleNormal(triangle).negate();
+            const intersectDistance2 = intersectRayTriangle(point, rayDirection2, triangle);
+            if (intersectDistance2 == null || intersectDistance2 <= -rayLength) continue;
+
+            const penetration2 = -intersectDistance2;*/
+
             const intersectDistance = intersectRayTriangle(rayOrigin, rayDirection, triangle);
-            if (intersectDistance <= 0) continue;
+            if (intersectDistance == null || intersectDistance <= 0) continue;
 
             const penetration = rayLength - intersectDistance;
 
@@ -76,26 +71,26 @@ export function vertexToFacePenetration(contact: Contact, reverse = false): [num
 
             if (penetration > collisionPenetration) {
                 collisionPenetration = penetration;
-                collisionPointTriangle = rayDirection.scale(intersectDistance).add(rayOrigin);
+                collisionPointTriangle = rayDirection.scale(intersectDistance).addInPlace(rayOrigin);
                 collisionTriangle = triangle;
             }
         }
 
         if (collisionPenetration == Number.NEGATIVE_INFINITY) continue;
         if (collisionPenetration > -Settings.EPSILON) {
-            collisionPointsVertex.push(collisionPointVertex);
-            collisionPointsTriangle.push(collisionPointTriangle);
+            collisionPointsA.push(collisionPointVertex);
+            collisionPointsB.push(collisionPointTriangle);
 
-            const triangleNormal = reverse ? getTriangleNormal(collisionTriangle).negate() : getTriangleNormal(collisionTriangle);
-            collisionTriangleNormals.push(triangleNormal);
+            const triangleNormal = getTriangleNormal(collisionTriangle);
+            collisionNormals.push(triangleNormal);
 
-            collisionPenetrations.push(collisionPenetration);
+            penetrationDistances.push(collisionPenetration);
         }
     }
 
-    console.assert(collisionPointsVertex.length == collisionPointsTriangle.length && collisionPointsVertex.length == collisionTriangleNormals.length && collisionPointsVertex.length == collisionPenetrations.length);
+    console.assert(collisionPointsA.length == collisionPointsB.length && collisionPointsA.length == collisionNormals.length && collisionPointsA.length == penetrationDistances.length);
 
-    return [maxPenetration, collisionPointsVertex, collisionPointsTriangle, collisionTriangleNormals, collisionPenetrations];
+    return [maxPenetration, collisionPointsA, collisionPointsB, collisionNormals, penetrationDistances];
 }
 
 export function findEdgeCollisions(edges1: Edge[], edges2: Edge[]): [number, Vector3[], Vector3[], number[]] {
@@ -133,13 +128,10 @@ export function findEdgeCollisions(edges1: Edge[], edges2: Edge[]): [number, Vec
  * @returns [maxPenetration, collisionPointsA, collisionPointsB, collisionTriangleNormals, collisionPenetrations]
  */
 export function testInterpenetration(contact: Contact): [number, Vector3[], Vector3[], Vector3[], number[]] {
-    const [penetrationDistance1, pointsA1, pointsB1, triangleNormals1, collisionPenetrations1] = vertexToFacePenetration(contact, false);
-    const [penetrationDistance2, pointsB2, pointsA2, triangleNormals2, collisionPenetrations2] = vertexToFacePenetration(contact, true);
+    const [penetrationDistance1, pointsA1, pointsB1, triangleNormals1, collisionPenetrations1] = vertexToFacePenetration(contact.a, contact.b, contact.aabbOverlap);
+    const [penetrationDistance2, pointsB2, pointsA2, triangleNormals2, collisionPenetrations2] = vertexToFacePenetration(contact.b, contact.a, contact.aabbOverlap);
 
-    /*console.log("A1:");
-    for (const point of pointsA1) console.log(point.toString());
-    console.log("A2:");
-    for (const point of pointsA2) console.log(point.toString());*/
+    for (const triangleNormal of triangleNormals2) triangleNormal.negateInPlace();
 
     const maxPenetration = Math.max(penetrationDistance1, penetrationDistance2);
     const pointsA = pointsA1.concat(pointsA2);

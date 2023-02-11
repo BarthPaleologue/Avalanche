@@ -1,7 +1,6 @@
 import { RigidBody } from "./rigidBody";
 import { ForceField } from "./forceFields/forceField";
 import { Color3, Mesh, StandardMaterial, Vector3 } from "@babylonjs/core";
-import { AABB } from "./aabb";
 import { computeCollisionImpulse, computeFrictionImpulse, Contact, testInterpenetration } from "./utils/intersection";
 import { displayPoint } from "./utils/display";
 import { Settings } from "./settings";
@@ -86,19 +85,19 @@ export class AvalancheEngine {
 
                 const overlap = body.nextState.aabb.intersectionOverlap(otherBody.nextState.aabb);
                 if (overlap) {
-                    // check the intersection of triangles inside the overlap
-                    const contactSet: Contact = {
+                    const contact: Contact = {
                         a: body, b: otherBody,
                         aabbOverlap: overlap
                     };
                     let isAlreadyInTheList = false;
                     for (const contact of this.contacts) {
-                        if ((contact.a == body || contact.b == body) && (contact.a == otherBody || contact.b == otherBody)) {
+                        if ((contact.a == body && contact.b == otherBody)
+                            || (contact.a == otherBody && contact.b == body)) {
                             isAlreadyInTheList = true;
                             break;
                         }
                     }
-                    if (!isAlreadyInTheList) this.contacts.push(contactSet);
+                    if (!isAlreadyInTheList) this.contacts.push(contact);
                 }
             }
         }
