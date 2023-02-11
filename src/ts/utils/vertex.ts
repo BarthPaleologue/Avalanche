@@ -1,6 +1,5 @@
 import { AbstractMesh, Matrix, Vector3, VertexBuffer } from "@babylonjs/core";
 import { AABB } from "../aabb";
-import { pointIntersectsWithAABB, triangleIntersectsWithAABB } from "../aabbIntersection";
 
 /**
  * Returns true if the vector is included in the array (compared with the equals method)
@@ -62,7 +61,7 @@ export function getMeshUniqueVerticesWorldSpaceInAABB(mesh: AbstractMesh, worldM
     for (let i = 0; i < positions.length; i += 3) {
         let newVector = new Vector3(positions[i], positions[i + 1], positions[i + 2]);
         newVector = Vector3.TransformCoordinates(newVector, worldMatrix);
-        if (!doesVectorArrayIncludes(newVector, vectors) && pointIntersectsWithAABB(newVector, aabb)) vectors.push(newVector);
+        if (!doesVectorArrayIncludes(newVector, vectors) && aabb.containsPoint(newVector)) vectors.push(newVector);
     }
     return vectors;
 }

@@ -7,6 +7,8 @@ import {
 } from "@babylonjs/core";
 import { RigidBody } from "./rigidBody";
 import { Settings } from "./settings";
+import { Triangle } from "./utils/triangle";
+import { Edge } from "./utils/edge";
 
 export class AABB {
     min: Vector3;
@@ -59,7 +61,7 @@ export class AABB {
     static computeLinesMesh(min: Vector3, max: Vector3, color = new Color3(1, 1, 1)): Mesh {
         const box = MeshBuilder.CreateBox("aabb", { size: 1 });
         box.scaling = max.subtract(min);
-        box.position = max.add(min).scale(0.5);
+        box.position = max.add(min).scaleInPlace(0.5);
 
         const boxMaterial = new StandardMaterial("aabb");
         boxMaterial.wireframe = true;
@@ -72,15 +74,33 @@ export class AABB {
         return box;
     }
 
+    public containsPoint(point: Vector3): boolean {
+        return this.min.x <= point.x && point.x <= this.max.x
+            && this.min.y <= point.y && point.y <= this.max.y
+            && this.min.z <= point.z && point.z <= this.max.z;
+    }
+
+    static FromTriangle(triangle: Triangle): AABB {
+        const min = Vector3.Minimize(Vector3.Minimize(triangle[0], triangle[1]), triangle[2]);
+        const max = Vector3.Maximize(Vector3.Maximize(triangle[0], triangle[1]), triangle[2]);
+        return new AABB(min, max);
+    }
+
+    static FromEdge(edge: Edge): AABB {
+        const min = Vector3.Minimize(edge[0], edge[1]);
+        const max = Vector3.Maximize(edge[0], edge[1]);
+        return new AABB(min, max);
+    }
+
     /**
      * Returns a boolean indicating whether the AABB is intersecting with another AABB.
      * @param a
      * @param b
      * @constructor
      */
-    static Intersects(a: AABB, b: AABB): boolean {
-        const aMin = a.min;
-        const aMax = a.max;
+    public intersects(b: AABB): boolean {
+        const aMin = this.min;
+        const aMax = this.max;
         const bMin = b.min;
         const bMax = b.max;
 
@@ -92,19 +112,16 @@ export class AABB {
     }
 
     /**
-     * Returns whereas a and b are intersecting and the overlap between the 2
-     * @param a
+     * Returns whereas a and b are intersecting and the overlap between the 2 AABBs.
      * @param b
      * @constructor
      */
-    static IntersectsAndOverlap(a: AABB, b: AABB): [boolean, AABB] {
-        const min = Vector3.Maximize(a.min, b.min);
-        const max = Vector3.Minimize(a.max, b.max);
-        if (min.x > max.x || min.y > max.y || min.z > max.z) {
-            min.scaleInPlace(0);
-            max.scaleInPlace(0);
-        }
-        return [this.Intersects(a, b), new AABB(min, max)];
+    public intersectionOverlap(b: AABB): AABB | null {
+        const min = Vector3.Maximize(this.min, b.min);
+        const max = Vector3.Minimize(this.max, b.max);
+
+        if (this.intersects(b)) return new AABB(min, max);
+        return null;
     }
 
     updateFromRigidBody(body: RigidBody) {

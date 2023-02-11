@@ -84,8 +84,8 @@ export class AvalancheEngine {
             for (const otherBody of this.bodies) {
                 if (body === otherBody) continue;
 
-                const [intersects, overlap] = AABB.IntersectsAndOverlap(body.nextState.aabb, otherBody.nextState.aabb);
-                if (intersects) {
+                const overlap = body.nextState.aabb.intersectionOverlap(otherBody.nextState.aabb);
+                if (overlap) {
                     // check the intersection of triangles inside the overlap
                     const contactSet: Contact = {
                         a: body, b: otherBody,

@@ -79,7 +79,7 @@ scene.onPointerObservable.add((pointerInfo) => {
         const body = physicsEngine.bodies.find(b => b.mesh == mesh);
         if (body) {
             const point = pointerInfo.pickInfo!.pickedPoint!.subtract(body.positionRef).normalize();
-            const direction = new Vector3(Math.random() - 0.5, Math.random(), Math.random() - 0.5).scale(Math.random() * 2);
+            const direction = new Vector3(Math.random() - 0.5, Math.random(), Math.random() - 0.5).scale(1 + Math.random() * 2);
             body.applyImpulse(new Impulse(direction, point));
         }
     }

@@ -1,6 +1,5 @@
 import { AbstractMesh, Matrix, Vector3 } from "@babylonjs/core";
 import { getMeshAllVerticesWorldSpace } from "./vertex";
-import { triangleIntersectsWithAABB } from "../aabbIntersection";
 import { AABB } from "../aabb";
 
 export type Triangle = [Vector3, Vector3, Vector3];
@@ -36,7 +35,7 @@ export function getMeshTrianglesWorldSpaceInAABB(mesh: AbstractMesh, worldMatrix
             vertices[indices[i + 1]],
             vertices[indices[i + 2]]
         ];
-        if (triangleIntersectsWithAABB(triangle, aabb)) triangles.push(triangle);
+        if (aabb.intersects(AABB.FromTriangle(triangle))) triangles.push(triangle);
     }
     return triangles;
 }
