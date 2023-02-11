@@ -23,7 +23,7 @@ const config = {
 
     plugins: [
         new HtmlWebpackPlugin({
-            title: "Hello BabylonJS !",
+            title: "Avalanche Demo",
             filename: "index.html",
             template: path.join(htmlPath, "index.html"),
             chunks: ["index"]
@@ -82,6 +82,6 @@ module.exports = () => {
     config.experiments = {
         asyncWebAssembly: true,
         topLevelAwait: true
-    }
+    };
     return config;
 };

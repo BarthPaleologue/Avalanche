@@ -1,8 +1,8 @@
-# BabylonJS Template
+# Avalanche
 
 [![NodeJS with Webpack](https://github.com/BarthPaleologue/babylonjs-template/actions/workflows/webpack.yml/badge.svg)](https://github.com/BarthPaleologue/babylonjs-template/actions/workflows/webpack.yml)
 
-A simple template to quick start a BabylonJS project with a working webpack config out of the box and prettier and eslint.
+Avalanche is a simple rigid body physics engine built on top of BabylonJS for educationnal purposes.
 
 This project has been created using **webpack-cli**, you can now run
 

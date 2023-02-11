@@ -29,8 +29,8 @@
     "webpack-dev-server": "^4.11.1"
   },
   "version": "1.0.0",
-  "description": "BabylonJS template with webpack and Typescript",
-  "name": "babylonjs-template",
+  "description": "A simple rigid body physics engine",
+  "name": "avalanche",
   "scripts": {
     "build": "webpack --mode=production --node-env=production",
     "build:dev": "webpack --mode=development",
