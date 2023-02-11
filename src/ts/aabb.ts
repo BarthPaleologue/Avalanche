@@ -1,5 +1,6 @@
 import {
     Color3,
+    Matrix,
     Mesh,
     MeshBuilder, StandardMaterial,
     Vector3,
@@ -33,14 +34,12 @@ export class AABB {
         }
     }
 
-    static getMinMax(body: RigidBody): [Vector3, Vector3] {
-        const mesh = body.mesh;
+    static getMinMax(mesh: Mesh, worldMatrix: Matrix): [Vector3, Vector3] {
         // use the vertices of the mesh to compute the min and max
         const vertices = mesh.getVerticesData(VertexBuffer.PositionKind);
         if (vertices == null) throw new Error(`Mesh ${mesh.name} has no vertices`);
         // the vertices are stored in an array of floats, so we need to convert them to Vector3
         const vectors: Vector3[] = [];
-        const worldMatrix = body.getNextWorldMatrix();
         for (let i = 0; i < vertices.length; i += 3) {
             let newVector = new Vector3(vertices[i], vertices[i + 1], vertices[i + 2]);
             // we need to transform the vertices to world space
@@ -124,8 +123,8 @@ export class AABB {
         return null;
     }
 
-    updateFromRigidBody(body: RigidBody) {
-        [this.min, this.max] = AABB.getMinMax(body);
+    updateFromMesh(mesh: Mesh, worldMatrix: Matrix) {
+        [this.min, this.max] = AABB.getMinMax(mesh, worldMatrix);
 
         // add a small offset to the min and max (Epsilon)
         this.min.subtractInPlace(Vector3.One().scaleInPlace(10 * Settings.EPSILON));
@@ -142,5 +141,11 @@ export class AABB {
         this.min.copyFrom(aabb.min);
         this.max.copyFrom(aabb.max);
         this.color.copyFrom(aabb.color);
+
+        if (this.helperMesh) {
+            this.helperMesh.position = this.max.add(this.min).scaleInPlace(0.5);
+            this.helperMesh.scaling = this.max.subtract(this.min);
+            (this.helperMesh.material as StandardMaterial).emissiveColor = this.color;
+        }
     }
 }

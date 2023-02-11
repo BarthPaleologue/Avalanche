@@ -88,8 +88,6 @@ scene.onPointerObservable.add((pointerInfo) => {
 let I = 0;
 
 function updateScene() {
-    ground.currentState.aabb.updateFromRigidBody(ground);
-
     if (I == 1) {
         cuboid.applyImpulse(new Impulse(new Vector3(0, 1, 0.1), new Vector3(Math.random(), Math.random(), Math.random())));
         //cylinder.applyImpulse(new Impulse(new Vector3(0.2, 0.5, 1), new Vector3(Math.random(), Math.random(), Math.random())));

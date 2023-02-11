@@ -1,4 +1,4 @@
-import { AbstractMesh, Matrix, Quaternion, Vector3 } from "@babylonjs/core";
+import { AbstractMesh, Matrix, Mesh, Quaternion, Vector3 } from "@babylonjs/core";
 import { Matrix3 } from "./utils/matrix3";
 import { AvalancheEngine } from "./engine";
 import { Impulse } from "./impulse";
@@ -8,7 +8,7 @@ import { Force } from "./forceFields/force";
 import { Settings } from "./settings";
 
 export class RigidBody {
-    readonly mesh: AbstractMesh;
+    readonly mesh: Mesh;
     readonly mass: number;
 
     readonly restitution: number;
@@ -44,12 +44,12 @@ export class RigidBody {
     cumulatedImpulses: Impulse[] = [];
     cumulatedForces: Force[] = [];
 
-    constructor(mesh: AbstractMesh, mass: number, inertiaTensor0: Matrix3, restitution: number) {
+    constructor(mesh: Mesh, mass: number, inertiaTensor0: Matrix3, restitution: number) {
         this.mesh = mesh;
 
         this.restitution = restitution;
 
-        this.currentState.aabb.updateFromRigidBody(this);
+        this.currentState.aabb.updateFromMesh(this.mesh, this.mesh.computeWorldMatrix(true));
         this.currentState.aabb.setVisible(Settings.DISPLAY_BOUNDING_BOXES);
 
         this.mesh.rotationQuaternion = Quaternion.Identity();
@@ -75,7 +75,7 @@ export class RigidBody {
         this.currentState.position = position;
         this.mesh.computeWorldMatrix(true);
         this.currentState.worldMatrix = this.mesh.getWorldMatrix();
-        this.currentState.aabb.updateFromRigidBody(this);
+        this.currentState.aabb.updateFromMesh(this.mesh, this.mesh.getWorldMatrix());
     }
 
     get positionRef(): Vector3 {
@@ -140,19 +140,16 @@ export class RigidBody {
 
         this.nextState.inverseInertiaTensor = this.nextState.rotationMatrix.multiply(this.inverseInertiaTensor0).multiply(this.nextState.rotationMatrix.transpose());
         this.nextState.omega = this.nextState.inverseInertiaTensor.applyTo(this.nextState.angularMomentum);
+
+        this.nextState.aabb.updateFromMesh(this.mesh, this.nextState.worldMatrix);
     }
 
     public applyNextStep() {
         copyAintoB(this.nextState, this.currentState);
 
-        if (this.isStatic) return;
-
         this.mesh.position = this.currentState.position;
         this.mesh.rotationQuaternion = this.currentState.rotationQuaternion;
 
-        this.currentState.aabb.updateFromRigidBody(this);
-
-        // TODO
         this.cumulatedImpulses = [];
         this.cumulatedForces = [];
     }
