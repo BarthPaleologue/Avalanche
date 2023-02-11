@@ -13,6 +13,7 @@ const config = {
         index: "./src/ts/showcase.ts",
         nofriction: "./src/ts/nofriction.ts",
         carpet: "./src/ts/wavycarpet.ts",
+        planeta: "./src/ts/planeta.ts",
     },
     output: {
         path: path.resolve(__dirname, "dist")
@@ -41,6 +42,12 @@ const config = {
             filename: "carpet.html",
             template: path.join(htmlPath, "index.html"),
             chunks: ["carpet"]
+        }),
+        new HtmlWebpackPlugin({
+            title: "Avalanche Demo - Planeta",
+            filename: "planeta.html",
+            template: path.join(htmlPath, "index.html"),
+            chunks: ["planeta"]
         }),
         new MiniCssExtractPlugin()
     ],

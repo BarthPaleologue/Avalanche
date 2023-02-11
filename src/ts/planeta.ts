@@ -39,7 +39,7 @@ const ambientLight = new HemisphericLight("ambientLight", new Vector3(0, 1, 0), 
 ambientLight.intensity = 0.2;
 
 const physicsEngine = new AvalancheEngine();
-const gravityPonctual = new UniformPonctualField(new Vector3(0, 3, 0), 5, physicsEngine);
+const gravityPonctual = new UniformPonctualField(new Vector3(0, -10, 0), 5, physicsEngine);
 
 const ground = RigidBodyFactory.CreateSphere("ground", scene, 10, 0, 0.1);
 ground.setInitialPosition(new Vector3(0, -10, 0));
