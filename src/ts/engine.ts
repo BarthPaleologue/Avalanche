@@ -4,7 +4,7 @@ import { Color3, Mesh, StandardMaterial, Vector3 } from "@babylonjs/core";
 import { Contact, testInterpenetration } from "./utils/intersection";
 import { displayPoint } from "./utils/display";
 import { Settings } from "./settings";
-import { computeCollisionImpulse, computeFrictionImpulse } from "./utils/impulses";
+import { computeCollisionImpulse, computeFrictionImpulse } from "./utils/impulse";
 
 export class AvalancheEngine {
     readonly bodies: RigidBody[] = [];

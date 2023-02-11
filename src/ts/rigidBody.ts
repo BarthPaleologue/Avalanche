@@ -1,6 +1,6 @@
 import { Matrix, Mesh, Quaternion, Vector3 } from "@babylonjs/core";
 import { Matrix3 } from "./utils/matrix3";
-import { Impulse } from "./utils/impulses";
+import { Impulse } from "./utils/impulse";
 import { AABB } from "./aabb";
 import { copyAintoB, RigidBodyState } from "./rigidBodyState";
 import { Force } from "./forceFields/force";

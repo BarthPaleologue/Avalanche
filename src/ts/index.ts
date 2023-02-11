@@ -15,7 +15,7 @@ import { UniformDirectionalField } from "./forceFields/uniformDirectionalField";
 import { randomVector3 } from "./utils/random";
 import { Assets } from "./assets";
 import { Settings } from "./settings";
-import { Impulse } from "./utils/impulses";
+import { Impulse } from "./utils/impulse";
 
 const canvas = document.getElementById("renderer") as HTMLCanvasElement;
 canvas.width = window.innerWidth;
