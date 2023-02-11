@@ -1,7 +1,9 @@
-import { Vector3 } from "@babylonjs/core";
+import { Color3, Vector3 } from "@babylonjs/core";
 import { RigidBody } from "../rigidBody";
 import { AABB } from "../aabb";
 import { vertexToFacePenetration } from "./vertexToFace";
+import { findEdgeCollisions } from "./edgeToEdge";
+import { displayRay } from "./display";
 
 export type Contact = {
     a: RigidBody, b: RigidBody,
@@ -16,6 +18,12 @@ export type Contact = {
 export function testInterpenetration(contact: Contact): [number, Vector3[], Vector3[], Vector3[], number[]] {
     const [penetrationDistance1, pointsA1, pointsB1, triangleNormals1, penetrationDistances1] = vertexToFacePenetration(contact.a, contact.b, contact.aabbOverlap);
     const [penetrationDistance2, pointsB2, pointsA2, triangleNormals2, penetrationDistances2] = vertexToFacePenetration(contact.b, contact.a, contact.aabbOverlap);
+
+    //const [penetrationDistance3, pointsA3, pointsB3, triangleNormals3, penetrationDistances3] = findEdgeCollisions(contact.a, contact.b, contact.aabbOverlap);
+
+    /*for (let i = 0; i < pointsA3.length; i++) {
+        displayRay(pointsA3[i], pointsB3[i].subtract(pointsA3[i]).normalize(), Color3.Green(), 0);
+    }*/
 
     // We need to negate the triangle normals because we need all the normals to point in the same direction
     for (const triangleNormal of triangleNormals2) triangleNormal.negateInPlace();

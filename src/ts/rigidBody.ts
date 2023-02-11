@@ -11,6 +11,7 @@ export class RigidBody {
     readonly mass: number;
 
     readonly restitution: number;
+    readonly friction: number = 1;
 
     private readonly inverseInertiaTensor0: Matrix3;
 

@@ -79,8 +79,10 @@ export function computeFrictionImpulse(a: RigidBody, b: RigidBody, pointA: Vecto
     denominator += Vector3.Dot(tangent, a.nextInverseInertiaTensor.applyTo(ra.cross(tangent)).cross(ra));
     denominator += Vector3.Dot(tangent, b.nextInverseInertiaTensor.applyTo(rb.cross(tangent)).cross(rb));
 
+    const friction = Math.max(a.friction, b.friction);
+
     // calculate impulse scalar
-    const j = -Vector3.Dot(rv, tangent) / denominator;
+    const j = -friction * Vector3.Dot(rv, tangent) / denominator;
 
     // calculate impulse vector
     return [new Impulse(tangent.scale(-j), ra), new Impulse(tangent.scale(j), rb)];

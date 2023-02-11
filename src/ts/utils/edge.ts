@@ -1,7 +1,12 @@
 import { AbstractMesh, Matrix, Vector3 } from "@babylonjs/core";
 import { getMeshAllVerticesWorldSpace } from "./vertex";
+import { AABB } from "../aabb";
 
 export type Edge = [Vector3, Vector3];
+
+export function isEdgeInArray(edge: Edge, edges: Edge[]): boolean {
+    return edges.findIndex(edge2 => edge[0].equals(edge2[0]) && edge[1].equals(edge2[1])) !== -1;
+}
 
 export function getMeshEdgesWorldSpace(mesh: AbstractMesh, worldMatrix: Matrix): Edge[] {
     const vertices = getMeshAllVerticesWorldSpace(mesh, worldMatrix);
@@ -20,6 +25,27 @@ export function getMeshEdgesWorldSpace(mesh: AbstractMesh, worldMatrix: Matrix):
             vertices[indices[i + 2]],
             vertices[indices[i]]
         ]);
+    }
+    return edges;
+}
+
+export function getUniqueEdgesWorldSpaceInAABB(mesh: AbstractMesh, worldMatrix: Matrix, aabb: AABB): Edge[] {
+    const vertices = getMeshAllVerticesWorldSpace(mesh, worldMatrix);
+    const indices = mesh.getIndices() as number[];
+    const edges: Edge[] = [];
+    for (let i = 0; i < indices.length; i += 3) {
+        const a = vertices[indices[i]];
+        const b = vertices[indices[i + 1]];
+        const c = vertices[indices[i + 2]];
+
+        const ab: Edge = [a, b];
+        const bc: Edge = [b, c];
+        const ca: Edge = [c, a];
+
+        if (aabb.intersects(AABB.FromEdge(ab)) && !isEdgeInArray(ab, edges)) edges.push(ab);
+        if (aabb.intersects(AABB.FromEdge(bc)) && !isEdgeInArray(bc, edges)) edges.push(bc);
+        if (aabb.intersects(AABB.FromEdge(ca)) && !isEdgeInArray(ca, edges)) edges.push(ca);
+
     }
     return edges;
 }
