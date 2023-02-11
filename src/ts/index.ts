@@ -1,6 +1,7 @@
 import {
     ArcRotateCamera, DirectionalLight,
     Engine,
+    HemisphericLight,
     Scene, ShadowGenerator,
     Tools,
     Vector3
@@ -14,6 +15,7 @@ import { UniformPonctualField } from "./forceFields/uniformPonctualField";
 import { UniformDirectionalField } from "./forceFields/uniformDirectionalField";
 import { randomVector3 } from "./utils/random";
 import { Assets } from "./assets";
+import { Settings } from "./settings";
 
 const canvas = document.getElementById("renderer") as HTMLCanvasElement;
 canvas.width = window.innerWidth;
@@ -29,16 +31,19 @@ const camera = new ArcRotateCamera("camera", 0, 3.14 / 4.0, 15, Vector3.Zero(), 
 camera.attachControl();
 
 const light = new DirectionalLight("light", new Vector3(1, -1, 1), scene);
-light.position = new Vector3(0, 10, 0);
-const shadowGenerator = new ShadowGenerator(512, light);
+light.position = light.direction.negate().scaleInPlace(10);//new Vector3(0, 10, 0);
+const shadowGenerator = new ShadowGenerator(1024, light);
 shadowGenerator.usePercentageCloserFiltering = true;
+
+const ambientLight = new HemisphericLight("ambientLight", new Vector3(0, 1, 0), scene);
+ambientLight.intensity = 0.2;
 
 const physicsEngine = new AvalancheEngine();
 let isGravityUniform = true;
 const gravityUniform = new UniformDirectionalField(new Vector3(0, -9.81, 0), physicsEngine);
 const gravityPonctual = new UniformPonctualField(new Vector3(0, 3, 0), 5);
 
-const ground = RigidBodyFactory.CreateCuboid("ground", new Vector3(20, 5, 20), 0, physicsEngine, scene);
+const ground = RigidBodyFactory.CreateCuboid("ground", new Vector3(20, 1, 20), 0, physicsEngine, scene);
 ground.setInitialPosition(new Vector3(0, -10, 0));
 ground.mesh.receiveShadows = true;
 camera.target = ground.mesh.position;
@@ -63,6 +68,8 @@ shadowGenerator.addShadowCaster(octahedron.mesh);
 bunny.setInitialPosition(randomVector3(-5, 5));
 shadowGenerator.addShadowCaster(bunny.mesh);*/
 
+if (!Settings.DISPLAY_SHADOWS) shadowGenerator.dispose();
+
 // on mesh click, apply impulse
 scene.onPointerObservable.add((pointerInfo) => {
     if (pointerInfo.pickInfo!.hit) {
@@ -86,10 +93,10 @@ function updateScene() {
         cylinder.applyImpulse(new Impulse(new Vector3(0.2, 0.5, 1), new Vector3(Math.random(), Math.random(), Math.random())));
         octahedron.applyImpulse(new Impulse(new Vector3(0.7, 0.1, 0.3), new Vector3(Math.random(), Math.random(), Math.random())));
     }
-    if (I % 100 == 0 && !physicsEngine.paused) {
+    if (I % 50 == 0 && !physicsEngine.paused) {
         const newCube = RigidBodyFactory.CreateRandom("cuboid" + I, 1, 1, physicsEngine, scene);
         newCube.setInitialPosition(new Vector3(Math.random() * 10 - 5, 10, Math.random() * 10 - 5));
-        shadowGenerator.addShadowCaster(newCube.mesh);
+        if (Settings.DISPLAY_SHADOWS) shadowGenerator.addShadowCaster(newCube.mesh);
         newCube.applyImpulse(new Impulse(new Vector3(0, 1, 0), new Vector3(Math.random(), Math.random(), Math.random())));
     }
 
