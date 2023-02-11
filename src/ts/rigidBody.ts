@@ -11,7 +11,8 @@ export class RigidBody {
     readonly mesh: AbstractMesh;
     readonly mass: number;
 
-    private readonly inertiaTensor0: Matrix3;
+    readonly restitution: number;
+
     private readonly inverseInertiaTensor0: Matrix3;
 
     readonly currentState: RigidBodyState = {
@@ -43,10 +44,10 @@ export class RigidBody {
     cumulatedImpulses: Impulse[] = [];
     cumulatedForces: Force[] = [];
 
-    constructor(mesh: AbstractMesh, mass: number, inertiaTensor0: Matrix3, engine: AvalancheEngine) {
-        engine.addBody(this);
-
+    constructor(mesh: AbstractMesh, mass: number, inertiaTensor0: Matrix3, restitution: number) {
         this.mesh = mesh;
+
+        this.restitution = restitution;
 
         this.currentState.aabb.updateFromRigidBody(this);
         this.currentState.aabb.setVisible(Settings.DISPLAY_BOUNDING_BOXES);
@@ -55,7 +56,6 @@ export class RigidBody {
 
         this.mass = mass;
 
-        this.inertiaTensor0 = inertiaTensor0;
         this.inverseInertiaTensor0 = this.mass != 0 ? inertiaTensor0.inverse() : Matrix3.identity();
 
         this.currentState.inverseInertiaTensor = Matrix3.identity();

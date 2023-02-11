@@ -43,30 +43,32 @@ let isGravityUniform = true;
 const gravityUniform = new UniformDirectionalField(new Vector3(0, -9.81, 0), physicsEngine);
 const gravityPonctual = new UniformPonctualField(new Vector3(0, 3, 0), 5);
 
-const ground = RigidBodyFactory.CreateCuboid("ground", new Vector3(20, 1, 20), 0, physicsEngine, scene);
+const ground = RigidBodyFactory.CreateCuboid("ground", new Vector3(20, 1, 20), 0, 0.2, scene);
 ground.setInitialPosition(new Vector3(0, -10, 0));
 ground.mesh.receiveShadows = true;
 camera.target = ground.mesh.position;
 
-const cuboid = RigidBodyFactory.CreateCuboid("cuboid", new Vector3(1, 1, 1), 1, physicsEngine, scene);
+const cuboid = RigidBodyFactory.CreateCuboid("cuboid", new Vector3(1, 1, 1), 1, 0.7, scene);
 cuboid.setInitialPosition(randomVector3(-3, 3));
 shadowGenerator.addShadowCaster(cuboid.mesh);
 
-const dodecahedron = RigidBodyFactory.CreateDodecahedron("dodecahedron", 1, 1, physicsEngine, scene);
+const dodecahedron = RigidBodyFactory.CreateDodecahedron("dodecahedron", 1, 1, 0.7, scene);
 shadowGenerator.addShadowCaster(dodecahedron.mesh);
 dodecahedron.setInitialPosition(randomVector3(-3, 3));
 
-const cylinder = RigidBodyFactory.CreateCylinder("cylinder", 0.5, 1.5, 1, physicsEngine, scene);
+/*const cylinder = RigidBodyFactory.CreateCylinder("cylinder", 0.5, 1, 1, 0.7, scene);
 cylinder.setInitialPosition(randomVector3(-5, 5));
-shadowGenerator.addShadowCaster(cylinder.mesh);
+shadowGenerator.addShadowCaster(cylinder.mesh);*/
 
-const octahedron = RigidBodyFactory.CreateOctahedron("octahedron", 1, 1, physicsEngine, scene);
+const octahedron = RigidBodyFactory.CreateOctahedron("octahedron", 1, 1, 0.7, scene);
 octahedron.setInitialPosition(randomVector3(-5, 5));
 shadowGenerator.addShadowCaster(octahedron.mesh);
 
 /*const bunny = RigidBodyFactory.CreateStanfordBunny("bunny", 1, 10, physicsEngine, scene);
 bunny.setInitialPosition(randomVector3(-5, 5));
 shadowGenerator.addShadowCaster(bunny.mesh);*/
+
+physicsEngine.addBodies(ground, cuboid, dodecahedron, octahedron);
 
 if (!Settings.DISPLAY_SHADOWS) shadowGenerator.dispose();
 
@@ -90,12 +92,14 @@ function updateScene() {
 
     if (I == 1) {
         cuboid.applyImpulse(new Impulse(new Vector3(0, 1, 0.1), new Vector3(Math.random(), Math.random(), Math.random())));
-        cylinder.applyImpulse(new Impulse(new Vector3(0.2, 0.5, 1), new Vector3(Math.random(), Math.random(), Math.random())));
+        //cylinder.applyImpulse(new Impulse(new Vector3(0.2, 0.5, 1), new Vector3(Math.random(), Math.random(), Math.random())));
         octahedron.applyImpulse(new Impulse(new Vector3(0.7, 0.1, 0.3), new Vector3(Math.random(), Math.random(), Math.random())));
     }
     if (I % 50 == 0 && !physicsEngine.paused) {
-        const newCube = RigidBodyFactory.CreateRandom("cuboid" + I, 1, 1, physicsEngine, scene);
+        const newCube = RigidBodyFactory.CreateRandom("cuboid" + I, 1, 1, 0.7, scene);
         newCube.setInitialPosition(new Vector3(Math.random() * 10 - 5, 10, Math.random() * 10 - 5));
+        physicsEngine.addBody(newCube);
+
         if (Settings.DISPLAY_SHADOWS) shadowGenerator.addShadowCaster(newCube.mesh);
         newCube.applyImpulse(new Impulse(new Vector3(0, 1, 0), new Vector3(Math.random(), Math.random(), Math.random())));
     }
@@ -135,6 +139,8 @@ document.addEventListener("keydown", e => {
         link.href = data;
         link.click();
     });
+    if (e.key == "b") physicsEngine.toggleBoundingBoxes();
+    if (e.key == "w") physicsEngine.toggleWireframe();
 });
 
 scene.executeWhenReady(() => {

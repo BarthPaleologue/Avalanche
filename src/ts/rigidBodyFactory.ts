@@ -8,7 +8,7 @@ import { getMeshAllVerticesWorldSpace } from "./utils/vertex";
 
 export class RigidBodyFactory {
 
-    static CreateCuboid(name: string, scaling: Vector3, mass: number, engine: AvalancheEngine, scene: Scene): RigidBody {
+    static CreateCuboid(name: string, scaling: Vector3, mass: number, restitution: number, scene: Scene): RigidBody {
         const mesh = MeshBuilder.CreateBox(name, {
             width: scaling.x,
             height: scaling.y,
@@ -26,10 +26,10 @@ export class RigidBodyFactory {
             mass * (scaling.x * scaling.x + scaling.y * scaling.y) / 12
         );
 
-        return new RigidBody(mesh, mass, inertiaTensor0, engine);
+        return new RigidBody(mesh, mass, inertiaTensor0, restitution);
     }
 
-    static CreateSphere(name: string, diameter: number, mass: number, engine: AvalancheEngine, scene: Scene): RigidBody {
+    static CreateSphere(name: string, diameter: number, mass: number, restitution: number, scene: Scene): RigidBody {
         const mesh = MeshBuilder.CreateSphere(name, {
             diameter: diameter,
             segments: 2
@@ -39,17 +39,21 @@ export class RigidBodyFactory {
         material.diffuseColor = Color3.Random();
         material.wireframe = Settings.WIREFRAME;
         mesh.material = material;
-        return new RigidBody(mesh, mass, Matrix3.diag(
+
+        const inertiaTensor0 = Matrix3.diag(
             mass * diameter * diameter / 12,
             mass * diameter * diameter / 12,
             mass * diameter * diameter / 12
-        ), engine);
+        );
+
+        return new RigidBody(mesh, mass, inertiaTensor0, restitution);
     }
 
-    static CreateCylinder(name: string, radius: number, height: number, mass: number, engine: AvalancheEngine, scene: Scene): RigidBody {
+    static CreateCylinder(name: string, radius: number, height: number, mass: number, restitution: number, scene: Scene): RigidBody {
         const mesh = MeshBuilder.CreateCylinder(name, {
             diameter: radius * 2,
-            height: height
+            height: height,
+            tessellation: 6
         }, scene);
 
         const material = new StandardMaterial("wireframe");
@@ -63,10 +67,10 @@ export class RigidBodyFactory {
             mass * (radius * radius + height * height) / 12
         );
 
-        return new RigidBody(mesh, mass, inertiaTensor0, engine);
+        return new RigidBody(mesh, mass, inertiaTensor0, restitution);
     }
 
-    static CreatePlane(name: string, width: number, height: number, mass: number, engine: AvalancheEngine, scene: Scene): RigidBody {
+    static CreatePlane(name: string, width: number, height: number, mass: number, restitution: number, scene: Scene): RigidBody {
         const mesh = MeshBuilder.CreatePlane(name, {
             width: width,
             height: height,
@@ -80,7 +84,7 @@ export class RigidBodyFactory {
             mass * (height * height + width * width) / 12,
             mass * (height * height + width * width) / 12,
             mass * (height * height + width * width) / 12
-        ), engine);
+        ), restitution);
     }
 
     /**
@@ -92,7 +96,7 @@ export class RigidBodyFactory {
      * @param scene 
      * @returns 
      */
-    static CreateOctahedron(name: string, radius: number, mass: number, engine: AvalancheEngine, scene: Scene): RigidBody {
+    static CreateOctahedron(name: string, radius: number, mass: number, restitution: number, scene: Scene): RigidBody {
         const mesh = MeshBuilder.CreatePolyhedron(name, {
             type: 1,
             size: radius / Math.sqrt(2)
@@ -111,10 +115,10 @@ export class RigidBodyFactory {
                 mass * (radius * radius + radius * radius) / 12
             );
 
-        return new RigidBody(mesh, mass, inertiaTensor0, engine);
+        return new RigidBody(mesh, mass, inertiaTensor0, restitution);
     }
 
-    static CreateTetrahedron(name: string, radius: number, mass: number, engine: AvalancheEngine, scene: Scene): RigidBody {
+    static CreateTetrahedron(name: string, radius: number, mass: number, restitution: number, scene: Scene): RigidBody {
         const mesh = MeshBuilder.CreatePolyhedron(name, {
             type: 0,
             size: radius / Math.sqrt(2)
@@ -133,10 +137,10 @@ export class RigidBodyFactory {
                 mass * (radius * radius + radius * radius) / 12
             );
 
-        return new RigidBody(mesh, mass, inertiaTensor0, engine);
+        return new RigidBody(mesh, mass, inertiaTensor0, restitution);
     }
 
-    static CreateIcosahedron(name: string, radius: number, mass: number, engine: AvalancheEngine, scene: Scene): RigidBody {
+    static CreateIcosahedron(name: string, radius: number, mass: number, restitution: number, scene: Scene): RigidBody {
         const mesh = MeshBuilder.CreatePolyhedron(name, {
             type: 2,
             size: radius / Math.sqrt(2)
@@ -155,10 +159,10 @@ export class RigidBodyFactory {
                 mass * (radius * radius + radius * radius) / 12
             );
 
-        return new RigidBody(mesh, mass, inertiaTensor0, engine);
+        return new RigidBody(mesh, mass, inertiaTensor0, restitution);
     }
 
-    static CreateDodecahedron(name: string, radius: number, mass: number, engine: AvalancheEngine, scene: Scene): RigidBody {
+    static CreateDodecahedron(name: string, radius: number, mass: number, restitution: number, scene: Scene): RigidBody {
         const mesh = MeshBuilder.CreatePolyhedron(name, {
             type: 3,
             size: radius / Math.sqrt(2)
@@ -177,7 +181,7 @@ export class RigidBodyFactory {
                 mass * (radius * radius + radius * radius) / 12
             );
 
-        return new RigidBody(mesh, mass, inertiaTensor0, engine);
+        return new RigidBody(mesh, mass, inertiaTensor0, restitution);
     }
 
     /**
@@ -188,30 +192,30 @@ export class RigidBodyFactory {
      * @param engine 
      * @param scene 
      */
-    static CreateRandom(name: string, radius: number, mass: number, engine: AvalancheEngine, scene: Scene): RigidBody {
+    static CreateRandom(name: string, radius: number, mass: number, restitution: number, scene: Scene): RigidBody {
         const random = Math.floor(Math.random() * 8);
         switch (random) {
             case 0:
-                return this.CreateCuboid(name, Vector3.One().scaleInPlace(radius), mass, engine, scene);
+                return this.CreateCuboid(name, Vector3.One().scaleInPlace(radius), mass, restitution, scene);
             case 1:
-                return this.CreateCuboid(name, Vector3.One().scaleInPlace(radius), mass, engine, scene);
+                return this.CreateCuboid(name, Vector3.One().scaleInPlace(radius), mass, restitution, scene);
             case 2:
-                return this.CreateDodecahedron(name, radius, mass, engine, scene);
+                return this.CreateSphere(name, radius, mass, restitution, scene);
             case 3:
-                return this.CreateOctahedron(name, radius, mass, engine, scene);
+                return this.CreateOctahedron(name, radius, mass, restitution, scene);
             case 4:
-                return this.CreateOctahedron(name, radius, mass, engine, scene);
+                return this.CreateOctahedron(name, radius, mass, restitution, scene);
             case 5:
-                return this.CreateCuboid(name, Vector3.One().scaleInPlace(radius), mass, engine, scene);
+                return this.CreateSphere(name, radius, mass, restitution, scene);
             case 6:
-                return this.CreateIcosahedron(name, radius, mass, engine, scene);
+                return this.CreateIcosahedron(name, radius, mass, restitution, scene);
             case 7:
-                return this.CreateDodecahedron(name, radius, mass, engine, scene);
+                return this.CreateDodecahedron(name, radius, mass, restitution, scene);
         }
         throw new Error("Invalid random number");
     }
 
-    static CreateStanfordBunny(name: string, radius: number, mass: number, engine: AvalancheEngine, scene: Scene): RigidBody {
+    static CreateStanfordBunny(name: string, radius: number, mass: number, restitution: number): RigidBody {
 
         const bunny = Assets.Bunny.clone(name);
         bunny.isVisible = true;
@@ -224,7 +228,7 @@ export class RigidBodyFactory {
 
         const inertiaTensor0 = computeInertiaTensorFromMesh(bunny, mass);
 
-        return new RigidBody(bunny, mass, inertiaTensor0, engine);
+        return new RigidBody(bunny, mass, inertiaTensor0, restitution);
     }
 
 

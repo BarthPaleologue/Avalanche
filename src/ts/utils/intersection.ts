@@ -173,10 +173,10 @@ export function computeCollisionImpulse(a: RigidBody, b: RigidBody, pointA: Vect
     let denominator = 0;
     denominator += !a.isStatic ? 1 / a.mass : 0;
     denominator += !b.isStatic ? 1 / b.mass : 0;
-    denominator += Vector3.Dot(normal, a.nextInverseInertiaTensor.applyTo(ra.cross(normal)).cross(ra));
-    denominator += Vector3.Dot(normal, b.nextInverseInertiaTensor.applyTo(rb.cross(normal)).cross(rb));
+    denominator += !a.isStatic ? Vector3.Dot(normal, a.nextInverseInertiaTensor.applyTo(ra.cross(normal)).cross(ra)) : 0;
+    denominator += !b.isStatic ? Vector3.Dot(normal, b.nextInverseInertiaTensor.applyTo(rb.cross(normal)).cross(rb)) : 0;
     // calculate impulse scalar
-    const restitution = 0.8;
+    const restitution = a.restitution * b.restitution;
     const j = -(1 + restitution) * rv / denominator;
 
     // calculate impulse vector

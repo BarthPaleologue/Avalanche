@@ -1,6 +1,6 @@
 import { RigidBody } from "./rigidBody";
 import { ForceField } from "./forceFields/forceField";
-import { Color3, Mesh, Vector3 } from "@babylonjs/core";
+import { Color3, Mesh, StandardMaterial, Vector3 } from "@babylonjs/core";
 import { AABB } from "./aabb";
 import { computeCollisionImpulse, computeFrictionImpulse, Contact, testInterpenetration } from "./utils/intersection";
 import { displayPoint } from "./utils/display";
@@ -20,8 +20,13 @@ export class AvalancheEngine {
         //
     }
 
-    public addBody(body: RigidBody) {
+    public addBody(body: RigidBody): RigidBody {
         this.bodies.push(body);
+        return body;
+    }
+
+    public addBodies(...bodies: RigidBody[]) {
+        this.bodies.push(...bodies);
     }
 
     public removeBody(body: RigidBody) {
@@ -214,5 +219,15 @@ export class AvalancheEngine {
             bodyA.nextState.position.subtractInPlace(normal.scale(distanceA));
             bodyB.nextState.position.addInPlace(normal.scale(distanceB));
         }
+    }
+
+    public toggleBoundingBoxes() {
+        Settings.DISPLAY_BOUNDING_BOXES = !Settings.DISPLAY_BOUNDING_BOXES;
+        for (const body of this.bodies) body.currentState.aabb.setVisible(Settings.DISPLAY_BOUNDING_BOXES);
+    }
+
+    public toggleWireframe() {
+        Settings.WIREFRAME = !Settings.WIREFRAME;
+        for (const body of this.bodies) (body.mesh.material as StandardMaterial).wireframe = Settings.WIREFRAME;
     }
 }
