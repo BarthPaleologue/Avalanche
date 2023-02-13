@@ -83,11 +83,13 @@ export class AvalancheEngine {
         for (const contact of this.contacts) contact.aabbOverlap.helperMesh?.dispose();
         this.contacts = [];
 
-        // compute collisions with hash grid
+        // compute AABB collisions with hash grid
         for (const body of this.bodies) {
+            body.contactingBodies.length = 0;
             const neighbors = this.infiniteSpatialHashGrid.getNeighbors(body);
             for (const neighbor of neighbors.concat(this.staticBodies)) {
                 if (body === neighbor) continue;
+                if (body.isResting && neighbor.isResting) continue;
 
                 const overlap = body.nextState.aabb.intersectionOverlap(neighbor.nextState.aabb);
                 if (overlap) {
@@ -103,7 +105,11 @@ export class AvalancheEngine {
                             break;
                         }
                     }
-                    if (!isAlreadyInTheList) this.contacts.push(contact);
+                    if (!isAlreadyInTheList) {
+                        this.contacts.push(contact);
+                        body.contactingBodies.push(neighbor);
+                        neighbor.contactingBodies.push(body);
+                    }
                 }
             }
         }

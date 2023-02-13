@@ -31,7 +31,7 @@ export class RigidBodyFactory {
     static CreateSphere(name: string, scene: Scene, diameter = 1, mass = 1, restitution = Settings.DEFAULT_RESTITUTION, friction = Settings.DEFAULT_FRICTION): RigidBody {
         const mesh = MeshBuilder.CreateSphere(name, {
             diameter: diameter,
-            segments: 2
+            segments: 1
         }, scene);
 
         mesh.material = getRandomColorMaterial();

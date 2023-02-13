@@ -3,6 +3,7 @@ import { Matrix3 } from "./utils/matrix3";
 import { AABB } from "./aabb";
 
 export interface RigidBodyState {
+    isResting: boolean;
     position: Vector3;
     rotationQuaternion: Quaternion;
     velocity: Vector3;
@@ -21,6 +22,7 @@ export interface RigidBodyState {
  * @param b
  */
 export function copyAintoB(a: RigidBodyState, b: RigidBodyState) {
+    b.isResting = a.isResting;
     b.position.copyFrom(a.position);
     b.rotationQuaternion.copyFrom(a.rotationQuaternion);
     b.velocity.copyFrom(a.velocity);

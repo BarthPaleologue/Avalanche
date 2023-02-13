@@ -1,4 +1,4 @@
-import { Matrix, Mesh, Quaternion, Vector3 } from "@babylonjs/core";
+import { Matrix, Mesh, Quaternion, StandardMaterial, Vector3 } from "@babylonjs/core";
 import { Matrix3 } from "./utils/matrix3";
 import { Impulse } from "./utils/impulse";
 import { AABB } from "./aabb";
@@ -13,9 +13,12 @@ export class RigidBody {
     readonly restitution: number;
     readonly friction: number;
 
+    readonly contactingBodies: RigidBody[] = [];
+
     private readonly inverseInertiaTensor0: Matrix3;
 
     readonly currentState: RigidBodyState = {
+        isResting: false,
         position: Vector3.Zero(),
         rotationQuaternion: Quaternion.Identity(),
         velocity: Vector3.Zero(),
@@ -29,6 +32,7 @@ export class RigidBody {
     };
 
     readonly nextState: RigidBodyState = {
+        isResting: false,
         position: Vector3.Zero(),
         rotationQuaternion: Quaternion.Identity(),
         velocity: Vector3.Zero(),
@@ -71,6 +75,26 @@ export class RigidBody {
 
     get isStatic(): boolean {
         return this.mass == 0;
+    }
+
+    get isResting(): boolean {
+        return this.currentState.isResting;
+    }
+
+    computeResting(): boolean {
+        if (this.isStatic) return true;
+        if (this.contactingBodies.length == 0) return false;
+
+        let areAllNeighborsResting = true;
+        for (const neighbor of this.contactingBodies) {
+            if (neighbor.isStatic || neighbor.isResting) continue;
+            const relativeVelocity = this.nextState.velocity.subtract(neighbor.nextState.velocity);
+            if (relativeVelocity.length() > 0.1 || neighbor.nextState.omega.length() > 0.1) {
+                areAllNeighborsResting = false;
+                break;
+            }
+        }
+        return areAllNeighborsResting && this.nextState.velocity.length() < 0.8 && this.nextState.omega.length() < 0.8;
     }
 
     setInitialPosition(position: Vector3) {
@@ -116,6 +140,15 @@ export class RigidBody {
 
         if (this.isStatic) return;
 
+        this.nextState.isResting = this.computeResting();
+
+        if (this.isResting) {
+            (this.mesh.material as StandardMaterial).alpha = 0.5;
+            return;
+        } else {
+            (this.mesh.material as StandardMaterial).alpha = 1;
+        }
+
         for (const force of this.cumulatedForces) {
             this.nextState.momentum.addInPlace(force.vector.scale(deltaTime));
             this.nextState.angularMomentum.addInPlace(force.point.cross(force.vector).scale(deltaTime));
@@ -147,6 +180,8 @@ export class RigidBody {
         this.nextState.omega = this.nextState.inverseInertiaTensor.applyTo(this.nextState.angularMomentum);
 
         this.nextState.aabb.updateFromMesh(this.mesh, this.nextState.worldMatrix);
+
+        this.nextState.isResting = this.computeResting();
     }
 
     public applyNextStep() {
@@ -157,6 +192,8 @@ export class RigidBody {
 
         this.cumulatedImpulses = [];
         this.cumulatedForces = [];
+
+        //this.currentState.isResting = this.computeResting();
     }
 
     public getVelocityAtPoint(point: Vector3): Vector3 {
