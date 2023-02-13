@@ -32,8 +32,10 @@ camera.attachControl();
 
 const light = new DirectionalLight("light", new Vector3(1, -1, 1), scene);
 light.position = light.direction.negate().scaleInPlace(10);//new Vector3(0, 10, 0);
+
 const shadowGenerator = new ShadowGenerator(1024, light);
 shadowGenerator.usePercentageCloserFiltering = true;
+shadowGenerator.transparencyShadow = true;
 
 const ambientLight = new HemisphericLight("ambientLight", new Vector3(0, 1, 0), scene);
 ambientLight.intensity = 0.2;
@@ -71,6 +73,7 @@ scene.onPointerObservable.add((pointerInfo) => {
         const mesh = pointerInfo.pickInfo!.pickedMesh!;
         const body = physicsEngine.bodies.find(b => b.mesh == mesh);
         if (body) {
+            body.currentState.isResting = false;
             const point = pointerInfo.pickInfo!.pickedPoint!.subtract(body.positionRef).normalize();
             const direction = new Vector3(Math.random() - 0.5, Math.random(), Math.random() - 0.5).scale(1 + Math.random() * 2);
             body.applyImpulse(new Impulse(direction, point));

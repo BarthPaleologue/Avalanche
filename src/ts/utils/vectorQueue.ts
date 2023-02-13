@@ -1,5 +1,7 @@
-export class FloatQueue {
-    private readonly _queue: number[];
+import { Vector3 } from "@babylonjs/core";
+
+export class VectorQueue {
+    private readonly _queue: Vector3[];
     private _head = 0;
     private _tail = 0;
     private _size = 0;
@@ -7,7 +9,7 @@ export class FloatQueue {
 
     constructor(capacity: number) {
         this._capacity = capacity;
-        this._queue = new Array<number>(capacity);
+        this._queue = new Array<Vector3>(capacity);
     }
 
     get size(): number {
@@ -24,19 +26,19 @@ export class FloatQueue {
     }
 
     get variance() {
-        let mean = 0;
-        let mean2 = 0;
+        let mean = Vector3.Zero();
+        let mean2 = Vector3.Zero();
         for (let i = 0; i < this._size; i++) {
             const item = this._queue[(this._head + i) % this._capacity];
-            mean += item;
-            mean2 += item * item;
+            mean.addInPlace(item);
+            mean2.addInPlace(item.scale(item.lengthSquared()));
         }
-        mean /= this._size;
-        mean2 /= this._size;
-        return mean2 - mean * mean;
+        mean.scaleInPlace(1 / this._size);
+        mean2.scaleInPlace(1 / this._size);
+        return mean2.subtract(mean.scale(mean.lengthSquared()));
     }
 
-    enqueue(item: number): void {
+    enqueue(item: Vector3): void {
         this._queue[this._tail] = item;
         this._tail = (this._tail + 1) % this._capacity;
         if (this._size < this._capacity) {
@@ -46,7 +48,7 @@ export class FloatQueue {
         }
     }
 
-    dequeue(): number | undefined {
+    dequeue(): Vector3 | undefined {
         if (this._size === 0) {
             return undefined;
         }
@@ -57,7 +59,7 @@ export class FloatQueue {
         return item;
     }
 
-    peek(): number | undefined {
+    peek(): Vector3 | undefined {
         if (this._size === 0) {
             return undefined;
         }

@@ -5,7 +5,7 @@ import { AABB } from "./aabb";
 import { copyAintoB, RigidBodyState } from "./rigidBodyState";
 import { Force } from "./forceFields/force";
 import { Settings } from "./settings";
-import { FloatQueue } from "./utils/floatQueue";
+import { VectorQueue } from "./utils/vectorQueue";
 
 export class RigidBody {
     readonly mesh: Mesh;
@@ -14,8 +14,9 @@ export class RigidBody {
     readonly restitution: number;
     readonly friction: number;
 
-    readonly velocityQueue = new FloatQueue(80);
-    readonly omegaQueue = new FloatQueue(80);
+    private internalCounter = 0;
+    readonly velocityQueue = new VectorQueue(50);
+    readonly omegaQueue = new VectorQueue(50);
 
     readonly contactingBodies: RigidBody[] = [];
 
@@ -90,11 +91,11 @@ export class RigidBody {
         if (this.contactingBodies.length == 0) return false; // No contact, not resting because forces are applied
 
         // if the variance in the velocity queue is too high, we are not resting
-        if (this.velocityQueue.variance > 0.02) return false;
-        if (this.omegaQueue.variance > 0.06) return false;
+        if (this.velocityQueue.variance.length() > 0.02) return false;
+        if (this.omegaQueue.variance.length() > 0.02) return false;
 
-        const linearThreshold = 0.8;
-        const angularThreshold = 0.8;
+        const linearThreshold = 0.2;
+        const angularThreshold = 0.4;
 
         let areAllNeighborsResting = true;
         for (const neighbor of this.contactingBodies) {
@@ -154,7 +155,13 @@ export class RigidBody {
         this.nextState.isResting = this.computeResting();
 
         if (this.isResting) {
-            (this.mesh.material as StandardMaterial).alpha = Settings.DISPLAY_RESTING ? 0.5 : 1;
+            (this.mesh.material as StandardMaterial).alpha = Settings.DISPLAY_RESTING ? 0.2 : 1;
+            this.nextState.velocity = Vector3.Zero();
+            this.nextState.omega = Vector3.Zero();
+            this.nextState.momentum = Vector3.Zero();
+            this.nextState.angularMomentum = Vector3.Zero();
+            this.cumulatedImpulses = [];
+            this.cumulatedForces = [];
             return;
         } else (this.mesh.material as StandardMaterial).alpha = 1;
 
@@ -199,13 +206,15 @@ export class RigidBody {
         this.mesh.position = this.currentState.position;
         this.mesh.rotationQuaternion = this.currentState.rotationQuaternion;
 
-        this.velocityQueue.enqueue(this.currentState.velocity.length());
-        this.omegaQueue.enqueue(this.currentState.omega.length());
+        if (this.internalCounter % 100 == 0) {
+            this.velocityQueue.enqueue(this.currentState.velocity);
+            this.omegaQueue.enqueue(this.currentState.omega);
+        }
 
         this.cumulatedImpulses = [];
         this.cumulatedForces = [];
 
-        //this.currentState.isResting = this.computeResting();
+        this.internalCounter++;
     }
 
     public getVelocityAtPoint(point: Vector3): Vector3 {
