@@ -141,11 +141,19 @@ document.addEventListener("keydown", e => {
     });
     if (e.key == "b") physicsEngine.toggleBoundingBoxes();
     if (e.key == "w") physicsEngine.toggleWireframe();
-    if (e.key == "h") Settings.DISPLAY_INFINITE_SPATIAL_HASH_GRID = !Settings.DISPLAY_INFINITE_SPATIAL_HASH_GRID;
+    if (e.key == "h") {
+        Settings.DISPLAY_INFINITE_SPATIAL_HASH_GRID = !Settings.DISPLAY_INFINITE_SPATIAL_HASH_GRID;
+        physicsEngine.infiniteSpatialHashGrid.setVisible(Settings.DISPLAY_INFINITE_SPATIAL_HASH_GRID);
+    }
     if (e.key == "r") Settings.DISPLAY_RESTING = !Settings.DISPLAY_RESTING;
 });
 document.getElementById("toggleBB")!.addEventListener("click", () => physicsEngine.toggleBoundingBoxes());
 document.getElementById("toggleWireframe")!.addEventListener("click", () => physicsEngine.toggleWireframe());
+document.getElementById("toggleHashGrid")!.addEventListener("click", () => {
+    Settings.DISPLAY_INFINITE_SPATIAL_HASH_GRID = !Settings.DISPLAY_INFINITE_SPATIAL_HASH_GRID;
+    physicsEngine.infiniteSpatialHashGrid.setVisible(Settings.DISPLAY_INFINITE_SPATIAL_HASH_GRID);
+});
+document.getElementById("toggleContactPoints")!.addEventListener("click", () => Settings.DISPLAY_CONTACT_POINTS = !Settings.DISPLAY_CONTACT_POINTS);
 
 scene.executeWhenReady(() => {
     scene.registerBeforeRender(() => updateScene());

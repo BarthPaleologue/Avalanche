@@ -23,16 +23,7 @@ export class InfiniteSpatialHashGrid {
         const key = this.getGridCellKey(rigidBody.nextState.position);
         if (!this.grid.has(key)) {
             this.grid.set(key, new Set());
-            if (Settings.DISPLAY_INFINITE_SPATIAL_HASH_GRID) {
-                const mesh = MeshBuilder.CreateBox(key, { size: this.cellSize });
-                mesh.position = new Vector3(
-                    (Math.floor(rigidBody.nextState.position.x / this.cellSize) + 0.5) * this.cellSize,
-                    (Math.floor(rigidBody.nextState.position.y / this.cellSize) + 0.5) * this.cellSize,
-                    (Math.floor(rigidBody.nextState.position.z / this.cellSize) + 0.5) * this.cellSize,
-                );
-                mesh.material = getBBMaterial();
-                this.helperMeshes.push(mesh);
-            }
+            if (Settings.DISPLAY_INFINITE_SPATIAL_HASH_GRID) this.createHelperMeshAt(rigidBody.nextState.position);
         }
         (this.grid.get(key) as Set<RigidBody>).add(rigidBody);
     }
@@ -82,5 +73,29 @@ export class InfiniteSpatialHashGrid {
         for (const helperMesh of this.helperMeshes) helperMesh.dispose();
         this.helperMeshes.length = 0;
         this.grid.clear();
+    }
+
+    setVisible(visible: boolean): void {
+        if (visible) {
+            for (const cell of this.grid.values()) {
+                this.createHelperMeshAt(Array.from(cell)[0].nextState.position);
+            }
+        } else {
+            for (const helperMesh of this.helperMeshes) helperMesh.dispose();
+            this.helperMeshes.length = 0;
+        }
+    }
+
+    private createHelperMeshAt(position: Vector3): Mesh {
+        const key = this.getGridCellKey(position);
+        const mesh = MeshBuilder.CreateBox(key, { size: this.cellSize });
+        mesh.position = new Vector3(
+            (Math.floor(position.x / this.cellSize) + 0.5) * this.cellSize,
+            (Math.floor(position.y / this.cellSize) + 0.5) * this.cellSize,
+            (Math.floor(position.z / this.cellSize) + 0.5) * this.cellSize,
+        );
+        mesh.material = getBBMaterial();
+        this.helperMeshes.push(mesh);
+        return mesh;
     }
 }

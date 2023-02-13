@@ -19,7 +19,7 @@ export class AvalancheEngine {
 
     private isPaused = false;
 
-    private infiniteSpatialHashGrid: InfiniteSpatialHashGrid = new InfiniteSpatialHashGrid(2);
+    readonly infiniteSpatialHashGrid: InfiniteSpatialHashGrid = new InfiniteSpatialHashGrid(2);
 
     constructor() {
         //
