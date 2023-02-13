@@ -83,7 +83,7 @@ export class RigidBody {
     }
 
     get isResting(): boolean {
-        return this.currentState.isResting;
+        return this.nextState.isResting;
     }
 
     computeResting(): boolean {
@@ -150,8 +150,6 @@ export class RigidBody {
     public computeNextStep(deltaTime: number) {
         copyAintoB(this.currentState, this.nextState);
 
-        if (this.isStatic) return;
-
         this.nextState.isResting = this.computeResting();
 
         if (this.isResting) {
@@ -164,6 +162,8 @@ export class RigidBody {
             this.cumulatedForces = [];
             return;
         } else (this.mesh.material as StandardMaterial).alpha = 1;
+
+        if (this.isStatic) return;
 
         for (const force of this.cumulatedForces) {
             this.nextState.momentum.addInPlace(force.vector.scale(deltaTime));

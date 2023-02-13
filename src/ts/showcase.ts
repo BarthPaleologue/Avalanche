@@ -90,7 +90,7 @@ function updateScene() {
     }
     if (I % 50 == 0 && !physicsEngine.paused) {
         const newCube = RigidBodyFactory.CreateRandom("cuboid" + I, scene);
-        newCube.setInitialPosition(new Vector3(Math.random() * 10 - 5, 10, Math.random() * 10 - 5));
+        newCube.setInitialPosition(new Vector3(Math.random() * 18 - 9, 10, Math.random() * 18 - 9));
         physicsEngine.addBody(newCube);
 
         if (Settings.DISPLAY_SHADOWS) shadowGenerator.addShadowCaster(newCube.mesh);
