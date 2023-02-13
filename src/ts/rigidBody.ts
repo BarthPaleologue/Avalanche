@@ -5,6 +5,7 @@ import { AABB } from "./aabb";
 import { copyAintoB, RigidBodyState } from "./rigidBodyState";
 import { Force } from "./forceFields/force";
 import { Settings } from "./settings";
+import { FloatQueue } from "./utils/floatQueue";
 
 export class RigidBody {
     readonly mesh: Mesh;
@@ -12,6 +13,9 @@ export class RigidBody {
 
     readonly restitution: number;
     readonly friction: number;
+
+    readonly velocityQueue = new FloatQueue(80);
+    readonly omegaQueue = new FloatQueue(80);
 
     readonly contactingBodies: RigidBody[] = [];
 
@@ -82,19 +86,26 @@ export class RigidBody {
     }
 
     computeResting(): boolean {
-        if (this.isStatic) return true;
-        if (this.contactingBodies.length == 0) return false;
+        if (this.isStatic) return true; // Static bodies are always resting
+        if (this.contactingBodies.length == 0) return false; // No contact, not resting because forces are applied
+
+        // if the variance in the velocity queue is too high, we are not resting
+        if (this.velocityQueue.variance > 0.02) return false;
+        if (this.omegaQueue.variance > 0.06) return false;
+
+        const linearThreshold = 0.8;
+        const angularThreshold = 0.8;
 
         let areAllNeighborsResting = true;
         for (const neighbor of this.contactingBodies) {
             if (neighbor.isStatic || neighbor.isResting) continue;
             const relativeVelocity = this.nextState.velocity.subtract(neighbor.nextState.velocity);
-            if (relativeVelocity.length() > 0.1 || neighbor.nextState.omega.length() > 0.1) {
+            if (relativeVelocity.length() > linearThreshold || neighbor.nextState.omega.length() > angularThreshold) {
                 areAllNeighborsResting = false;
                 break;
             }
         }
-        return areAllNeighborsResting && this.nextState.velocity.length() < 0.8 && this.nextState.omega.length() < 0.8;
+        return areAllNeighborsResting && this.nextState.velocity.length() < linearThreshold && this.nextState.omega.length() < angularThreshold;
     }
 
     setInitialPosition(position: Vector3) {
@@ -143,11 +154,9 @@ export class RigidBody {
         this.nextState.isResting = this.computeResting();
 
         if (this.isResting) {
-            (this.mesh.material as StandardMaterial).alpha = 0.5;
+            (this.mesh.material as StandardMaterial).alpha = Settings.DISPLAY_RESTING ? 0.5 : 1;
             return;
-        } else {
-            (this.mesh.material as StandardMaterial).alpha = 1;
-        }
+        } else (this.mesh.material as StandardMaterial).alpha = 1;
 
         for (const force of this.cumulatedForces) {
             this.nextState.momentum.addInPlace(force.vector.scale(deltaTime));
@@ -189,6 +198,9 @@ export class RigidBody {
 
         this.mesh.position = this.currentState.position;
         this.mesh.rotationQuaternion = this.currentState.rotationQuaternion;
+
+        this.velocityQueue.enqueue(this.currentState.velocity.length());
+        this.omegaQueue.enqueue(this.currentState.omega.length());
 
         this.cumulatedImpulses = [];
         this.cumulatedForces = [];

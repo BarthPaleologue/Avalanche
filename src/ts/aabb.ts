@@ -122,8 +122,8 @@ export class AABB {
         [this.min, this.max] = AABB.getMinMax(mesh, worldMatrix);
 
         // add a small offset to the min and max (Epsilon)
-        this.min.subtractInPlace(Vector3.One().scaleInPlace(10 * Settings.EPSILON));
-        this.max.addInPlace(Vector3.One().scaleInPlace(10 * Settings.EPSILON));
+        this.min.subtractInPlace(Vector3.One().scaleInPlace(7 * Settings.EPSILON));
+        this.max.addInPlace(Vector3.One().scaleInPlace(7 * Settings.EPSILON));
 
         if (this.helperMesh) {
             this.helperMesh.position = this.max.add(this.min).scaleInPlace(0.5);
