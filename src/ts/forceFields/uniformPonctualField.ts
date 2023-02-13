@@ -15,6 +15,8 @@ export class UniformPonctualField implements ForceField {
     }
 
     computeForce(body: RigidBody): Force {
-        return new Force(this.point.subtract(body.positionRef).normalize().scale(this.strength));
+        const d = this.point.subtract(body.positionRef).length();
+        const dir = this.point.subtract(body.positionRef).scaleInPlace(1 / d);
+        return new Force(dir.scale(this.strength / d ** 2));
     }
 }

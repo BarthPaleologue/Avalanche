@@ -11,8 +11,7 @@ import "../styles/index.scss";
 import { AvalancheEngine } from "./engine";
 import { RigidBodyFactory } from "./rigidBodyFactory";
 import { UniformPonctualField } from "./forceFields/uniformPonctualField";
-import { UniformDirectionalField } from "./forceFields/uniformDirectionalField";
-import { randomVector3 } from "./utils/random";
+import { randomSphere, randomVector3 } from "./utils/random";
 import { Assets } from "./assets";
 import { Settings } from "./settings";
 import { Impulse } from "./utils/impulse";
@@ -39,7 +38,7 @@ const ambientLight = new HemisphericLight("ambientLight", new Vector3(0, 1, 0), 
 ambientLight.intensity = 0.2;
 
 const physicsEngine = new AvalancheEngine();
-const gravityPonctual = new UniformPonctualField(new Vector3(0, -10, 0), 5, physicsEngine);
+const gravityPonctual = new UniformPonctualField(new Vector3(0, -10, 0), 100, physicsEngine);
 
 const ground = RigidBodyFactory.CreateSphere("ground", scene, 10, 0, 0.1);
 ground.setInitialPosition(new Vector3(0, -10, 0));
@@ -84,11 +83,11 @@ function updateScene() {
     }
     if (I % 50 == 0 && !physicsEngine.paused) {
         const newCube = RigidBodyFactory.CreateRandom("cuboid" + I, scene);
-        newCube.setInitialPosition(new Vector3(Math.random() * 10 - 5, 10, Math.random() * 10 - 5));
+        newCube.setInitialPosition(randomSphere(8, 12));
         physicsEngine.addBody(newCube);
 
         if (Settings.DISPLAY_SHADOWS) shadowGenerator.addShadowCaster(newCube.mesh);
-        newCube.applyImpulse(new Impulse(new Vector3(0, 1, 0), new Vector3(Math.random(), Math.random(), Math.random())));
+        newCube.applyImpulse(new Impulse(new Vector3(Math.random() - 0.5, Math.random() - 0.5, Math.random() - 0.5).scale(2), new Vector3(Math.random(), Math.random(), Math.random())));
     }
 
     for (const body of physicsEngine.bodies) {
