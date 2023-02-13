@@ -144,6 +144,8 @@ document.addEventListener("keydown", e => {
     if (e.key == "h") Settings.DISPLAY_INFINITE_SPATIAL_HASH_GRID = !Settings.DISPLAY_INFINITE_SPATIAL_HASH_GRID;
     if (e.key == "r") Settings.DISPLAY_RESTING = !Settings.DISPLAY_RESTING;
 });
+document.getElementById("toggleBB")!.addEventListener("click", () => physicsEngine.toggleBoundingBoxes());
+document.getElementById("toggleWireframe")!.addEventListener("click", () => physicsEngine.toggleWireframe());
 
 scene.executeWhenReady(() => {
     scene.registerBeforeRender(() => updateScene());

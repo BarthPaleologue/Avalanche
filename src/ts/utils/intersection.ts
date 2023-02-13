@@ -1,9 +1,7 @@
-import { Color3, Vector3 } from "@babylonjs/core";
+import { Vector3 } from "@babylonjs/core";
 import { RigidBody } from "../rigidBody";
 import { AABB } from "../aabb";
 import { vertexToFacePenetration } from "./vertexToFace";
-import { findEdgeCollisions } from "./edgeToEdge";
-import { displayPoint, displayRay } from "./display";
 
 export type Contact = {
     a: RigidBody, b: RigidBody,

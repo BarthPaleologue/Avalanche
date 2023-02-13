@@ -50,7 +50,7 @@ export function vertexToFacePenetration(bodyA: RigidBody, bodyB: RigidBody, over
         const rayLength = point.subtract(rayOrigin).length();
 
         for (const triangle of trianglesB) {
-            /*const rayDirection2 = reverse ? getTriangleNormal(triangle) : getTriangleNormal(triangle).negate();
+            /*const rayDirection2 = getTriangleNormal(triangle);
             const intersectDistance2 = intersectRayTriangle(point, rayDirection2, triangle);
             if (intersectDistance2 == null || intersectDistance2 <= -rayLength) continue;
 

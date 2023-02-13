@@ -1,4 +1,5 @@
 import { AssetsManager, Color3, Mesh, MeshAssetTask, Scene, StandardMaterial, Texture, TextureAssetTask } from "@babylonjs/core";
+import "@babylonjs/loaders";
 
 import heightmap from "../assets/heightMap.png";
 import bunny from "../assets/simplify_bunny4.obj";

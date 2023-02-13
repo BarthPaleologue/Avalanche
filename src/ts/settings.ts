@@ -3,7 +3,7 @@ export const Settings = {
     DISPLAY_CONTACT_POINTS: false,
     DISPLAY_SHADOWS: true,
     DISPLAY_INFINITE_SPATIAL_HASH_GRID: false,
-    DISPLAY_RESTING: true,
+    DISPLAY_RESTING: false,
     WIREFRAME: false,
     USE_DYNAMIC_INERTIA_TENSOR: true,
     MAX_DEPTH: 7,
