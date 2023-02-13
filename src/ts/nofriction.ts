@@ -132,6 +132,7 @@ document.addEventListener("keydown", e => {
     });
     if (e.key == "b") physicsEngine.toggleBoundingBoxes();
     if (e.key == "w") physicsEngine.toggleWireframe();
+    if (e.key == "h") Settings.DISPLAY_INFINITE_SPATIAL_HASH_GRID = !Settings.DISPLAY_INFINITE_SPATIAL_HASH_GRID;
 });
 
 scene.executeWhenReady(() => {

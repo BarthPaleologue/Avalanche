@@ -10,6 +10,7 @@ import { RigidBody } from "./rigidBody";
 import { Settings } from "./settings";
 import { Triangle } from "./utils/triangle";
 import { Edge } from "./utils/edge";
+import { getBBMaterial } from "./utils/materials";
 
 export class AABB {
     min: Vector3;
@@ -62,13 +63,7 @@ export class AABB {
         box.scaling = max.subtract(min);
         box.position = max.add(min).scaleInPlace(0.5);
 
-        const boxMaterial = new StandardMaterial("aabb");
-        boxMaterial.wireframe = true;
-        boxMaterial.emissiveColor = color;
-        boxMaterial.disableLighting = true;
-        boxMaterial.alpha = 0.2;
-
-        box.material = boxMaterial;
+        box.material = getBBMaterial(color);
 
         return box;
     }

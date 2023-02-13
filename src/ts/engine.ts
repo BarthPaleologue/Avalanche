@@ -5,9 +5,12 @@ import { Contact, testInterpenetration } from "./utils/intersection";
 import { displayPoint } from "./utils/display";
 import { Settings } from "./settings";
 import { computeCollisionImpulse, computeFrictionImpulse } from "./utils/impulse";
+import { InfiniteSpatialHashGrid } from "./utils/infiniteSpatialHashGrid";
 
 export class AvalancheEngine {
     readonly bodies: RigidBody[] = [];
+    readonly staticBodies: RigidBody[] = [];
+
     private readonly fields: ForceField[] = [];
 
     private contacts: Contact[] = [];
@@ -16,17 +19,20 @@ export class AvalancheEngine {
 
     private isPaused = false;
 
+    private infiniteSpatialHashGrid: InfiniteSpatialHashGrid = new InfiniteSpatialHashGrid(2);
+
     constructor() {
         //
     }
 
     public addBody(body: RigidBody): RigidBody {
         this.bodies.push(body);
+        if (body.isStatic) this.staticBodies.push(body);
         return body;
     }
 
     public addBodies(...bodies: RigidBody[]) {
-        this.bodies.push(...bodies);
+        for (const body of bodies) this.addBody(body);
     }
 
     public removeBody(body: RigidBody) {
@@ -44,11 +50,6 @@ export class AvalancheEngine {
         if (index > -1) this.fields.splice(index, 1);
         else throw new Error("Field not found");
     }
-
-    /*private buildBoundingVolumeHierarchy() {
-        // creates a tree of bodies that are close to each other
-        // bottom up
-    }*/
 
     public togglePause() {
         this.isPaused = !this.isPaused;
@@ -74,26 +75,30 @@ export class AvalancheEngine {
         // We will use the computed position to compute the collisions
         for (const body of this.bodies) body.computeNextStep(deltaTime);
 
+        this.infiniteSpatialHashGrid.clear();
+        this.infiniteSpatialHashGrid.build(this.bodies);
+
         //// BROAD PHASE
 
         for (const contact of this.contacts) contact.aabbOverlap.helperMesh?.dispose();
         this.contacts = [];
 
-        // compute collisions O(n²) broad phase
+        // compute collisions with hash grid
         for (const body of this.bodies) {
-            for (const otherBody of this.bodies) {
-                if (body === otherBody) continue;
+            const neighbors = this.infiniteSpatialHashGrid.getNeighbors(body);
+            for (const neighbor of neighbors.concat(this.staticBodies)) {
+                if (body === neighbor) continue;
 
-                const overlap = body.nextState.aabb.intersectionOverlap(otherBody.nextState.aabb);
+                const overlap = body.nextState.aabb.intersectionOverlap(neighbor.nextState.aabb);
                 if (overlap) {
                     const contact: Contact = {
-                        a: body, b: otherBody,
+                        a: body, b: neighbor,
                         aabbOverlap: overlap
                     };
                     let isAlreadyInTheList = false;
                     for (const contact of this.contacts) {
-                        if ((contact.a == body && contact.b == otherBody)
-                            || (contact.a == otherBody && contact.b == body)) {
+                        if ((contact.a == body && contact.b == neighbor)
+                            || (contact.a == neighbor && contact.b == body)) {
                             isAlreadyInTheList = true;
                             break;
                         }

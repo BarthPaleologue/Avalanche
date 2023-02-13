@@ -6,20 +6,18 @@ import { Assets } from "./assets";
 import { getMeshAllVerticesWorldSpace } from "./utils/vertex";
 
 import heightmap from "../assets/heightMap.png";
+import { getRandomColorMaterial } from "./utils/materials";
 
 export class RigidBodyFactory {
 
-    static CreateCuboid(name: string, scene: Scene, scaling = Vector3.One(), mass = 1, restitution = 0.7, friction = 0.9): RigidBody {
+    static CreateCuboid(name: string, scene: Scene, scaling = Vector3.One(), mass = 1, restitution = Settings.DEFAULT_RESTITUTION, friction = Settings.DEFAULT_FRICTION): RigidBody {
         const mesh = MeshBuilder.CreateBox(name, {
             width: scaling.x,
             height: scaling.y,
             depth: scaling.z
         }, scene);
 
-        const material = new StandardMaterial("wireframe");
-        material.diffuseColor = Color3.Random();
-        material.wireframe = Settings.WIREFRAME;
-        mesh.material = material;
+        mesh.material = getRandomColorMaterial();
 
         const inertiaTensor0 = Matrix3.diag(
             mass * (scaling.y * scaling.y + scaling.z * scaling.z) / 12,
@@ -30,16 +28,13 @@ export class RigidBodyFactory {
         return new RigidBody(mesh, mass, inertiaTensor0, restitution, friction);
     }
 
-    static CreateSphere(name: string, scene: Scene, diameter = 1, mass = 1, restitution = 0.7, friction = 0.9): RigidBody {
+    static CreateSphere(name: string, scene: Scene, diameter = 1, mass = 1, restitution = Settings.DEFAULT_RESTITUTION, friction = Settings.DEFAULT_FRICTION): RigidBody {
         const mesh = MeshBuilder.CreateSphere(name, {
             diameter: diameter,
             segments: 2
         }, scene);
 
-        const material = new StandardMaterial("wireframe");
-        material.diffuseColor = Color3.Random();
-        material.wireframe = Settings.WIREFRAME;
-        mesh.material = material;
+        mesh.material = getRandomColorMaterial();
 
         const inertiaTensor0 = Matrix3.diag(
             mass * diameter * diameter / 12,
@@ -50,17 +45,14 @@ export class RigidBodyFactory {
         return new RigidBody(mesh, mass, inertiaTensor0, restitution, friction);
     }
 
-    static CreateCylinder(name: string, scene: Scene, radius = 0.5, height = 1.5, mass = 1, restitution = 0.7, friction = 0.9): RigidBody {
+    static CreateCylinder(name: string, scene: Scene, radius = 0.5, height = 1.5, mass = 1, restitution = Settings.DEFAULT_RESTITUTION, friction = Settings.DEFAULT_FRICTION): RigidBody {
         const mesh = MeshBuilder.CreateCylinder(name, {
             diameter: radius * 2,
             height: height,
             tessellation: 6
         }, scene);
 
-        const material = new StandardMaterial("wireframe");
-        material.diffuseColor = Color3.Random();
-        material.wireframe = Settings.WIREFRAME;
-        mesh.material = material;
+        mesh.material = getRandomColorMaterial();
 
         const inertiaTensor0 = Matrix3.diag(
             mass * (radius * radius + height * height) / 12,
@@ -71,16 +63,14 @@ export class RigidBodyFactory {
         return new RigidBody(mesh, mass, inertiaTensor0, restitution, friction);
     }
 
-    static CreatePlane(name: string, scene: Scene, width = 1, height = 1, mass = 1, restitution = 0.7, friction = 0.9): RigidBody {
+    static CreatePlane(name: string, scene: Scene, width = 1, height = 1, mass = 1, restitution = Settings.DEFAULT_RESTITUTION, friction = Settings.DEFAULT_FRICTION): RigidBody {
         const mesh = MeshBuilder.CreatePlane(name, {
             width: width,
             height: height,
         }, scene);
 
-        const material = new StandardMaterial("wireframe");
-        material.diffuseColor = Color3.Random();
-        material.wireframe = Settings.WIREFRAME;
-        mesh.material = material;
+        mesh.material = getRandomColorMaterial();
+
         return new RigidBody(mesh, mass, Matrix3.diag(
             mass * (height * height + width * width) / 12,
             mass * (height * height + width * width) / 12,
@@ -88,7 +78,7 @@ export class RigidBodyFactory {
         ), restitution, friction);
     }
 
-    static CreateGroundFromHeightMap(name: string, scene: Scene, width = 1, height = 1, subdivisions = 16, mass = 1, restitution = 0.7, friction = 0.9): RigidBody {
+    static CreateGroundFromHeightMap(name: string, scene: Scene, width = 1, height = 1, subdivisions = 16, mass = 1, restitution = Settings.DEFAULT_RESTITUTION, friction = Settings.DEFAULT_FRICTION): RigidBody {
         const mesh = MeshBuilder.CreateGroundFromHeightMap(name, heightmap, {
             width: width,
             height: height,
@@ -97,11 +87,7 @@ export class RigidBodyFactory {
             maxHeight: 8,
         }, scene);
 
-        const material = new StandardMaterial("wireframe");
-        material.diffuseColor = Color3.Random();
-        material.wireframe = Settings.WIREFRAME;
-        material.backFaceCulling = false;
-        mesh.material = material;
+        mesh.material = getRandomColorMaterial();
 
         return new RigidBody(mesh, mass, Matrix3.diag(
             mass * (height * height + width * width) / 12,
@@ -110,7 +96,7 @@ export class RigidBodyFactory {
         ), restitution, friction);
     }
 
-    static CreateWavyCarpet(name: string, scene: Scene, width = 1, height = 1, subdivisions = 16, mass = 1, restitution = 0.7, friction = 0.9): RigidBody {
+    static CreateWavyCarpet(name: string, scene: Scene, width = 1, height = 1, subdivisions = 16, mass = 1, restitution = Settings.DEFAULT_RESTITUTION, friction = Settings.DEFAULT_FRICTION): RigidBody {
         // create a plane that moves up and down like a wavy carpet
         const mesh = MeshBuilder.CreateGround(name, {
             width: width,
@@ -118,11 +104,7 @@ export class RigidBodyFactory {
             subdivisions: subdivisions,
         }, scene);
 
-        const material = new StandardMaterial("wireframe");
-        material.diffuseColor = Color3.Random();
-        material.wireframe = Settings.WIREFRAME;
-        material.backFaceCulling = false;
-        mesh.material = material;
+        mesh.material = getRandomColorMaterial();
 
         const body = new RigidBody(mesh, mass, Matrix3.diag(
             mass * (height * height + width * width) / 12,
@@ -155,16 +137,13 @@ export class RigidBodyFactory {
      * @param scene 
      * @returns 
      */
-    static CreateOctahedron(name: string, scene: Scene, radius = 1, mass = 1, restitution = 0.7, friction = 0.9): RigidBody {
+    static CreateOctahedron(name: string, scene: Scene, radius = 1, mass = 1, restitution = Settings.DEFAULT_RESTITUTION, friction = Settings.DEFAULT_FRICTION): RigidBody {
         const mesh = MeshBuilder.CreatePolyhedron(name, {
             type: 1,
             size: radius / Math.sqrt(2)
         }, scene);
 
-        const material = new StandardMaterial("wireframe");
-        material.diffuseColor = Color3.Random();
-        material.wireframe = Settings.WIREFRAME;
-        mesh.material = material;
+        mesh.material = getRandomColorMaterial();
 
         const inertiaTensor0 = Settings.USE_DYNAMIC_INERTIA_TENSOR ?
             computeInertiaTensorFromMesh(mesh, mass) :
@@ -177,16 +156,13 @@ export class RigidBodyFactory {
         return new RigidBody(mesh, mass, inertiaTensor0, restitution, friction);
     }
 
-    static CreateTetrahedron(name: string, scene: Scene, radius = 1, mass = 1, restitution = 0.7, friction = 0.9): RigidBody {
+    static CreateTetrahedron(name: string, scene: Scene, radius = 1, mass = 1, restitution = Settings.DEFAULT_RESTITUTION, friction = Settings.DEFAULT_FRICTION): RigidBody {
         const mesh = MeshBuilder.CreatePolyhedron(name, {
             type: 0,
             size: radius / Math.sqrt(2)
         }, scene);
 
-        const material = new StandardMaterial("wireframe");
-        material.diffuseColor = Color3.Random();
-        material.wireframe = Settings.WIREFRAME;
-        mesh.material = material;
+        mesh.material = getRandomColorMaterial();
 
         const inertiaTensor0 = Settings.USE_DYNAMIC_INERTIA_TENSOR ?
             computeInertiaTensorFromMesh(mesh, mass) :
@@ -199,16 +175,13 @@ export class RigidBodyFactory {
         return new RigidBody(mesh, mass, inertiaTensor0, restitution, friction);
     }
 
-    static CreateIcosahedron(name: string, scene: Scene, radius = 1, mass = 1, restitution = 0.7, friction = 0.9): RigidBody {
+    static CreateIcosahedron(name: string, scene: Scene, radius = 1, mass = 1, restitution = Settings.DEFAULT_RESTITUTION, friction = Settings.DEFAULT_FRICTION): RigidBody {
         const mesh = MeshBuilder.CreatePolyhedron(name, {
             type: 2,
             size: radius / Math.sqrt(2)
         }, scene);
 
-        const material = new StandardMaterial("wireframe");
-        material.diffuseColor = Color3.Random();
-        material.wireframe = Settings.WIREFRAME;
-        mesh.material = material;
+        mesh.material = getRandomColorMaterial();
 
         const inertiaTensor0 = Settings.USE_DYNAMIC_INERTIA_TENSOR ?
             computeInertiaTensorFromMesh(mesh, mass) :
@@ -221,16 +194,13 @@ export class RigidBodyFactory {
         return new RigidBody(mesh, mass, inertiaTensor0, restitution, friction);
     }
 
-    static CreateDodecahedron(name: string, scene: Scene, radius = 1, mass = 1, restitution = 0.7, friction = 0.9): RigidBody {
+    static CreateDodecahedron(name: string, scene: Scene, radius = 1, mass = 1, restitution = Settings.DEFAULT_RESTITUTION, friction = Settings.DEFAULT_FRICTION): RigidBody {
         const mesh = MeshBuilder.CreatePolyhedron(name, {
             type: 3,
             size: radius / Math.sqrt(2)
         }, scene);
 
-        const material = new StandardMaterial("wireframe");
-        material.diffuseColor = Color3.Random();
-        material.wireframe = Settings.WIREFRAME;
-        mesh.material = material;
+        mesh.material = getRandomColorMaterial();
 
         const inertiaTensor0 = Settings.USE_DYNAMIC_INERTIA_TENSOR ?
             computeInertiaTensorFromMesh(mesh, mass) :
@@ -251,7 +221,7 @@ export class RigidBodyFactory {
      * @param engine 
      * @param scene 
      */
-    static CreateRandom(name: string, scene: Scene, radius = 1, mass = 1, restitution = 0.7, friction = 0.9): RigidBody {
+    static CreateRandom(name: string, scene: Scene, radius = 1, mass = 1, restitution = Settings.DEFAULT_RESTITUTION, friction = Settings.DEFAULT_FRICTION): RigidBody {
         const random = Math.floor(Math.random() * 8);
         switch (random) {
             case 0:
@@ -282,10 +252,7 @@ export class RigidBodyFactory {
         bunny.isVisible = true;
         bunny.scaling = new Vector3(radius, radius, radius);
 
-        const material = new StandardMaterial("wireframe");
-        material.diffuseColor = Color3.Random();
-        material.wireframe = Settings.WIREFRAME;
-        bunny.material = material;
+        bunny.material = getRandomColorMaterial();
 
         const inertiaTensor0 = computeInertiaTensorFromMesh(bunny, mass);
 

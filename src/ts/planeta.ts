@@ -81,7 +81,7 @@ function updateScene() {
         cuboid.applyImpulse(new Impulse(new Vector3(0, 1, 0.1), new Vector3(Math.random(), Math.random(), Math.random())));
         octahedron.applyImpulse(new Impulse(new Vector3(0.7, 0.1, 0.3), new Vector3(Math.random(), Math.random(), Math.random())));
     }
-    if (I % 50 == 0 && !physicsEngine.paused) {
+    if (I % 200 == 0 && !physicsEngine.paused) {
         const newCube = RigidBodyFactory.CreateRandom("cuboid" + I, scene);
         newCube.setInitialPosition(randomSphere(8, 12));
         physicsEngine.addBody(newCube);
@@ -119,6 +119,7 @@ document.addEventListener("keydown", e => {
     });
     if (e.key == "b") physicsEngine.toggleBoundingBoxes();
     if (e.key == "w") physicsEngine.toggleWireframe();
+    if (e.key == "h") Settings.DISPLAY_INFINITE_SPATIAL_HASH_GRID = !Settings.DISPLAY_INFINITE_SPATIAL_HASH_GRID;
 });
 
 scene.executeWhenReady(() => {
