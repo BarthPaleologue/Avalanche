@@ -1,1 +1,1 @@
-*,*::before,*::after{box-sizing:content-box}body{margin:0;overflow:hidden;user-select:none;background:#000}body #renderer{z-index:1;float:left}
+*,*::before,*::after{box-sizing:content-box}body{margin:0;overflow:hidden;user-select:none;background:#000}body #renderer{z-index:1;float:left}body #ui{position:absolute;top:0;left:0;width:100px;padding:10px 20px;background:rgba(0,0,0,.7);color:#fff}
