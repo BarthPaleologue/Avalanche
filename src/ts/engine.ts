@@ -59,6 +59,10 @@ export class AvalancheEngine {
         return this.isPaused;
     }
 
+    get nbContacts() {
+        return this.contacts.length;
+    }
+
     public update(deltaTime: number) {
         if (this.isPaused) return;
 

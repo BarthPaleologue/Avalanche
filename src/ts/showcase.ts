@@ -111,6 +111,11 @@ function updateScene() {
         }
     }
 
+    document.getElementById("fps")!.innerText = engine.getFps().toFixed(2) + "FPS";
+    document.getElementById("nbBodies")!.innerText = physicsEngine.bodies.length + " Bodies";
+    document.getElementById("nbRestings")!.innerText = physicsEngine.bodies.filter(b => b.currentState.isResting).length + " Resting";
+    document.getElementById("nbContacts")!.innerText = physicsEngine.nbContacts + " Contacts";
+
     const deltaTime = Math.min(engine.getDeltaTime() / 1000, 0.017 * 2);
     physicsEngine.update(deltaTime);
     I++;

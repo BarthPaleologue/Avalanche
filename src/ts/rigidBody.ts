@@ -94,19 +94,19 @@ export class RigidBody {
         if (this.velocityQueue.variance.length() > 0.02) return false;
         if (this.omegaQueue.variance.length() > 0.02) return false;
 
-        const linearThreshold = 0.2;
+        const linearThreshold = 0.4;
         const angularThreshold = 0.4;
 
         let areAllNeighborsResting = true;
         for (const neighbor of this.contactingBodies) {
-            if (neighbor.isStatic || neighbor.isResting) continue;
-            const relativeVelocity = this.nextState.velocity.subtract(neighbor.nextState.velocity);
-            if (relativeVelocity.length() > linearThreshold || neighbor.nextState.omega.length() > angularThreshold) {
+            if (neighbor.isStatic || neighbor.currentState.isResting || neighbor.nextState.isResting) continue;
+            const relativeVelocity = this.currentState.velocity.subtract(neighbor.currentState.velocity);
+            if (relativeVelocity.length() > linearThreshold || neighbor.currentState.omega.length() > angularThreshold) {
                 areAllNeighborsResting = false;
                 break;
             }
         }
-        return areAllNeighborsResting && this.nextState.velocity.length() < linearThreshold && this.nextState.omega.length() < angularThreshold;
+        return areAllNeighborsResting && this.currentState.velocity.length() < linearThreshold && this.currentState.omega.length() < angularThreshold;
     }
 
     setInitialPosition(position: Vector3) {
@@ -154,10 +154,6 @@ export class RigidBody {
 
         if (this.isResting) {
             (this.mesh.material as StandardMaterial).alpha = Settings.DISPLAY_RESTING ? 0.2 : 1;
-            this.nextState.velocity = Vector3.Zero();
-            this.nextState.omega = Vector3.Zero();
-            this.nextState.momentum = Vector3.Zero();
-            this.nextState.angularMomentum = Vector3.Zero();
             this.cumulatedImpulses = [];
             this.cumulatedForces = [];
             return;
@@ -206,7 +202,7 @@ export class RigidBody {
         this.mesh.position = this.currentState.position;
         this.mesh.rotationQuaternion = this.currentState.rotationQuaternion;
 
-        if (this.internalCounter % 100 == 0) {
+        if (this.internalCounter % 100 == 0 && !this.isResting) {
             this.velocityQueue.enqueue(this.currentState.velocity);
             this.omegaQueue.enqueue(this.currentState.omega);
         }
