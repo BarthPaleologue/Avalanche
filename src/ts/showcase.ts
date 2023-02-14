@@ -41,12 +41,9 @@ const ambientLight = new HemisphericLight("ambientLight", new Vector3(0, 1, 0), 
 ambientLight.intensity = 0.2;
 
 const physicsEngine = new AvalancheEngine();
-let isGravityUniform = true;
 const gravityUniform = new UniformDirectionalField(new Vector3(0, -9.81, 0), physicsEngine);
-const gravityPonctual = new UniformPonctualField(new Vector3(0, 3, 0), 5);
 
 const ground = RigidBodyFactory.CreateCuboid("ground", scene, new Vector3(20, 1, 20), 0, 0.1);
-//const ground = RigidBodyFactory.CreateGroundFromHeightMap("ground", scene, 20, 20, 8, 0, 0.1);
 ground.setInitialPosition(new Vector3(0, -10, 0));
 ground.mesh.receiveShadows = true;
 camera.target = ground.mesh.position;
@@ -124,16 +121,6 @@ function updateScene() {
 
 // use zqsd to move the target of the camera
 document.addEventListener("keydown", e => {
-    if (e.key == "g") {
-        isGravityUniform = !isGravityUniform;
-        if (!isGravityUniform) {
-            physicsEngine.removeField(gravityUniform);
-            physicsEngine.addField(gravityPonctual);
-        } else {
-            physicsEngine.removeField(gravityPonctual);
-            physicsEngine.addField(gravityUniform);
-        }
-    }
     if (e.key == "p") Tools.CreateScreenshotAsync(engine, camera, { precision: 2 }).then((data) => {
         const link = document.createElement("a");
         link.download = "screenshot.png";

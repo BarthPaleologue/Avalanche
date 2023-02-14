@@ -70,6 +70,8 @@ scene.onPointerObservable.add((pointerInfo) => {
         const mesh = pointerInfo.pickInfo!.pickedMesh!;
         const body = physicsEngine.bodies.find(b => b.mesh == mesh);
         if (body) {
+            body.currentState.isResting = false;
+            body.nextState.isResting = false;
             const point = pointerInfo.pickInfo!.pickedPoint!.subtract(body.positionRef).normalize();
             const direction = new Vector3(Math.random() - 0.5, Math.random(), Math.random() - 0.5).scale(1 + Math.random() * 2);
             body.applyImpulse(new Impulse(direction, point));
@@ -145,6 +147,7 @@ document.addEventListener("keydown", e => {
 });
 document.getElementById("toggleBB")!.addEventListener("click", () => physicsEngine.toggleBoundingBoxes());
 document.getElementById("toggleWireframe")!.addEventListener("click", () => physicsEngine.toggleWireframe());
+document.getElementById("toggleResting")!.addEventListener("click", () => physicsEngine.toggleResting());
 document.getElementById("toggleHashGrid")!.addEventListener("click", () => {
     Settings.DISPLAY_INFINITE_SPATIAL_HASH_GRID = !Settings.DISPLAY_INFINITE_SPATIAL_HASH_GRID;
     physicsEngine.infiniteSpatialHashGrid.setVisible(Settings.DISPLAY_INFINITE_SPATIAL_HASH_GRID);

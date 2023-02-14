@@ -95,8 +95,8 @@ export class RigidBody {
         if (this.velocityQueue.variance.length() > 1e-18) return false;
         if (this.omegaQueue.variance.length() > 1e-18) return false;
 
-        const linearThreshold = 1.0;
-        const angularThreshold = 1.0;
+        const linearThreshold = 0.4;
+        const angularThreshold = 0.4;
 
         for (const neighbor of this.contactingBodies) {
             if (neighbor.isStatic || neighbor.currentState.isResting || neighbor.nextState.isResting) continue;
