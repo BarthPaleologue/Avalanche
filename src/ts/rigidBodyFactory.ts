@@ -45,6 +45,23 @@ export class RigidBodyFactory {
         return new RigidBody(mesh, mass, inertiaTensor0, restitution, friction);
     }
 
+    static CreateIcoSphere(name: string, scene: Scene, diameter = 1, mass = 1, restitution = Settings.DEFAULT_RESTITUTION, friction = Settings.DEFAULT_FRICTION): RigidBody {
+        const mesh = MeshBuilder.CreateIcoSphere(name, {
+            radius: diameter / 2,
+            subdivisions: 2
+        }, scene);
+
+        mesh.material = getRandomColorMaterial();
+
+        const inertiaTensor0 = Matrix3.diag(
+            mass * diameter * diameter / 12,
+            mass * diameter * diameter / 12,
+            mass * diameter * diameter / 12
+        );
+
+        return new RigidBody(mesh, mass, inertiaTensor0, restitution, friction);
+    }
+
     static CreateCylinder(name: string, scene: Scene, radius = 0.5, height = 1.5, mass = 1, restitution = Settings.DEFAULT_RESTITUTION, friction = Settings.DEFAULT_FRICTION): RigidBody {
         const mesh = MeshBuilder.CreateCylinder(name, {
             diameter: radius * 2,

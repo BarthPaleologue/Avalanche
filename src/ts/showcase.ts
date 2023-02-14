@@ -149,6 +149,7 @@ document.addEventListener("keydown", e => {
 });
 document.getElementById("toggleBB")!.addEventListener("click", () => physicsEngine.toggleBoundingBoxes());
 document.getElementById("toggleWireframe")!.addEventListener("click", () => physicsEngine.toggleWireframe());
+document.getElementById("toggleResting")!.addEventListener("click", () => physicsEngine.toggleResting());
 document.getElementById("toggleHashGrid")!.addEventListener("click", () => {
     Settings.DISPLAY_INFINITE_SPATIAL_HASH_GRID = !Settings.DISPLAY_INFINITE_SPATIAL_HASH_GRID;
     physicsEngine.infiniteSpatialHashGrid.setVisible(Settings.DISPLAY_INFINITE_SPATIAL_HASH_GRID);

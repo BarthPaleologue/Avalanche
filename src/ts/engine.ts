@@ -249,4 +249,9 @@ export class AvalancheEngine {
         Settings.WIREFRAME = !Settings.WIREFRAME;
         for (const body of this.bodies) (body.mesh.material as StandardMaterial).wireframe = Settings.WIREFRAME;
     }
+
+    public toggleResting() {
+        Settings.DISPLAY_RESTING = !Settings.DISPLAY_RESTING;
+        for (const body of this.bodies) (body.mesh.material as StandardMaterial).alpha = Settings.DISPLAY_RESTING && body.isResting ? 0.2 : 1;
+    }
 }

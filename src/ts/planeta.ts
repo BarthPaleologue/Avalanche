@@ -40,7 +40,7 @@ ambientLight.intensity = 0.2;
 const physicsEngine = new AvalancheEngine();
 const gravityPonctual = new UniformPonctualField(new Vector3(0, -10, 0), 100, physicsEngine);
 
-const ground = RigidBodyFactory.CreateSphere("ground", scene, 10, 0, 0.1);
+const ground = RigidBodyFactory.CreateIcoSphere("ground", scene, 10, 0, 0.1);
 ground.setInitialPosition(new Vector3(0, -10, 0));
 ground.mesh.receiveShadows = true;
 camera.target = ground.mesh.position;
