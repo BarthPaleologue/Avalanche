@@ -15,8 +15,8 @@ export class RigidBody {
     readonly friction: number;
 
     private internalCounter = 0;
-    readonly velocityQueue = new VectorQueue(50);
-    readonly omegaQueue = new VectorQueue(50);
+    readonly velocityQueue = new VectorQueue(100);
+    readonly omegaQueue = new VectorQueue(100);
 
     readonly contactingBodies: RigidBody[] = [];
 
@@ -67,6 +67,7 @@ export class RigidBody {
         this.mesh.rotationQuaternion = Quaternion.Identity();
 
         this.mass = mass;
+        this.currentState.isResting = this.isStatic;
 
         this.inverseInertiaTensor0 = this.mass != 0 ? inertiaTensor0.inverse() : Matrix3.identity();
 
@@ -91,22 +92,20 @@ export class RigidBody {
         if (this.contactingBodies.length == 0) return false; // No contact, not resting because forces are applied
 
         // if the variance in the velocity queue is too high, we are not resting
-        if (this.velocityQueue.variance.length() > 0.02) return false;
-        if (this.omegaQueue.variance.length() > 0.02) return false;
+        if (this.velocityQueue.variance.length() > 1e-18) return false;
+        if (this.omegaQueue.variance.length() > 1e-18) return false;
 
-        const linearThreshold = 0.4;
-        const angularThreshold = 0.4;
+        const linearThreshold = 1.0;
+        const angularThreshold = 1.0;
 
-        let areAllNeighborsResting = true;
         for (const neighbor of this.contactingBodies) {
             if (neighbor.isStatic || neighbor.currentState.isResting || neighbor.nextState.isResting) continue;
             const relativeVelocity = this.currentState.velocity.subtract(neighbor.currentState.velocity);
             if (relativeVelocity.length() > linearThreshold || neighbor.currentState.omega.length() > angularThreshold) {
-                areAllNeighborsResting = false;
-                break;
+                return false;
             }
         }
-        return areAllNeighborsResting && this.currentState.velocity.length() < linearThreshold && this.currentState.omega.length() < angularThreshold;
+        return this.currentState.velocity.length() < linearThreshold && this.currentState.omega.length() < angularThreshold;
     }
 
     setInitialPosition(position: Vector3) {
@@ -150,28 +149,24 @@ export class RigidBody {
     public computeNextStep(deltaTime: number) {
         copyAintoB(this.currentState, this.nextState);
 
-        this.nextState.isResting = this.computeResting();
-
-        if (this.isResting) {
-            (this.mesh.material as StandardMaterial).alpha = Settings.DISPLAY_RESTING ? 0.2 : 1;
-            this.cumulatedImpulses = [];
-            this.cumulatedForces = [];
-            return;
-        } else (this.mesh.material as StandardMaterial).alpha = 1;
-
         if (this.isStatic) return;
-
-        for (const force of this.cumulatedForces) {
-            this.nextState.momentum.addInPlace(force.vector.scale(deltaTime));
-            this.nextState.angularMomentum.addInPlace(force.point.cross(force.vector).scale(deltaTime));
-        }
 
         for (const impulse of this.cumulatedImpulses) {
             this.nextState.momentum.addInPlace(impulse.force);
             this.nextState.angularMomentum.addInPlace(impulse.point.cross(impulse.force));
         }
 
+        if (this.isResting) return;
+
+        for (const force of this.cumulatedForces) {
+            this.nextState.momentum.addInPlace(force.vector.scale(deltaTime));
+            this.nextState.angularMomentum.addInPlace(force.point.cross(force.vector).scale(deltaTime));
+        }
+
         this.nextState.velocity = this.nextState.momentum.scale(1 / this.mass);
+        this.nextState.omega = this.nextState.inverseInertiaTensor.applyTo(this.nextState.angularMomentum);
+
+        this.nextState.isResting = this.computeResting();
 
         const omegaQuaternion = new Quaternion(this.currentState.omega.x, this.currentState.omega.y, this.currentState.omega.z, 0);
 
@@ -189,23 +184,25 @@ export class RigidBody {
         );
 
         this.nextState.inverseInertiaTensor = this.nextState.rotationMatrix.multiply(this.inverseInertiaTensor0).multiply(this.nextState.rotationMatrix.transpose());
-        this.nextState.omega = this.nextState.inverseInertiaTensor.applyTo(this.nextState.angularMomentum);
 
         this.nextState.aabb.updateFromMesh(this.mesh, this.nextState.worldMatrix);
-
-        this.nextState.isResting = this.computeResting();
     }
 
     public applyNextStep() {
         copyAintoB(this.nextState, this.currentState);
 
+        this.currentState.isResting = this.computeResting();
+
         this.mesh.position = this.currentState.position;
         this.mesh.rotationQuaternion = this.currentState.rotationQuaternion;
 
-        if (this.internalCounter % 100 == 0 && !this.isResting) {
+        if (this.internalCounter % 20 == 0) {
             this.velocityQueue.enqueue(this.currentState.velocity);
             this.omegaQueue.enqueue(this.currentState.omega);
         }
+
+        if (this.isResting) (this.mesh.material as StandardMaterial).alpha = Settings.DISPLAY_RESTING ? 0.2 : 1;
+        else (this.mesh.material as StandardMaterial).alpha = 1;
 
         this.cumulatedImpulses = [];
         this.cumulatedForces = [];

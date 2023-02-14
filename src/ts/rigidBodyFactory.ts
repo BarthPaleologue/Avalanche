@@ -176,7 +176,7 @@ export class RigidBodyFactory {
     static CreateTetrahedron(name: string, scene: Scene, radius = 1, mass = 1, restitution = Settings.DEFAULT_RESTITUTION, friction = Settings.DEFAULT_FRICTION): RigidBody {
         const mesh = MeshBuilder.CreatePolyhedron(name, {
             type: 0,
-            size: radius / Math.sqrt(2)
+            size: radius / 2
         }, scene);
 
         mesh.material = getRandomColorMaterial();
@@ -254,7 +254,7 @@ export class RigidBodyFactory {
             case 5:
                 return this.CreateSphere(name, scene, radius, mass, restitution, friction);
             case 6:
-                return this.CreateIcosahedron(name, scene, radius, mass, restitution, friction);
+                return this.CreateDodecahedron(name, scene, radius, mass, restitution, friction);
             case 7:
                 return this.CreateDodecahedron(name, scene, radius, mass, restitution, friction);
             //case 8:

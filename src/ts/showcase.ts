@@ -74,6 +74,7 @@ scene.onPointerObservable.add((pointerInfo) => {
         const body = physicsEngine.bodies.find(b => b.mesh == mesh);
         if (body) {
             body.currentState.isResting = false;
+            body.nextState.isResting = false;
             const point = pointerInfo.pickInfo!.pickedPoint!.subtract(body.positionRef).normalize();
             const direction = new Vector3(Math.random() - 0.5, Math.random(), Math.random() - 0.5).scale(1 + Math.random() * 2);
             body.applyImpulse(new Impulse(direction, point));
@@ -88,7 +89,7 @@ function updateScene() {
         cuboid.applyImpulse(new Impulse(new Vector3(0, 1, 0.1), new Vector3(Math.random(), Math.random(), Math.random())));
         octahedron.applyImpulse(new Impulse(new Vector3(0.7, 0.1, 0.3), new Vector3(Math.random(), Math.random(), Math.random())));
     }
-    if (I % 50 == 0 && !physicsEngine.paused) {
+    if (I % 60 == 0 && !physicsEngine.paused) {
         const newCube = RigidBodyFactory.CreateRandom("cuboid" + I, scene);
         newCube.setInitialPosition(new Vector3(Math.random() * 18 - 9, 10, Math.random() * 18 - 9));
         physicsEngine.addBody(newCube);

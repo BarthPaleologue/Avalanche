@@ -93,7 +93,6 @@ export class AvalancheEngine {
             const neighbors = this.infiniteSpatialHashGrid.getNeighbors(body);
             for (const neighbor of neighbors.concat(this.staticBodies)) {
                 if (body === neighbor) continue;
-                if (body.isResting && neighbor.isResting) continue;
 
                 const overlap = body.nextState.aabb.intersectionOverlap(neighbor.nextState.aabb);
                 if (overlap) {
@@ -130,6 +129,7 @@ export class AvalancheEngine {
     private resolveContactBisection(contact: Contact, tmin: number, tmax: number, initialIntervalLength: number, depth: number) {
         const [bodyA, bodyB] = [contact.a, contact.b];
         if (bodyA.isStatic && bodyB.isStatic) return; // both bodies are static
+        if (bodyA.isResting && bodyB.isResting) return;
 
         let [maxPenetrationDistance, pointsA, pointsB, triangleNormals, penetrationDistances] = testInterpenetration(contact);
 
