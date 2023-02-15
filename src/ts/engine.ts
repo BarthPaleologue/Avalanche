@@ -139,13 +139,16 @@ export class AvalancheEngine {
                 const overlap = body.nextState.aabb.intersectionOverlap(neighbor.nextState.aabb);
                 if (overlap) {
                     const contact: Contact = {
-                        a: body, b: neighbor,
+                        a: body,
+                        b: neighbor,
                         aabbOverlap: overlap
                     };
                     let isAlreadyInTheList = false;
                     for (const contact of this.contacts) {
-                        if ((contact.a == body && contact.b == neighbor)
-                            || (contact.a == neighbor && contact.b == body)) {
+                        if (
+                            (contact.a == body && contact.b == neighbor) ||
+                            (contact.a == neighbor && contact.b == body)
+                        ) {
                             isAlreadyInTheList = true;
                             break;
                         }
@@ -176,12 +179,19 @@ export class AvalancheEngine {
      * @param initialIntervalLength the length of the initial time interval
      * @param depth the depth of the recursion
      */
-    private resolveContactBisection(contact: Contact, tmin: number, tmax: number, initialIntervalLength: number, depth: number) {
+    private resolveContactBisection(
+        contact: Contact,
+        tmin: number,
+        tmax: number,
+        initialIntervalLength: number,
+        depth: number
+    ) {
         const [bodyA, bodyB] = [contact.a, contact.b];
         if (bodyA.isStatic && bodyB.isStatic) return; // both bodies are static
         if (bodyA.isResting && bodyB.isResting) return;
 
-        let [maxPenetrationDistance, pointsA, pointsB, triangleNormals, penetrationDistances] = testInterpenetration(contact);
+        let [maxPenetrationDistance, pointsA, pointsB, triangleNormals, penetrationDistances] =
+            testInterpenetration(contact);
 
         if ((maxPenetrationDistance < 0 && maxPenetrationDistance > -Settings.EPSILON) || depth > Settings.MAX_DEPTH) {
             // The interpenetration is below our threshold, so we can compute the impulses
@@ -193,12 +203,13 @@ export class AvalancheEngine {
                 for (const point of pointsB) this.helperMeshes.push(displayPoint(point, Color3.Blue(), 0));
             }
 
-            // if the depth limit is reached, we repel the bodies as 
+            // if the depth limit is reached, we repel the bodies as
             // we couldn't find a t where the bodies are not interpenetrating
             if (depth > Settings.MAX_DEPTH) {
                 this.repellBodies(contact);
                 // recompute the interpenetration
-                [maxPenetrationDistance, pointsA, pointsB, triangleNormals, penetrationDistances] = testInterpenetration(contact);
+                [maxPenetrationDistance, pointsA, pointsB, triangleNormals, penetrationDistances] =
+                    testInterpenetration(contact);
             }
 
             // first apply the first part of the trajectory before the collision
@@ -227,7 +238,13 @@ export class AvalancheEngine {
 
                 // Friction Impulses
 
-                const [frictionImpulseA, frictionImpulseB] = computeFrictionImpulse(bodyA, bodyB, ra, rb, triangleNormal);
+                const [frictionImpulseA, frictionImpulseB] = computeFrictionImpulse(
+                    bodyA,
+                    bodyB,
+                    ra,
+                    rb,
+                    triangleNormal
+                );
 
                 bodyA.applyImpulse(frictionImpulseA);
                 bodyB.applyImpulse(frictionImpulseB);
@@ -248,9 +265,8 @@ export class AvalancheEngine {
             bodyB.computeNextStep(tmid);
 
             this.resolveContactBisection(contact, tmin, tmid, initialIntervalLength, depth + 1);
-
         } else if (maxPenetrationDistance < 0 && tmax - tmin < initialIntervalLength) {
-            // the bodies are not interpenetrating enough, but they were interpenetrating earlier 
+            // the bodies are not interpenetrating enough, but they were interpenetrating earlier
             // so we use bisection forward to find the time of impact
             const tmid = (tmin + tmax) / 2;
 
@@ -315,6 +331,7 @@ export class AvalancheEngine {
      */
     public toggleResting() {
         Settings.DISPLAY_RESTING = !Settings.DISPLAY_RESTING;
-        for (const body of this.bodies) (body.mesh.material as StandardMaterial).alpha = Settings.DISPLAY_RESTING && body.isResting ? 0.2 : 1;
+        for (const body of this.bodies)
+            (body.mesh.material as StandardMaterial).alpha = Settings.DISPLAY_RESTING && body.isResting ? 0.2 : 1;
     }
 }

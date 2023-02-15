@@ -6,9 +6,17 @@ export function displayTriangle(triangle: Triangle, color = Color3.Green(), dura
     const mesh = new Mesh("triangle");
 
     //Set arrays for positions and indices
-    const positions = [triangle[0].x, triangle[0].y, triangle[0].z,
-    triangle[1].x, triangle[1].y, triangle[1].z,
-    triangle[2].x, triangle[2].y, triangle[2].z];
+    const positions = [
+        triangle[0].x,
+        triangle[0].y,
+        triangle[0].z,
+        triangle[1].x,
+        triangle[1].y,
+        triangle[1].z,
+        triangle[2].x,
+        triangle[2].y,
+        triangle[2].z
+    ];
     const indices = [0, 1, 2];
 
     //Create a vertexData object
@@ -49,7 +57,7 @@ export function displayPoint(point: Vector3, color = Color3.Purple(), duration =
 
 export function displayRay(rayOrigin: Vector3, rayDirection: Vector3, color = Color3.Red(), duration = 16): Mesh {
     const mesh = MeshBuilder.CreateLines("ray", {
-        points: [rayOrigin, rayOrigin.add(rayDirection.scale(10))],
+        points: [rayOrigin, rayOrigin.add(rayDirection.scale(10))]
     });
 
     const material = new StandardMaterial("ray");
@@ -65,7 +73,7 @@ export function displayRay(rayOrigin: Vector3, rayDirection: Vector3, color = Co
 
 export function displayEdge(edge: Edge, color = Color3.Red(), duration = 16): Mesh {
     const mesh = MeshBuilder.CreateLines("edge", {
-        points: edge,
+        points: edge
     });
 
     const material = new StandardMaterial("edge");
@@ -87,13 +95,10 @@ export function arrowhead(start: Vector3, vec: Vector3, color: Color3, duration 
         new Vector3(0, 0.25, 0)
     ];
 
-    const path = [
-        start,
-        start.add(vec)
-    ];
+    const path = [start, start.add(vec)];
 
     const scaling = function (i: number, distance: number) {
-        return (1 - i);
+        return 1 - i;
     };
 
     const vecRep = MeshBuilder.ExtrudeShapeCustom("vecRep", {

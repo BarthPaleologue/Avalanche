@@ -15,7 +15,9 @@ export class InfiniteSpatialHashGrid {
     }
 
     private getGridCellKey(position: Vector3): string {
-        return `${Math.floor(position.x / this.cellSize)}|${Math.floor(position.y / this.cellSize)}|${Math.floor(position.z / this.cellSize)}`;
+        return `${Math.floor(position.x / this.cellSize)}|${Math.floor(position.y / this.cellSize)}|${Math.floor(
+            position.z / this.cellSize
+        )}`;
     }
 
     add(rigidBody: RigidBody): void {
@@ -50,7 +52,9 @@ export class InfiniteSpatialHashGrid {
         for (let i = -1; i <= 1; i++) {
             for (let j = -1; j <= 1; j++) {
                 for (let k = -1; k <= 1; k++) {
-                    neighborCells.push(this.getCell(rigidBody.nextState.position.add(new Vector3(i, j, k).scale(this.cellSize))));
+                    neighborCells.push(
+                        this.getCell(rigidBody.nextState.position.add(new Vector3(i, j, k).scale(this.cellSize)))
+                    );
                 }
             }
         }
@@ -92,7 +96,7 @@ export class InfiniteSpatialHashGrid {
         mesh.position = new Vector3(
             (Math.floor(position.x / this.cellSize) + 0.5) * this.cellSize,
             (Math.floor(position.y / this.cellSize) + 0.5) * this.cellSize,
-            (Math.floor(position.z / this.cellSize) + 0.5) * this.cellSize,
+            (Math.floor(position.z / this.cellSize) + 0.5) * this.cellSize
         );
         mesh.material = getBBMaterial();
         this.helperMeshes.push(mesh);

@@ -4,7 +4,11 @@ import { Edge, closestPointOnEdge, getUniqueEdgesWorldSpaceInAABB } from "./edge
 import { RigidBody } from "../rigidBody";
 import { AABB } from "../aabb";
 
-export function findEdgeCollisions(bodyA: RigidBody, bodyB: RigidBody, overlap: AABB): [number, Vector3[], Vector3[], Vector3[], number[]] {
+export function findEdgeCollisions(
+    bodyA: RigidBody,
+    bodyB: RigidBody,
+    overlap: AABB
+): [number, Vector3[], Vector3[], Vector3[], number[]] {
     const edgesA = getUniqueEdgesWorldSpaceInAABB(bodyA.mesh, bodyA.mesh.getWorldMatrix(), overlap);
     const edgesB = getUniqueEdgesWorldSpaceInAABB(bodyB.mesh, bodyB.mesh.getWorldMatrix(), overlap);
 

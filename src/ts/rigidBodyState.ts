@@ -18,8 +18,8 @@ export interface RigidBodyState {
 
 /**
  * Copy the values of a into b
- * @param a
- * @param b
+ * @param a The source
+ * @param b The destination
  */
 export function copyAintoB(a: RigidBodyState, b: RigidBodyState) {
     b.isResting = a.isResting;

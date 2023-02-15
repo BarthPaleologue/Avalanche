@@ -4,18 +4,27 @@ import { AABB } from "../aabb";
 import { vertexToFacePenetration } from "./vertexToFace";
 
 export type Contact = {
-    a: RigidBody, b: RigidBody,
+    a: RigidBody;
+    b: RigidBody;
     aabbOverlap: AABB;
 };
 
 /**
- * 
- * @param contact 
+ *
+ * @param contact
  * @returns [maxPenetration, collisionPointsA, collisionPointsB, collisionTriangleNormals, collisionPenetrations]
  */
 export function testInterpenetration(contact: Contact): [number, Vector3[], Vector3[], Vector3[], number[]] {
-    const [penetrationDistance1, pointsA1, pointsB1, triangleNormals1, penetrationDistances1] = vertexToFacePenetration(contact.a, contact.b, contact.aabbOverlap);
-    const [penetrationDistance2, pointsB2, pointsA2, triangleNormals2, penetrationDistances2] = vertexToFacePenetration(contact.b, contact.a, contact.aabbOverlap);
+    const [penetrationDistance1, pointsA1, pointsB1, triangleNormals1, penetrationDistances1] = vertexToFacePenetration(
+        contact.a,
+        contact.b,
+        contact.aabbOverlap
+    );
+    const [penetrationDistance2, pointsB2, pointsA2, triangleNormals2, penetrationDistances2] = vertexToFacePenetration(
+        contact.b,
+        contact.a,
+        contact.aabbOverlap
+    );
 
     //const [penetrationDistance3, pointsA3, pointsB3, triangleNormals3, penetrationDistances3] = findEdgeCollisions(contact.a, contact.b, contact.aabbOverlap);
     //const [penetrationDistance3, pointsA3, pointsB3, triangleNormals3, penetrationDistances3] = [Number.NEGATIVE_INFINITY, [], [], [], []];

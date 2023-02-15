@@ -5,7 +5,6 @@ import { AABB } from "../aabb";
 import { Settings } from "../settings";
 import { Triangle, getMeshTrianglesWorldSpaceInAABB, getTriangleNormal } from "./triangle";
 
-
 /**
  * Returns the distance between the ray and the triangle. Returns null if there is no intersection.
  * @param rayOrigin
@@ -20,12 +19,16 @@ function intersectRayTriangle(rayOrigin: Vector3, rayDirection: Vector3, triangl
 }
 
 /**
- * 
- * @param contact 
- * @param reverse 
+ *
+ * @param contact
+ * @param reverse
  * @returns [maxPenetration, collisionVerticesA, collisionRayPointsB, collisionTriangles, collisionPenetrations]
  */
-export function vertexToFacePenetration(bodyA: RigidBody, bodyB: RigidBody, overlap: AABB): [number, Vector3[], Vector3[], Vector3[], number[]] {
+export function vertexToFacePenetration(
+    bodyA: RigidBody,
+    bodyB: RigidBody,
+    overlap: AABB
+): [number, Vector3[], Vector3[], Vector3[], number[]] {
     const worldMatrixA = bodyA.getNextWorldMatrix();
     const worldMatrixB = bodyB.getNextWorldMatrix();
 
@@ -82,7 +85,11 @@ export function vertexToFacePenetration(bodyA: RigidBody, bodyB: RigidBody, over
         }
     }
 
-    console.assert(collisionPointsA.length == collisionPointsB.length && collisionPointsA.length == collisionNormals.length && collisionPointsA.length == penetrationDistances.length);
+    console.assert(
+        collisionPointsA.length == collisionPointsB.length &&
+            collisionPointsA.length == collisionNormals.length &&
+            collisionPointsA.length == penetrationDistances.length
+    );
 
     return [maxPenetration, collisionPointsA, collisionPointsB, collisionNormals, penetrationDistances];
 }

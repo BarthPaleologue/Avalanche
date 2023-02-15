@@ -25,7 +25,13 @@ export class Impulse {
  * @param pointB the point on body B (local space)
  * @param normal the normal of the collision
  */
-export function computeCollisionImpulse(a: RigidBody, b: RigidBody, pointA: Vector3, pointB: Vector3, normal: Vector3): [Impulse, Impulse] {
+export function computeCollisionImpulse(
+    a: RigidBody,
+    b: RigidBody,
+    pointA: Vector3,
+    pointB: Vector3,
+    normal: Vector3
+): [Impulse, Impulse] {
     const ra = pointA;
     const rb = pointB;
 
@@ -35,16 +41,21 @@ export function computeCollisionImpulse(a: RigidBody, b: RigidBody, pointA: Vect
     const rv = Vector3.Dot(normal, vb.subtract(va));
 
     // if points are moving away from each other, no impulse is needed
-    if (rv > 0 || Math.abs(rv) < Settings.EPSILON) return [new Impulse(Vector3.Zero(), Vector3.Zero()), new Impulse(Vector3.Zero(), Vector3.Zero())];
+    if (rv > 0 || Math.abs(rv) < Settings.EPSILON)
+        return [new Impulse(Vector3.Zero(), Vector3.Zero()), new Impulse(Vector3.Zero(), Vector3.Zero())];
 
     let denominator = 0;
     denominator += !a.isStatic ? 1 / a.mass : 0;
     denominator += !b.isStatic ? 1 / b.mass : 0;
-    denominator += !a.isStatic ? Vector3.Dot(normal, a.nextInverseInertiaTensor.applyTo(ra.cross(normal)).cross(ra)) : 0;
-    denominator += !b.isStatic ? Vector3.Dot(normal, b.nextInverseInertiaTensor.applyTo(rb.cross(normal)).cross(rb)) : 0;
+    denominator += !a.isStatic
+        ? Vector3.Dot(normal, a.nextInverseInertiaTensor.applyTo(ra.cross(normal)).cross(ra))
+        : 0;
+    denominator += !b.isStatic
+        ? Vector3.Dot(normal, b.nextInverseInertiaTensor.applyTo(rb.cross(normal)).cross(rb))
+        : 0;
     // calculate impulse scalar
     const restitution = a.restitution * b.restitution;
-    const j = -(1 + restitution) * rv / denominator;
+    const j = (-(1 + restitution) * rv) / denominator;
 
     // calculate impulse vector
     return [new Impulse(normal.scale(-j), ra), new Impulse(normal.scale(j), rb)];
@@ -59,7 +70,13 @@ export function computeCollisionImpulse(a: RigidBody, b: RigidBody, pointA: Vect
  * @param normal the normal of the collision
  * @returns the impulse to apply to each body
  */
-export function computeFrictionImpulse(a: RigidBody, b: RigidBody, pointA: Vector3, pointB: Vector3, normal: Vector3): [Impulse, Impulse] {
+export function computeFrictionImpulse(
+    a: RigidBody,
+    b: RigidBody,
+    pointA: Vector3,
+    pointB: Vector3,
+    normal: Vector3
+): [Impulse, Impulse] {
     const ra = pointA;
     const rb = pointB;
 
@@ -68,7 +85,8 @@ export function computeFrictionImpulse(a: RigidBody, b: RigidBody, pointA: Vecto
 
     // relative velocity
     const rv = vb.subtract(va);
-    if (Vector3.Dot(rv, normal) > 0 || rv.lengthSquared() < Settings.EPSILON ** 2) return [new Impulse(Vector3.Zero(), Vector3.Zero()), new Impulse(Vector3.Zero(), Vector3.Zero())];
+    if (Vector3.Dot(rv, normal) > 0 || rv.lengthSquared() < Settings.EPSILON ** 2)
+        return [new Impulse(Vector3.Zero(), Vector3.Zero()), new Impulse(Vector3.Zero(), Vector3.Zero())];
 
     // tangent vector (relative velocity projected on the plane orthogonal to the normal)
     const tangent = rv.subtract(normal.scale(Vector3.Dot(normal, rv))).normalize();
@@ -82,7 +100,7 @@ export function computeFrictionImpulse(a: RigidBody, b: RigidBody, pointA: Vecto
     const friction = Math.max(a.friction, b.friction);
 
     // calculate impulse scalar
-    const j = -friction * Vector3.Dot(rv, tangent) / denominator;
+    const j = (-friction * Vector3.Dot(rv, tangent)) / denominator;
 
     // calculate impulse vector
     return [new Impulse(tangent.scale(-j), ra), new Impulse(tangent.scale(j), rb)];

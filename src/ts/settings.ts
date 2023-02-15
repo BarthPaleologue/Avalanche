@@ -9,5 +9,5 @@ export const Settings = {
     MAX_DEPTH: 7,
     EPSILON: 0.05,
     DEFAULT_RESTITUTION: 0.7,
-    DEFAULT_FRICTION: 0.9,
+    DEFAULT_FRICTION: 0.9
 };

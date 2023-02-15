@@ -132,11 +132,16 @@ export class RigidBody {
         for (const neighbor of this.contactingBodies) {
             if (neighbor.isStatic || neighbor.currentState.isResting || neighbor.nextState.isResting) continue;
             const relativeVelocity = this.currentState.velocity.subtract(neighbor.currentState.velocity);
-            if (relativeVelocity.length() > linearThreshold || neighbor.currentState.omega.length() > angularThreshold) {
+            if (
+                relativeVelocity.length() > linearThreshold ||
+                neighbor.currentState.omega.length() > angularThreshold
+            ) {
                 return false;
             }
         }
-        return this.currentState.velocity.length() < linearThreshold && this.currentState.omega.length() < angularThreshold;
+        return (
+            this.currentState.velocity.length() < linearThreshold && this.currentState.omega.length() < angularThreshold
+        );
     }
 
     /**
@@ -223,9 +228,16 @@ export class RigidBody {
 
         this.nextState.isResting = this.computeResting();
 
-        const omegaQuaternion = new Quaternion(this.currentState.omega.x, this.currentState.omega.y, this.currentState.omega.z, 0);
+        const omegaQuaternion = new Quaternion(
+            this.currentState.omega.x,
+            this.currentState.omega.y,
+            this.currentState.omega.z,
+            0
+        );
 
-        this.nextState.rotationQuaternion.addInPlace(omegaQuaternion.multiplyInPlace(this.currentState.rotationQuaternion).scaleInPlace(deltaTime / 2));
+        this.nextState.rotationQuaternion.addInPlace(
+            omegaQuaternion.multiplyInPlace(this.currentState.rotationQuaternion).scaleInPlace(deltaTime / 2)
+        );
         this.nextState.rotationQuaternion.normalize();
 
         this.nextState.position.addInPlace(this.currentState.velocity.scale(deltaTime));
@@ -238,7 +250,9 @@ export class RigidBody {
             this.nextState.position
         );
 
-        this.nextState.inverseInertiaTensor = this.nextState.rotationMatrix.multiply(this.inverseInertiaTensor0).multiply(this.nextState.rotationMatrix.transpose());
+        this.nextState.inverseInertiaTensor = this.nextState.rotationMatrix
+            .multiply(this.inverseInertiaTensor0)
+            .multiply(this.nextState.rotationMatrix.transpose());
 
         this.nextState.aabb.updateFromMesh(this.mesh, this.nextState.worldMatrix);
     }
@@ -285,9 +299,9 @@ export class RigidBody {
     }
 
     /**
-     * 
+     *
      * @param point (in relative coordinates)
-     * @returns 
+     * @returns
      */
     public getVelocityAtPointNext(point: Vector3): Vector3 {
         return this.nextState.velocity.add(this.nextState.omega.cross(point));

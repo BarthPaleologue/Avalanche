@@ -12,125 +12,226 @@ import { getRandomColorMaterial } from "./utils/materials";
  * A factory class for creating rigid bodies
  */
 export class RigidBodyFactory {
-
-    static CreateCuboid(name: string, scene: Scene, scaling = Vector3.One(), mass = 1, restitution = Settings.DEFAULT_RESTITUTION, friction = Settings.DEFAULT_FRICTION): RigidBody {
-        const mesh = MeshBuilder.CreateBox(name, {
-            width: scaling.x,
-            height: scaling.y,
-            depth: scaling.z
-        }, scene);
+    static CreateCuboid(
+        name: string,
+        scene: Scene,
+        scaling = Vector3.One(),
+        mass = 1,
+        restitution = Settings.DEFAULT_RESTITUTION,
+        friction = Settings.DEFAULT_FRICTION
+    ): RigidBody {
+        const mesh = MeshBuilder.CreateBox(
+            name,
+            {
+                width: scaling.x,
+                height: scaling.y,
+                depth: scaling.z
+            },
+            scene
+        );
 
         mesh.material = getRandomColorMaterial();
 
         const inertiaTensor0 = Matrix3.diag(
-            mass * (scaling.y * scaling.y + scaling.z * scaling.z) / 12,
-            mass * (scaling.x * scaling.x + scaling.z * scaling.z) / 12,
-            mass * (scaling.x * scaling.x + scaling.y * scaling.y) / 12
+            (mass * (scaling.y * scaling.y + scaling.z * scaling.z)) / 12,
+            (mass * (scaling.x * scaling.x + scaling.z * scaling.z)) / 12,
+            (mass * (scaling.x * scaling.x + scaling.y * scaling.y)) / 12
         );
 
         return new RigidBody(mesh, mass, inertiaTensor0, restitution, friction);
     }
 
-    static CreateSphere(name: string, scene: Scene, diameter = 1, mass = 1, restitution = Settings.DEFAULT_RESTITUTION, friction = Settings.DEFAULT_FRICTION): RigidBody {
-        const mesh = MeshBuilder.CreateSphere(name, {
-            diameter: diameter,
-            segments: 1
-        }, scene);
+    static CreateSphere(
+        name: string,
+        scene: Scene,
+        diameter = 1,
+        mass = 1,
+        restitution = Settings.DEFAULT_RESTITUTION,
+        friction = Settings.DEFAULT_FRICTION
+    ): RigidBody {
+        const mesh = MeshBuilder.CreateSphere(
+            name,
+            {
+                diameter: diameter,
+                segments: 1
+            },
+            scene
+        );
 
         mesh.material = getRandomColorMaterial();
 
         const inertiaTensor0 = Matrix3.diag(
-            mass * diameter * diameter / 12,
-            mass * diameter * diameter / 12,
-            mass * diameter * diameter / 12
+            (mass * diameter * diameter) / 12,
+            (mass * diameter * diameter) / 12,
+            (mass * diameter * diameter) / 12
         );
 
         return new RigidBody(mesh, mass, inertiaTensor0, restitution, friction);
     }
 
-    static CreateIcoSphere(name: string, scene: Scene, diameter = 1, mass = 1, restitution = Settings.DEFAULT_RESTITUTION, friction = Settings.DEFAULT_FRICTION): RigidBody {
-        const mesh = MeshBuilder.CreateIcoSphere(name, {
-            radius: diameter / 2,
-            subdivisions: 2
-        }, scene);
+    static CreateIcoSphere(
+        name: string,
+        scene: Scene,
+        diameter = 1,
+        mass = 1,
+        restitution = Settings.DEFAULT_RESTITUTION,
+        friction = Settings.DEFAULT_FRICTION
+    ): RigidBody {
+        const mesh = MeshBuilder.CreateIcoSphere(
+            name,
+            {
+                radius: diameter / 2,
+                subdivisions: 2
+            },
+            scene
+        );
 
         mesh.material = getRandomColorMaterial();
 
         const inertiaTensor0 = Matrix3.diag(
-            mass * diameter * diameter / 12,
-            mass * diameter * diameter / 12,
-            mass * diameter * diameter / 12
+            (mass * diameter * diameter) / 12,
+            (mass * diameter * diameter) / 12,
+            (mass * diameter * diameter) / 12
         );
 
         return new RigidBody(mesh, mass, inertiaTensor0, restitution, friction);
     }
 
-    static CreateCylinder(name: string, scene: Scene, radius = 0.5, height = 1.5, mass = 1, restitution = Settings.DEFAULT_RESTITUTION, friction = Settings.DEFAULT_FRICTION): RigidBody {
-        const mesh = MeshBuilder.CreateCylinder(name, {
-            diameter: radius * 2,
-            height: height,
-            tessellation: 6
-        }, scene);
+    static CreateCylinder(
+        name: string,
+        scene: Scene,
+        radius = 0.5,
+        height = 1.5,
+        mass = 1,
+        restitution = Settings.DEFAULT_RESTITUTION,
+        friction = Settings.DEFAULT_FRICTION
+    ): RigidBody {
+        const mesh = MeshBuilder.CreateCylinder(
+            name,
+            {
+                diameter: radius * 2,
+                height: height,
+                tessellation: 6
+            },
+            scene
+        );
 
         mesh.material = getRandomColorMaterial();
 
         const inertiaTensor0 = Matrix3.diag(
-            mass * (radius * radius + height * height) / 12,
-            mass * radius * radius / 2,
-            mass * (radius * radius + height * height) / 12
+            (mass * (radius * radius + height * height)) / 12,
+            (mass * radius * radius) / 2,
+            (mass * (radius * radius + height * height)) / 12
         );
 
         return new RigidBody(mesh, mass, inertiaTensor0, restitution, friction);
     }
 
-    static CreatePlane(name: string, scene: Scene, width = 1, height = 1, mass = 1, restitution = Settings.DEFAULT_RESTITUTION, friction = Settings.DEFAULT_FRICTION): RigidBody {
-        const mesh = MeshBuilder.CreatePlane(name, {
-            width: width,
-            height: height,
-        }, scene);
+    static CreatePlane(
+        name: string,
+        scene: Scene,
+        width = 1,
+        height = 1,
+        mass = 1,
+        restitution = Settings.DEFAULT_RESTITUTION,
+        friction = Settings.DEFAULT_FRICTION
+    ): RigidBody {
+        const mesh = MeshBuilder.CreatePlane(
+            name,
+            {
+                width: width,
+                height: height
+            },
+            scene
+        );
 
         mesh.material = getRandomColorMaterial();
 
-        return new RigidBody(mesh, mass, Matrix3.diag(
-            mass * (height * height + width * width) / 12,
-            mass * (height * height + width * width) / 12,
-            mass * (height * height + width * width) / 12
-        ), restitution, friction);
+        return new RigidBody(
+            mesh,
+            mass,
+            Matrix3.diag(
+                (mass * (height * height + width * width)) / 12,
+                (mass * (height * height + width * width)) / 12,
+                (mass * (height * height + width * width)) / 12
+            ),
+            restitution,
+            friction
+        );
     }
 
-    static CreateGroundFromHeightMap(name: string, scene: Scene, width = 1, height = 1, subdivisions = 16, mass = 1, restitution = Settings.DEFAULT_RESTITUTION, friction = Settings.DEFAULT_FRICTION): RigidBody {
-        const mesh = MeshBuilder.CreateGroundFromHeightMap(name, heightmap, {
-            width: width,
-            height: height,
-            subdivisions: subdivisions,
-            minHeight: 0,
-            maxHeight: 8,
-        }, scene);
+    static CreateGroundFromHeightMap(
+        name: string,
+        scene: Scene,
+        width = 1,
+        height = 1,
+        subdivisions = 16,
+        mass = 1,
+        restitution = Settings.DEFAULT_RESTITUTION,
+        friction = Settings.DEFAULT_FRICTION
+    ): RigidBody {
+        const mesh = MeshBuilder.CreateGroundFromHeightMap(
+            name,
+            heightmap,
+            {
+                width: width,
+                height: height,
+                subdivisions: subdivisions,
+                minHeight: 0,
+                maxHeight: 8
+            },
+            scene
+        );
 
         mesh.material = getRandomColorMaterial();
 
-        return new RigidBody(mesh, mass, Matrix3.diag(
-            mass * (height * height + width * width) / 12,
-            mass * (height * height + width * width) / 12,
-            mass * (height * height + width * width) / 12
-        ), restitution, friction);
+        return new RigidBody(
+            mesh,
+            mass,
+            Matrix3.diag(
+                (mass * (height * height + width * width)) / 12,
+                (mass * (height * height + width * width)) / 12,
+                (mass * (height * height + width * width)) / 12
+            ),
+            restitution,
+            friction
+        );
     }
 
-    static CreateWavyCarpet(name: string, scene: Scene, width = 1, height = 1, subdivisions = 16, mass = 1, restitution = Settings.DEFAULT_RESTITUTION, friction = Settings.DEFAULT_FRICTION): RigidBody {
+    static CreateWavyCarpet(
+        name: string,
+        scene: Scene,
+        width = 1,
+        height = 1,
+        subdivisions = 16,
+        mass = 1,
+        restitution = Settings.DEFAULT_RESTITUTION,
+        friction = Settings.DEFAULT_FRICTION
+    ): RigidBody {
         // create a plane that moves up and down like a wavy carpet
-        const mesh = MeshBuilder.CreateGround(name, {
-            width: width,
-            height: height,
-            subdivisions: subdivisions,
-        }, scene);
+        const mesh = MeshBuilder.CreateGround(
+            name,
+            {
+                width: width,
+                height: height,
+                subdivisions: subdivisions
+            },
+            scene
+        );
 
         mesh.material = getRandomColorMaterial();
 
-        const body = new RigidBody(mesh, mass, Matrix3.diag(
-            mass * (height * height + width * width) / 12,
-            mass * (height * height + width * width) / 12,
-            mass * (height * height + width * width) / 12
-        ), restitution, friction);
+        const body = new RigidBody(
+            mesh,
+            mass,
+            Matrix3.diag(
+                (mass * (height * height + width * width)) / 12,
+                (mass * (height * height + width * width)) / 12,
+                (mass * (height * height + width * width)) / 12
+            ),
+            restitution,
+            friction
+        );
 
         const update = () => {
             const time = performance.now() / 1000;
@@ -150,98 +251,149 @@ export class RigidBodyFactory {
 
     /**
      *  Creates a rigid body with a mesh of an octahedron.
-     * @param name 
-     * @param radius 
-     * @param mass 
-     * @param engine 
-     * @param scene 
-     * @returns 
+     * @param name
+     * @param radius
+     * @param mass
+     * @param engine
+     * @param scene
+     * @returns
      */
-    static CreateOctahedron(name: string, scene: Scene, radius = 1, mass = 1, restitution = Settings.DEFAULT_RESTITUTION, friction = Settings.DEFAULT_FRICTION): RigidBody {
-        const mesh = MeshBuilder.CreatePolyhedron(name, {
-            type: 1,
-            size: radius / Math.sqrt(2)
-        }, scene);
+    static CreateOctahedron(
+        name: string,
+        scene: Scene,
+        radius = 1,
+        mass = 1,
+        restitution = Settings.DEFAULT_RESTITUTION,
+        friction = Settings.DEFAULT_FRICTION
+    ): RigidBody {
+        const mesh = MeshBuilder.CreatePolyhedron(
+            name,
+            {
+                type: 1,
+                size: radius / Math.sqrt(2)
+            },
+            scene
+        );
 
         mesh.material = getRandomColorMaterial();
 
-        const inertiaTensor0 = Settings.USE_DYNAMIC_INERTIA_TENSOR ?
-            computeInertiaTensorFromMesh(mesh, mass) :
-            Matrix3.diag(
-                mass * (radius * radius + radius * radius) / 12,
-                mass * (radius * radius + radius * radius) / 12,
-                mass * (radius * radius + radius * radius) / 12
-            );
+        const inertiaTensor0 = Settings.USE_DYNAMIC_INERTIA_TENSOR
+            ? computeInertiaTensorFromMesh(mesh, mass)
+            : Matrix3.diag(
+                  (mass * (radius * radius + radius * radius)) / 12,
+                  (mass * (radius * radius + radius * radius)) / 12,
+                  (mass * (radius * radius + radius * radius)) / 12
+              );
 
         return new RigidBody(mesh, mass, inertiaTensor0, restitution, friction);
     }
 
-    static CreateTetrahedron(name: string, scene: Scene, radius = 1, mass = 1, restitution = Settings.DEFAULT_RESTITUTION, friction = Settings.DEFAULT_FRICTION): RigidBody {
-        const mesh = MeshBuilder.CreatePolyhedron(name, {
-            type: 0,
-            size: radius / 2
-        }, scene);
+    static CreateTetrahedron(
+        name: string,
+        scene: Scene,
+        radius = 1,
+        mass = 1,
+        restitution = Settings.DEFAULT_RESTITUTION,
+        friction = Settings.DEFAULT_FRICTION
+    ): RigidBody {
+        const mesh = MeshBuilder.CreatePolyhedron(
+            name,
+            {
+                type: 0,
+                size: radius / 2
+            },
+            scene
+        );
 
         mesh.material = getRandomColorMaterial();
 
-        const inertiaTensor0 = Settings.USE_DYNAMIC_INERTIA_TENSOR ?
-            computeInertiaTensorFromMesh(mesh, mass) :
-            Matrix3.diag(
-                mass * (radius * radius + radius * radius) / 12,
-                mass * (radius * radius + radius * radius) / 12,
-                mass * (radius * radius + radius * radius) / 12
-            );
+        const inertiaTensor0 = Settings.USE_DYNAMIC_INERTIA_TENSOR
+            ? computeInertiaTensorFromMesh(mesh, mass)
+            : Matrix3.diag(
+                  (mass * (radius * radius + radius * radius)) / 12,
+                  (mass * (radius * radius + radius * radius)) / 12,
+                  (mass * (radius * radius + radius * radius)) / 12
+              );
 
         return new RigidBody(mesh, mass, inertiaTensor0, restitution, friction);
     }
 
-    static CreateIcosahedron(name: string, scene: Scene, radius = 1, mass = 1, restitution = Settings.DEFAULT_RESTITUTION, friction = Settings.DEFAULT_FRICTION): RigidBody {
-        const mesh = MeshBuilder.CreatePolyhedron(name, {
-            type: 2,
-            size: radius / Math.sqrt(2)
-        }, scene);
+    static CreateIcosahedron(
+        name: string,
+        scene: Scene,
+        radius = 1,
+        mass = 1,
+        restitution = Settings.DEFAULT_RESTITUTION,
+        friction = Settings.DEFAULT_FRICTION
+    ): RigidBody {
+        const mesh = MeshBuilder.CreatePolyhedron(
+            name,
+            {
+                type: 2,
+                size: radius / Math.sqrt(2)
+            },
+            scene
+        );
 
         mesh.material = getRandomColorMaterial();
 
-        const inertiaTensor0 = Settings.USE_DYNAMIC_INERTIA_TENSOR ?
-            computeInertiaTensorFromMesh(mesh, mass) :
-            Matrix3.diag(
-                mass * (radius * radius + radius * radius) / 12,
-                mass * (radius * radius + radius * radius) / 12,
-                mass * (radius * radius + radius * radius) / 12
-            );
+        const inertiaTensor0 = Settings.USE_DYNAMIC_INERTIA_TENSOR
+            ? computeInertiaTensorFromMesh(mesh, mass)
+            : Matrix3.diag(
+                  (mass * (radius * radius + radius * radius)) / 12,
+                  (mass * (radius * radius + radius * radius)) / 12,
+                  (mass * (radius * radius + radius * radius)) / 12
+              );
 
         return new RigidBody(mesh, mass, inertiaTensor0, restitution, friction);
     }
 
-    static CreateDodecahedron(name: string, scene: Scene, radius = 1, mass = 1, restitution = Settings.DEFAULT_RESTITUTION, friction = Settings.DEFAULT_FRICTION): RigidBody {
-        const mesh = MeshBuilder.CreatePolyhedron(name, {
-            type: 3,
-            size: radius / Math.sqrt(2)
-        }, scene);
+    static CreateDodecahedron(
+        name: string,
+        scene: Scene,
+        radius = 1,
+        mass = 1,
+        restitution = Settings.DEFAULT_RESTITUTION,
+        friction = Settings.DEFAULT_FRICTION
+    ): RigidBody {
+        const mesh = MeshBuilder.CreatePolyhedron(
+            name,
+            {
+                type: 3,
+                size: radius / Math.sqrt(2)
+            },
+            scene
+        );
 
         mesh.material = getRandomColorMaterial();
 
-        const inertiaTensor0 = Settings.USE_DYNAMIC_INERTIA_TENSOR ?
-            computeInertiaTensorFromMesh(mesh, mass) :
-            Matrix3.diag(
-                mass * (radius * radius + radius * radius) / 12,
-                mass * (radius * radius + radius * radius) / 12,
-                mass * (radius * radius + radius * radius) / 12
-            );
+        const inertiaTensor0 = Settings.USE_DYNAMIC_INERTIA_TENSOR
+            ? computeInertiaTensorFromMesh(mesh, mass)
+            : Matrix3.diag(
+                  (mass * (radius * radius + radius * radius)) / 12,
+                  (mass * (radius * radius + radius * radius)) / 12,
+                  (mass * (radius * radius + radius * radius)) / 12
+              );
 
         return new RigidBody(mesh, mass, inertiaTensor0, restitution, friction);
     }
 
     /**
      *  Creates a random rigid body from the factory.
-     * @param name 
-     * @param radius 
-     * @param mass 
-     * @param engine 
-     * @param scene 
+     * @param name
+     * @param radius
+     * @param mass
+     * @param engine
+     * @param scene
      */
-    static CreateRandom(name: string, scene: Scene, radius = 1, mass = 1, restitution = Settings.DEFAULT_RESTITUTION, friction = Settings.DEFAULT_FRICTION): RigidBody {
+    static CreateRandom(
+        name: string,
+        scene: Scene,
+        radius = 1,
+        mass = 1,
+        restitution = Settings.DEFAULT_RESTITUTION,
+        friction = Settings.DEFAULT_FRICTION
+    ): RigidBody {
         const random = Math.floor(Math.random() * 8);
         switch (random) {
             case 0:
@@ -267,7 +419,6 @@ export class RigidBodyFactory {
     }
 
     static CreateStanfordBunny(name: string, radius: number, mass: number, restitution: number): RigidBody {
-
         const bunny = Assets.Bunny.clone(name);
         bunny.isVisible = true;
         bunny.scaling = new Vector3(radius, radius, radius);
@@ -278,10 +429,7 @@ export class RigidBodyFactory {
 
         return new RigidBody(bunny, mass, inertiaTensor0, restitution);
     }
-
-
 }
-
 
 export function computeInertiaTensorFromMesh(mesh: Mesh, mass: number): Matrix3 {
     const vertices = getMeshAllVerticesWorldSpace(mesh, mesh.computeWorldMatrix(true));
@@ -316,11 +464,11 @@ export function computeInertiaTensorFromMesh(mesh: Mesh, mass: number): Matrix3 
 }
 
 /**
- * 
- * @param p0 
- * @param p1 
- * @param p2 
- * @param density 
+ *
+ * @param p0
+ * @param p1
+ * @param p2
+ * @param density
  * @see https://web.archive.org/web/20161229044620/https://en.wikipedia.org/wiki/Inertia_tensor_of_triangle
  */
 export function computeInertiaTensorFromTriangle(p0: Vector3, p1: Vector3, p2: Vector3, density: number): Matrix3 {
@@ -331,17 +479,9 @@ export function computeInertiaTensorFromTriangle(p0: Vector3, p1: Vector3, p2: V
 
     const a = normalScaled.length();
 
-    const S = new Matrix3(
-        2, 1, 1,
-        1, 2, 1,
-        1, 1, 2
-    ).scaleInPlace(1 / 24);
+    const S = new Matrix3(2, 1, 1, 1, 2, 1, 1, 1, 2).scaleInPlace(1 / 24);
 
-    const V = new Matrix3(
-        p0.x, p1.x, p2.x,
-        p0.y, p1.y, p2.y,
-        p0.z, p1.z, p2.z
-    );
+    const V = new Matrix3(p0.x, p1.x, p2.x, p0.y, p1.y, p2.y, p0.z, p1.z, p2.z);
 
     const C = V.multiply(S).multiply(V.transpose()).scaleInPlace(a);
 

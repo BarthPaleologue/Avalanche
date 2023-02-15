@@ -16,11 +16,7 @@ export function getMeshTrianglesWorldSpace(mesh: AbstractMesh, worldMatrix: Matr
     const indices = mesh.getIndices() as number[];
     const triangles: Triangle[] = [];
     for (let i = 0; i < indices.length; i += 3) {
-        triangles.push([
-            vertices[indices[i]],
-            vertices[indices[i + 1]],
-            vertices[indices[i + 2]]
-        ]);
+        triangles.push([vertices[indices[i]], vertices[indices[i + 1]], vertices[indices[i + 2]]]);
     }
     return triangles;
 }
@@ -30,11 +26,7 @@ export function getMeshTrianglesWorldSpaceInAABB(mesh: AbstractMesh, worldMatrix
     const indices = mesh.getIndices() as number[];
     const triangles: Triangle[] = [];
     for (let i = 0; i < indices.length; i += 3) {
-        const triangle: Triangle = [
-            vertices[indices[i]],
-            vertices[indices[i + 1]],
-            vertices[indices[i + 2]]
-        ];
+        const triangle: Triangle = [vertices[indices[i]], vertices[indices[i + 1]], vertices[indices[i + 2]]];
         if (aabb.intersects(AABB.FromTriangle(triangle))) triangles.push(triangle);
     }
     return triangles;

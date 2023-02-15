@@ -5,7 +5,7 @@ import { AABB } from "../aabb";
 export type Edge = [Vector3, Vector3];
 
 export function isEdgeInArray(edge: Edge, edges: Edge[]): boolean {
-    return edges.findIndex(edge2 => edge[0].equals(edge2[0]) && edge[1].equals(edge2[1])) !== -1;
+    return edges.findIndex((edge2) => edge[0].equals(edge2[0]) && edge[1].equals(edge2[1])) !== -1;
 }
 
 export function getMeshEdgesWorldSpace(mesh: AbstractMesh, worldMatrix: Matrix): Edge[] {
@@ -13,18 +13,9 @@ export function getMeshEdgesWorldSpace(mesh: AbstractMesh, worldMatrix: Matrix):
     const indices = mesh.getIndices() as number[];
     const edges: Edge[] = [];
     for (let i = 0; i < indices.length; i += 3) {
-        edges.push([
-            vertices[indices[i]],
-            vertices[indices[i + 1]]
-        ]);
-        edges.push([
-            vertices[indices[i + 1]],
-            vertices[indices[i + 2]]
-        ]);
-        edges.push([
-            vertices[indices[i + 2]],
-            vertices[indices[i]]
-        ]);
+        edges.push([vertices[indices[i]], vertices[indices[i + 1]]]);
+        edges.push([vertices[indices[i + 1]], vertices[indices[i + 2]]]);
+        edges.push([vertices[indices[i + 2]], vertices[indices[i]]]);
     }
     return edges;
 }
@@ -45,16 +36,15 @@ export function getUniqueEdgesWorldSpaceInAABB(mesh: AbstractMesh, worldMatrix: 
         if (aabb.intersects(AABB.FromEdge(ab)) && !isEdgeInArray(ab, edges)) edges.push(ab);
         if (aabb.intersects(AABB.FromEdge(bc)) && !isEdgeInArray(bc, edges)) edges.push(bc);
         if (aabb.intersects(AABB.FromEdge(ca)) && !isEdgeInArray(ca, edges)) edges.push(ca);
-
     }
     return edges;
 }
 
 /**
  * Returns the closest point on an edge to a given point. The point returned is between the two points of the edge.
- * @param point 
- * @param edge 
- * @returns 
+ * @param point
+ * @param edge
+ * @returns
  */
 export function closestPointOnEdge(point: Vector3, edge: Edge): Vector3 {
     const [a, b] = edge;

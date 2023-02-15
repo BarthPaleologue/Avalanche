@@ -1,4 +1,13 @@
-import { AssetsManager, Color3, Mesh, MeshAssetTask, Scene, StandardMaterial, Texture, TextureAssetTask } from "@babylonjs/core";
+import {
+    AssetsManager,
+    Color3,
+    Mesh,
+    MeshAssetTask,
+    Scene,
+    StandardMaterial,
+    Texture,
+    TextureAssetTask
+} from "@babylonjs/core";
 import "@babylonjs/loaders";
 
 import heightmap from "../assets/heightMap.png";

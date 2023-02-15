@@ -1,8 +1,10 @@
 import {
-    ArcRotateCamera, DirectionalLight,
+    ArcRotateCamera,
+    DirectionalLight,
     Engine,
     HemisphericLight,
-    Scene, ShadowGenerator,
+    Scene,
+    ShadowGenerator,
     Tools,
     Vector3
 } from "@babylonjs/core";
@@ -31,7 +33,7 @@ const camera = new ArcRotateCamera("camera", 0, 3.14 / 2, 20, Vector3.Zero(), sc
 camera.attachControl();
 
 const light = new DirectionalLight("light", new Vector3(1, -1, 1), scene);
-light.position = light.direction.negate().scaleInPlace(10);//new Vector3(0, 10, 0);
+light.position = light.direction.negate().scaleInPlace(10); //new Vector3(0, 10, 0);
 const shadowGenerator = new ShadowGenerator(1024, light);
 shadowGenerator.usePercentageCloserFiltering = true;
 
@@ -68,12 +70,14 @@ if (!Settings.DISPLAY_SHADOWS) shadowGenerator.dispose();
 scene.onPointerObservable.add((pointerInfo) => {
     if (pointerInfo.pickInfo!.hit) {
         const mesh = pointerInfo.pickInfo!.pickedMesh!;
-        const body = physicsEngine.bodies.find(b => b.mesh == mesh);
+        const body = physicsEngine.bodies.find((b) => b.mesh == mesh);
         if (body) {
             body.currentState.isResting = false;
             body.nextState.isResting = false;
             const point = pointerInfo.pickInfo!.pickedPoint!.subtract(body.positionRef).normalize();
-            const direction = new Vector3(Math.random() - 0.5, Math.random(), Math.random() - 0.5).scale(1 + Math.random() * 2);
+            const direction = new Vector3(Math.random() - 0.5, Math.random(), Math.random() - 0.5).scale(
+                1 + Math.random() * 2
+            );
             body.applyImpulse(new Impulse(direction, point));
         }
     }
@@ -83,8 +87,12 @@ let I = 0;
 
 function updateScene() {
     if (I == 1) {
-        cuboid.applyImpulse(new Impulse(new Vector3(0, 1, 0.1), new Vector3(Math.random(), Math.random(), Math.random())));
-        octahedron.applyImpulse(new Impulse(new Vector3(0.7, 0.1, 0.3), new Vector3(Math.random(), Math.random(), Math.random())));
+        cuboid.applyImpulse(
+            new Impulse(new Vector3(0, 1, 0.1), new Vector3(Math.random(), Math.random(), Math.random()))
+        );
+        octahedron.applyImpulse(
+            new Impulse(new Vector3(0.7, 0.1, 0.3), new Vector3(Math.random(), Math.random(), Math.random()))
+        );
     }
     if (I % 5 == 0 && !physicsEngine.paused) {
         const newCube = RigidBodyFactory.CreateRandom("cuboid" + I, scene, 1, 1, 0.7, 0);
@@ -92,7 +100,9 @@ function updateScene() {
         physicsEngine.addBody(newCube);
 
         if (Settings.DISPLAY_SHADOWS) shadowGenerator.addShadowCaster(newCube.mesh);
-        newCube.applyImpulse(new Impulse(new Vector3(0, 1, 0), new Vector3(Math.random(), Math.random(), Math.random())));
+        newCube.applyImpulse(
+            new Impulse(new Vector3(0, 1, 0), new Vector3(Math.random(), Math.random(), Math.random()))
+        );
     }
 
     for (const body of physicsEngine.bodies) {
@@ -111,7 +121,8 @@ function updateScene() {
 
     document.getElementById("fps")!.innerText = engine.getFps().toFixed(2) + "FPS";
     document.getElementById("nbBodies")!.innerText = physicsEngine.bodies.length + " Bodies";
-    document.getElementById("nbRestings")!.innerText = physicsEngine.bodies.filter(b => b.currentState.isResting).length + " Resting";
+    document.getElementById("nbRestings")!.innerText =
+        physicsEngine.bodies.filter((b) => b.currentState.isResting).length + " Resting";
     document.getElementById("nbContacts")!.innerText = physicsEngine.nbContacts + " Contacts";
 
     const deltaTime = Math.min(engine.getDeltaTime() / 1000, 0.017 * 2);
@@ -120,7 +131,7 @@ function updateScene() {
 }
 
 // use zqsd to move the target of the camera
-document.addEventListener("keydown", e => {
+document.addEventListener("keydown", (e) => {
     if (e.key == "g") {
         isGravityUniform = !isGravityUniform;
         if (!isGravityUniform) {
@@ -131,12 +142,13 @@ document.addEventListener("keydown", e => {
             physicsEngine.addField(gravityUniform);
         }
     }
-    if (e.key == "p") Tools.CreateScreenshotAsync(engine, camera, { precision: 2 }).then((data) => {
-        const link = document.createElement("a");
-        link.download = "screenshot.png";
-        link.href = data;
-        link.click();
-    });
+    if (e.key == "p")
+        Tools.CreateScreenshotAsync(engine, camera, { precision: 2 }).then((data) => {
+            const link = document.createElement("a");
+            link.download = "screenshot.png";
+            link.href = data;
+            link.click();
+        });
     if (e.key == "b") physicsEngine.toggleBoundingBoxes();
     if (e.key == "w") physicsEngine.toggleWireframe();
     if (e.key == "h") {
@@ -152,7 +164,9 @@ document.getElementById("toggleHashGrid")!.addEventListener("click", () => {
     Settings.DISPLAY_INFINITE_SPATIAL_HASH_GRID = !Settings.DISPLAY_INFINITE_SPATIAL_HASH_GRID;
     physicsEngine.infiniteSpatialHashGrid.setVisible(Settings.DISPLAY_INFINITE_SPATIAL_HASH_GRID);
 });
-document.getElementById("toggleContactPoints")!.addEventListener("click", () => Settings.DISPLAY_CONTACT_POINTS = !Settings.DISPLAY_CONTACT_POINTS);
+document
+    .getElementById("toggleContactPoints")!
+    .addEventListener("click", () => (Settings.DISPLAY_CONTACT_POINTS = !Settings.DISPLAY_CONTACT_POINTS));
 
 scene.executeWhenReady(() => {
     scene.registerBeforeRender(() => updateScene());
@@ -165,7 +179,6 @@ window.addEventListener("resize", () => {
     engine.resize();
 });
 
-window.addEventListener("keydown", e => {
+window.addEventListener("keydown", (e) => {
     if (e.key == " ") physicsEngine.togglePause();
 });
-
