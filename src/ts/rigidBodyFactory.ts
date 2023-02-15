@@ -1,4 +1,4 @@
-import { Color3, Mesh, MeshBuilder, Scene, StandardMaterial, Vector3, VertexBuffer } from "@babylonjs/core";
+import { Mesh, MeshBuilder, Scene, Vector3, VertexBuffer } from "@babylonjs/core";
 import { Matrix3 } from "./utils/matrix3";
 import { RigidBody } from "./rigidBody";
 import { Settings } from "./settings";
@@ -8,6 +8,9 @@ import { getMeshAllVerticesWorldSpace } from "./utils/vertex";
 import heightmap from "../assets/heightMap.png";
 import { getRandomColorMaterial } from "./utils/materials";
 
+/**
+ * A factory class for creating rigid bodies
+ */
 export class RigidBodyFactory {
 
     static CreateCuboid(name: string, scene: Scene, scaling = Vector3.One(), mass = 1, restitution = Settings.DEFAULT_RESTITUTION, friction = Settings.DEFAULT_FRICTION): RigidBody {

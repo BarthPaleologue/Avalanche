@@ -7,62 +7,104 @@ import { Settings } from "./settings";
 import { computeCollisionImpulse, computeFrictionImpulse } from "./utils/impulse";
 import { InfiniteSpatialHashGrid } from "./utils/infiniteSpatialHashGrid";
 
+/**
+ * The AvalancheEngine is the main class of the physics engine.
+ * It is responsible for updating the bodies and computing the collisions.
+ */
 export class AvalancheEngine {
+    // The list of all the bodies in the scene
     readonly bodies: RigidBody[] = [];
+
+    // The list of all the static bodies in the scene
     readonly staticBodies: RigidBody[] = [];
 
+    // The list of all the force fields in the scene
     private readonly fields: ForceField[] = [];
 
+    // The list of all the AABB contacts in the scene
     private contacts: Contact[] = [];
 
+    // The list of all the helper meshes (for debugging purposes)
     private helperMeshes: Mesh[] = [];
 
+    // The running state of the engine
     private isPaused = false;
 
+    // The spatial hash grid used to speed up the collision detection
     readonly infiniteSpatialHashGrid: InfiniteSpatialHashGrid = new InfiniteSpatialHashGrid(2);
 
-    constructor() {
-        //
-    }
-
+    /**
+     * Adds a body to the engine and returns it
+     * @param body The body to add to the engine
+     * @returns The body that was added
+     */
     public addBody(body: RigidBody): RigidBody {
         this.bodies.push(body);
         if (body.isStatic) this.staticBodies.push(body);
         return body;
     }
 
+    /**
+     * Adds multiple bodies to the engine
+     * @param bodies The bodies to add to the engine
+     */
     public addBodies(...bodies: RigidBody[]) {
         for (const body of bodies) this.addBody(body);
     }
 
+    /**
+     * Removes a body from the engine
+     * @param body The body to remove from the engine
+     */
     public removeBody(body: RigidBody) {
         const index = this.bodies.indexOf(body);
         if (index > -1) this.bodies.splice(index, 1);
         else throw new Error("Body not found");
     }
 
+    /**
+     * Adds a force field to the engine
+     * @param field The force field to add to the engine
+     */
     public addField(field: ForceField) {
         this.fields.push(field);
     }
 
+    /**
+     * Removes a force field from the engine
+     * @param field The force field to remove from the engine
+     */
     public removeField(field: ForceField) {
         const index = this.fields.indexOf(field);
         if (index > -1) this.fields.splice(index, 1);
         else throw new Error("Field not found");
     }
 
+    /**
+     * Toggles the running state of the engine
+     */
     public togglePause() {
         this.isPaused = !this.isPaused;
     }
 
+    /**
+     * Returns the running state of the engine
+     */
     get paused() {
         return this.isPaused;
     }
 
+    /**
+     * Returns the number of AABB contacts in the scene
+     */
     get nbContacts() {
         return this.contacts.length;
     }
 
+    /**
+     * Updates the state of all the bodies of the engine
+     * @param deltaTime The time elapsed since the last frame
+     */
     public update(deltaTime: number) {
         if (this.isPaused) return;
 
@@ -117,7 +159,7 @@ export class AvalancheEngine {
             }
         }
 
-        /// NARROW PHASE
+        //// NARROW PHASE
 
         // compute collisions O(n²) narrow phase
         for (const contact of this.contacts) this.resolveContactBisection(contact, 0, deltaTime, deltaTime, 0);
@@ -126,6 +168,14 @@ export class AvalancheEngine {
         for (const body of this.bodies) body.applyNextStep();
     }
 
+    /**
+     * Resolves the collisions between two bodies using the bisection method (recursive)
+     * @param contact The contact between the two bodies
+     * @param tmin the lower bound of the time interval
+     * @param tmax the upper bound of the time interval
+     * @param initialIntervalLength the length of the initial time interval
+     * @param depth the depth of the recursion
+     */
     private resolveContactBisection(contact: Contact, tmin: number, tmax: number, initialIntervalLength: number, depth: number) {
         const [bodyA, bodyB] = [contact.a, contact.b];
         if (bodyA.isStatic && bodyB.isStatic) return; // both bodies are static
@@ -211,6 +261,10 @@ export class AvalancheEngine {
         }
     }
 
+    /**
+     * Repels bodies if they are interpenetrating
+     * @param contact The contact between the two bodies
+     */
     private repellBodies(contact: Contact) {
         const bodyA = contact.a;
         const bodyB = contact.b;
@@ -240,16 +294,25 @@ export class AvalancheEngine {
         }
     }
 
+    /**
+     * Toggles the display of the bounding boxes
+     */
     public toggleBoundingBoxes() {
         Settings.DISPLAY_BOUNDING_BOXES = !Settings.DISPLAY_BOUNDING_BOXES;
         for (const body of this.bodies) body.currentState.aabb.setVisible(Settings.DISPLAY_BOUNDING_BOXES);
     }
 
+    /**
+     * Toggles the display of wireframes
+     */
     public toggleWireframe() {
         Settings.WIREFRAME = !Settings.WIREFRAME;
         for (const body of this.bodies) (body.mesh.material as StandardMaterial).wireframe = Settings.WIREFRAME;
     }
 
+    /**
+     * Toggles the display of resting bodies as transparent
+     */
     public toggleResting() {
         Settings.DISPLAY_RESTING = !Settings.DISPLAY_RESTING;
         for (const body of this.bodies) (body.mesh.material as StandardMaterial).alpha = Settings.DISPLAY_RESTING && body.isResting ? 0.2 : 1;

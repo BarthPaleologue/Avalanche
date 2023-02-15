@@ -40,6 +40,9 @@ If you do any changes to the code, you can run it on the production server by ru
 
 Finally, there is a video of the engine in action: [Video](https://youtu.be/glrhWh6qJqw)
 
+The code of the engine is in the `src/ts` folder. You will find the important files `engine.ts` and 
+`rigidbody.ts`. The other files are either called by them or are just used for the demos. The intersection code is in `src/ts/utils/intersection.ts`.
+
 ## The Physics Engine
 
 ### Rigidbody motion

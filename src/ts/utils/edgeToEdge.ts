@@ -1,9 +1,8 @@
-import { Color3, Vector3 } from "@babylonjs/core";
+import { Vector3 } from "@babylonjs/core";
 import { Settings } from "../settings";
-import { Edge, closestPointOnEdge, getMeshEdgesWorldSpace, getUniqueEdgesWorldSpaceInAABB } from "./edge";
+import { Edge, closestPointOnEdge, getUniqueEdgesWorldSpaceInAABB } from "./edge";
 import { RigidBody } from "../rigidBody";
 import { AABB } from "../aabb";
-import { displayEdge } from "./display";
 
 export function findEdgeCollisions(bodyA: RigidBody, bodyB: RigidBody, overlap: AABB): [number, Vector3[], Vector3[], Vector3[], number[]] {
     const edgesA = getUniqueEdgesWorldSpaceInAABB(bodyA.mesh, bodyA.mesh.getWorldMatrix(), overlap);
@@ -62,10 +61,10 @@ export function findEdgeCollisions(bodyA: RigidBody, bodyB: RigidBody, overlap: 
         }
     }
 
-    for (const [edgeA, edgeB] of intersectingEdges) {
+    /*for (const [edgeA, edgeB] of intersectingEdges) {
         //displayEdge(edgeA, Color3.Red(), 16);
         //displayEdge(edgeB, Color3.Red());
-    }
+    }*/
 
     return [maxPenetration, intersectionPointsEdgesA, intersectionPointsEdgesB, normals, penetrationDistances];
 }

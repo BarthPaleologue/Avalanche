@@ -10,7 +10,6 @@ import {
 import "../styles/index.scss";
 import { AvalancheEngine } from "./engine";
 import { RigidBodyFactory } from "./rigidBodyFactory";
-import { UniformPonctualField } from "./forceFields/uniformPonctualField";
 import { UniformDirectionalField } from "./forceFields/uniformDirectionalField";
 import { randomVector3 } from "./utils/random";
 import { Assets } from "./assets";

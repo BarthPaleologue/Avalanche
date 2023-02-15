@@ -1,5 +1,8 @@
 import { Vector3 } from "@babylonjs/core";
 
+/**
+ * A queue of Vector3 (Written by Copilot)
+ */
 export class VectorQueue {
     private readonly _queue: Vector3[];
     private _head = 0;

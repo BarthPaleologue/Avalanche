@@ -6,7 +6,6 @@ import {
     Vector3,
     VertexBuffer
 } from "@babylonjs/core";
-import { RigidBody } from "./rigidBody";
 import { Settings } from "./settings";
 import { Triangle } from "./utils/triangle";
 import { Edge } from "./utils/edge";
