@@ -22,23 +22,24 @@ Dynamic geometry: [https://barthpaleologue.github.io/Avalanche/dist/carpet.html]
 
 Small planet: [https://barthpaleologue.github.io/Avalanche/dist/planeta.html](https://barthpaleologue.github.io/Avalanche/dist/planeta.html)
 
+Finally, there is a video of the engine in action: [Video](https://youtu.be/glrhWh6qJqw)
+
 There is a small UI that allows to display bounding boxes, contact points, the hash grid, resting bodies and wireframes. You can click on bodies to apply an impulse to them.
 
-To run the code on your machine you must have Node.js installed. Then, clone the repo and run the following commands:
+The dependencies are quite heavy (the burden of webgl) so they are not included in the repo.
+To run the code on your machine you must have Node.js installed. Then run the following commands:
 
     npm install
-    npm run serve
-
-To run the production speed without overhead, run:
-
     npm run serve:prod
 
-If you do any changes to the code, you can run it on the production server by running:
+If you modify the code, you can run on development mode by running:
+
+    npm run serve
+
+There will be overhead so you can run it on the production server by running:
 
     npm run build
     npm run serve:prod
-
-Finally, there is a video of the engine in action: [Video](https://youtu.be/glrhWh6qJqw)
 
 The code of the engine is in the `src/ts` folder. You will find the important files `engine.ts` and 
 `rigidbody.ts`. The other files are either called by them or are just used for the demos. The intersection code is in `src/ts/utils/intersection.ts`.
@@ -54,15 +55,21 @@ There is a uniformly directional force field, and a point force field to emulate
 
 ![Planetary gravity](./cover/planet.png)
 
+The last thing I added is inertia tensor calculation. I found a formula on the internet for the inertia tensor of a triangle in 3D space. I then used this formula to compute the inertia tensor of any mesh. It seems to work with an exact x10 error (compared with the cube and the cylinder). Therefore I divided by 10, but I think there is more to do to make this formula truly work.
+
 ### Collision detection: Broad phase
+
+The collision detection system proposed by David is in two phases. First we perform a broad phase that is fast and imprecise to detect all the bodies that might be intersecting.
 
 #### AABBs
 
+The paper describes how Axis Aligned Bounding Boxes work in great length, therefore I chosed to implement this phase using AABBs. Computing the intersection of 2 AABBs is very fast, and one nice property is that their overlap is another AABB.
+
+Each body is given 2 AABBs, one for the current state, and one for the next state that is being computed multiple times in the narrow phase. 
+
+Sometimes, you can get very close contact without any AABB intersection. To avoid this, I add an epsilon-offset to the AABBs to catch more collisions early on. It allows for faster moving objects without interpenetration.
+
 ![AABBs in action](./cover/bbs.png)
-
-The collision system described in the paper is in two phases. First we want to quickly and broadly find which bodies may be colliding. As the paper describes how AABBs work in great length, I chosed to implement this phase using AABBs. One thing I also like about AABBs it that the intersection between two AABBs is another AABB, which will be useful later.
-
-Each body is given 2 AABBs, one for the current state, and one for the next state that is being computed. I add an epsilon-offset to the AABBs to catch more collisions early on. It allows for faster moving objects without interpenetration.
 
 #### Infinite Spatial Hash Grid
 
