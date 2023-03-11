@@ -19,7 +19,7 @@ export class AvalancheEngine {
     readonly staticBodies: RigidBody[] = [];
 
     // The list of all the force fields in the scene
-    private readonly fields: ForceField[] = [];
+    private readonly forceFields: ForceField[] = [];
 
     // The list of all the AABB contacts in the scene
     private contacts: Contact[] = [];
@@ -66,17 +66,17 @@ export class AvalancheEngine {
      * Adds a force field to the engine
      * @param field The force field to add to the engine
      */
-    public addField(field: ForceField) {
-        this.fields.push(field);
+    public addForceField(field: ForceField) {
+        this.forceFields.push(field);
     }
 
     /**
      * Removes a force field from the engine
      * @param field The force field to remove from the engine
      */
-    public removeField(field: ForceField) {
-        const index = this.fields.indexOf(field);
-        if (index > -1) this.fields.splice(index, 1);
+    public removeForceField(field: ForceField) {
+        const index = this.forceFields.indexOf(field);
+        if (index > -1) this.forceFields.splice(index, 1);
         else throw new Error("Field not found");
     }
 
@@ -110,7 +110,7 @@ export class AvalancheEngine {
 
         for (const mesh of this.helperMeshes) mesh.dispose();
 
-        for (const field of this.fields) {
+        for (const field of this.forceFields) {
             for (const body of this.bodies) {
                 const force = field.computeForce(body);
                 body.applyForce(force);

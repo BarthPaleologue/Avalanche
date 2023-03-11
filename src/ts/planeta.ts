@@ -12,7 +12,7 @@ import {
 import "../styles/index.scss";
 import { AvalancheEngine } from "./engine";
 import { RigidBodyFactory } from "./rigidBodyFactory";
-import { UniformPonctualField } from "./forceFields/uniformPonctualField";
+import { PonctualField } from "./forceFields/ponctualField";
 import { randomSphere, randomVector3 } from "./utils/random";
 import { Assets } from "./assets";
 import { Settings } from "./settings";
@@ -40,7 +40,8 @@ const ambientLight = new HemisphericLight("ambientLight", new Vector3(0, 1, 0), 
 ambientLight.intensity = 0.2;
 
 const physicsEngine = new AvalancheEngine();
-const gravityPonctual = new UniformPonctualField(new Vector3(0, -10, 0), 100, physicsEngine);
+const gravityPonctual = new PonctualField(new Vector3(0, -10, 0), 100);
+physicsEngine.addForceField(gravityPonctual);
 
 const ground = RigidBodyFactory.CreateIcoSphere("ground", scene, 10, 0, 0.1);
 ground.setInitialPosition(new Vector3(0, -10, 0));

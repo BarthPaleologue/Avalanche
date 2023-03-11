@@ -42,7 +42,8 @@ const ambientLight = new HemisphericLight("ambientLight", new Vector3(0, 1, 0), 
 ambientLight.intensity = 0.2;
 
 const physicsEngine = new AvalancheEngine();
-const gravityUniform = new UniformDirectionalField(new Vector3(0, -9.81, 0), physicsEngine);
+const gravityUniform = new UniformDirectionalField(new Vector3(0, -9.81, 0));
+physicsEngine.addForceField(gravityUniform);
 
 const ground = RigidBodyFactory.CreateCuboid("ground", scene, new Vector3(20, 1, 20), 0, 0.1);
 ground.setInitialPosition(new Vector3(0, -10, 0));

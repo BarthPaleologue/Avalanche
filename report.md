@@ -140,6 +140,8 @@ GJK algorithm: [https://cse442-17f.github.io/Gilbert-Johnson-Keerthi-Distance-Al
 
 GJK algorithm: [https://www.youtube.com/watch?v=MDusDn8oTSE&t=322s](https://www.youtube.com/watch?v=MDusDn8oTSE&t=322s)
 
+Vertex to Face collision detection: [https://www.youtube.com/watch?v=qdBLJljSqys](https://www.youtube.com/watch?v=qdBLJljSqys)
+
 Friction Impulse: [https://gafferongames.com/post/collision_response_and_coulomb_friction/](https://gafferongames.com/post/collision_response_and_coulomb_friction/)
 
 Finding inertia tensor of a 3d triangle: [https://web.archive.org/web/20161229044620/https://en.wikipedia.org/wiki/Inertia_tensor_of_triangle](https://web.archive.org/web/20161229044620/https://en.wikipedia.org/wiki/Inertia_tensor_of_triangle)

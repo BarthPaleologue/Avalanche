@@ -1,14 +1,12 @@
 import { ForceField } from "./forceField";
 import { Vector3 } from "@babylonjs/core";
 import { RigidBody } from "../rigidBody";
-import { AvalancheEngine } from "../engine";
 import { Force } from "./force";
 
 export class UniformDirectionalField implements ForceField {
     readonly acceleration: Vector3;
 
-    constructor(acceleration: Vector3, physicsEngine?: AvalancheEngine) {
-        if (physicsEngine) physicsEngine.addField(this);
+    constructor(acceleration: Vector3) {
         this.acceleration = acceleration;
     }
 
