@@ -44,7 +44,7 @@ export class RigidBody {
         position: Vector3.Zero(),
         rotationQuaternion: Quaternion.Identity(),
         velocity: Vector3.Zero(),
-        omega: Vector3.Zero(),
+        angularVelocity: Vector3.Zero(),
         momentum: Vector3.Zero(),
         angularMomentum: Vector3.Zero(),
         rotationMatrix: Matrix3.identity(),
@@ -59,7 +59,7 @@ export class RigidBody {
         position: Vector3.Zero(),
         rotationQuaternion: Quaternion.Identity(),
         velocity: Vector3.Zero(),
-        omega: Vector3.Zero(),
+        angularVelocity: Vector3.Zero(),
         momentum: Vector3.Zero(),
         angularMomentum: Vector3.Zero(),
         rotationMatrix: Matrix3.identity(),
@@ -134,13 +134,14 @@ export class RigidBody {
             const relativeVelocity = this.currentState.velocity.subtract(neighbor.currentState.velocity);
             if (
                 relativeVelocity.length() > linearThreshold ||
-                neighbor.currentState.omega.length() > angularThreshold
+                neighbor.currentState.angularVelocity.length() > angularThreshold
             ) {
                 return false;
             }
         }
         return (
-            this.currentState.velocity.length() < linearThreshold && this.currentState.omega.length() < angularThreshold
+            this.currentState.velocity.length() < linearThreshold &&
+            this.currentState.angularVelocity.length() < angularThreshold
         );
     }
 
@@ -224,14 +225,14 @@ export class RigidBody {
         }
 
         this.nextState.velocity = this.nextState.momentum.scale(1 / this.mass);
-        this.nextState.omega = this.nextState.inverseInertiaTensor.applyTo(this.nextState.angularMomentum);
+        this.nextState.angularVelocity = this.nextState.inverseInertiaTensor.applyTo(this.nextState.angularMomentum);
 
         this.nextState.isResting = this.computeResting();
 
         const omegaQuaternion = new Quaternion(
-            this.currentState.omega.x,
-            this.currentState.omega.y,
-            this.currentState.omega.z,
+            this.currentState.angularVelocity.x,
+            this.currentState.angularVelocity.y,
+            this.currentState.angularVelocity.z,
             0
         );
 
@@ -270,7 +271,7 @@ export class RigidBody {
 
         if (this.internalCounter % 20 == 0) {
             this.velocityQueue.enqueue(this.currentState.velocity);
-            this.omegaQueue.enqueue(this.currentState.omega);
+            this.omegaQueue.enqueue(this.currentState.angularVelocity);
         }
 
         if (this.isResting) (this.mesh.material as StandardMaterial).alpha = Settings.DISPLAY_RESTING ? 0.2 : 1;
@@ -288,7 +289,7 @@ export class RigidBody {
      * @returns The velocity of the rigid body at the given point.
      */
     public getVelocityAtPoint(point: Vector3): Vector3 {
-        return this.currentState.velocity.add(this.currentState.omega.cross(point));
+        return this.currentState.velocity.add(this.currentState.angularVelocity.cross(point));
     }
 
     /**
@@ -304,6 +305,6 @@ export class RigidBody {
      * @returns
      */
     public getVelocityAtPointNext(point: Vector3): Vector3 {
-        return this.nextState.velocity.add(this.nextState.omega.cross(point));
+        return this.nextState.velocity.add(this.nextState.angularVelocity.cross(point));
     }
 }

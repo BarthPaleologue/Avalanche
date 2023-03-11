@@ -15,6 +15,6 @@ export class PonctualField implements ForceField {
     computeForce(body: RigidBody): Force {
         const d = this.point.subtract(body.positionRef).length();
         const dir = this.point.subtract(body.positionRef).scaleInPlace(1 / d);
-        return new Force(dir.scale(body.mass * this.strength / d ** 2));
+        return new Force(dir.scale((body.mass * this.strength) / d ** 2));
     }
 }
